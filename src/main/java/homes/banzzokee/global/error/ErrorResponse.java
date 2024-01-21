@@ -7,15 +7,14 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class ErrorResponse<T> {
+public class ErrorResponse {
 
-  private ErrorCode error;
-  private String message;
+  private final ErrorCode error;
+  private final String message;
 
-  public static <T> ErrorResponse<T> fail(ErrorCode errorCode) {
-    return ErrorResponse.<T>builder()
+  public static ErrorResponse of(ErrorCode errorCode) {
+    return ErrorResponse.builder()
         .error(errorCode)
         .message(errorCode.getMessage())
         .build();

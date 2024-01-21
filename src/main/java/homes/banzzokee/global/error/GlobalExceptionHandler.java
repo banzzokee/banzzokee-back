@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(CustomException.class)
-  public ResponseEntity<ErrorResponse<?>> handleCustomException(CustomException e, HttpServletRequest request) {
+  public ResponseEntity<ErrorResponse> handleCustomException(CustomException e, HttpServletRequest request) {
     log.error("[CustomException] {} is occurred. uri:{}", e.getErrorCode(), request.getRequestURI());
 
     return ResponseEntity
         .status(e.getErrorCode().getHttpStatus())
         .body(
-            ErrorResponse.fail(e.getErrorCode())
+            ErrorResponse.of(e.getErrorCode())
         );
   }
 
