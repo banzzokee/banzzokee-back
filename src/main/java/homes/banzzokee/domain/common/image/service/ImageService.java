@@ -9,9 +9,7 @@ import homes.banzzokee.global.error.ErrorCode;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -27,51 +25,49 @@ public class ImageService {
   private String bucketName;
 
   /**
-   * 1개의 이미지 파일 업로드(비동기)
+   * 1개의 이미지 파일 업로드
    */
   public ImageDto uploadOneFile(MultipartFile multipartFile) {
-    return uploadFile(multipartFile).join();
+    try {
+      return uploadFile(multipartFile);
+    } catch (IOException e) {
+      throw new ImageFailToUploadException(ErrorCode.FAIL_TO_UPLOAD_FILE);
+    }
   }
 
   /**
-   * 여러 개의 이미지 파일 업로드(비동기 처리)
+   * 여러 개의 이미지 파일 업로드
    */
   public List<ImageDto> uploadManyFile(List<MultipartFile> multipartFiles) {
-    List<CompletableFuture<ImageDto>> futures = multipartFiles.stream()
-        .map(this::uploadFile).toList();
-
-    return CompletableFuture.allOf(
-            futures.toArray(new CompletableFuture[0]))
-        .thenApply(Void -> futures.stream()
-            .map(CompletableFuture::join)
-            .toList()).join();
+    return multipartFiles.stream()
+        .map(multipartFile -> {
+          try {
+            return this.uploadFile(multipartFile);
+          } catch (IOException e) {
+            throw new ImageFailToUploadException(ErrorCode.FAIL_TO_UPLOAD_FILE);
+          }
+        }).toList();
   }
 
   public void deleteFile(String filename) {
     amazonS3Client.deleteObject(bucketName, filename);
   }
 
-  private CompletableFuture<ImageDto> uploadFile(MultipartFile multipartFile) {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(multipartFile.getContentType());
-        objectMetadata.setContentLength(multipartFile.getSize());
+  private ImageDto uploadFile(MultipartFile multipartFile) throws IOException {
+    ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.setContentType(multipartFile.getContentType());
+    objectMetadata.setContentLength(multipartFile.getSize());
 
-        String extension = StringUtils.getFilenameExtension(
-            multipartFile.getOriginalFilename());
-        String filename = UUID.randomUUID() + "." + extension;
+    String extension = StringUtils.getFilenameExtension(
+        multipartFile.getOriginalFilename());
+    String filename = UUID.randomUUID() + "." + extension;
 
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, filename,
-            multipartFile.getInputStream(), objectMetadata);
+    PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, filename,
+        multipartFile.getInputStream(), objectMetadata);
 
-        amazonS3Client.putObject(putObjectRequest);
+    amazonS3Client.putObject(putObjectRequest);
 
-        String objectUrl = amazonS3Client.getUrl(bucketName, filename).toString();
-        return new ImageDto(objectUrl, filename);
-      } catch (IOException e) {
-        throw new ImageFailToUploadException(ErrorCode.FAIL_TO_UPLOAD_FILE);
-      }
-    });
+    String objectUrl = amazonS3Client.getUrl(bucketName, filename).toString();
+    return new ImageDto(objectUrl, filename);
   }
 }
