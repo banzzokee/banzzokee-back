@@ -47,6 +47,10 @@ public class ImageService {
             .toList()).join();
   }
 
+  public void deleteFile(String filename) {
+    amazonS3Client.deleteObject(bucketName, filename);
+  }
+
   private CompletableFuture<ImageDto> uploadFile(MultipartFile multipartFile) {
     return CompletableFuture.supplyAsync(() -> {
       try {
