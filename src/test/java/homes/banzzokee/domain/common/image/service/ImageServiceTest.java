@@ -35,7 +35,7 @@ class ImageServiceTest {
   private ImageService imageService;
 
   @Test
-  @DisplayName("1개 파일 업로드 성공 테스트")
+  @DisplayName("1개 파일 업로드 성공 테스트 ")
   void successUploadFile() throws IOException {
     //given
     MultipartFile multipartFile = createMockMultipartFile();
