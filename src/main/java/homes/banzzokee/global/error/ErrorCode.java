@@ -1,10 +1,10 @@
 package homes.banzzokee.global.error;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
   FAILED(BAD_REQUEST, "실패했습니다."),
-
+  USER_NOT_FOUND(NOT_FOUND, "사용자를 찾을 수 없습니다."),
   ;
 
   private final HttpStatus httpStatus;
