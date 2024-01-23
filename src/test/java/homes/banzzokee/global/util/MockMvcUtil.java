@@ -28,4 +28,12 @@ public class MockMvcUtil {
                 .contentType(APPLICATION_JSON))
         .andDo(print());
   }
+
+  public static ResultActions performPost(MockMvc mockMvc, String url)
+      throws Exception {
+    return mockMvc.perform(
+            post(url)
+                .contentType(APPLICATION_JSON))
+        .andDo(print());
+  }
 }
