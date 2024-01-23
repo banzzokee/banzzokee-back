@@ -1,5 +1,6 @@
 package homes.banzzokee.domain.auth.controller;
 
+import homes.banzzokee.domain.auth.dto.EmailDto;
 import homes.banzzokee.domain.auth.dto.SignupDto;
 import homes.banzzokee.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -20,6 +21,12 @@ public class AuthController {
   @PostMapping("/sign-up")
   public ResponseEntity<Void> signup(@Valid @RequestBody SignupDto signupDto) {
     return ResponseEntity.ok().body(authService.signup(signupDto));
+  }
+
+  @PostMapping("/send-verify")
+  public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody EmailDto emailDto) {
+    authService.sendVerificationCode(emailDto);
+    return ResponseEntity.ok().build();
   }
 
 }

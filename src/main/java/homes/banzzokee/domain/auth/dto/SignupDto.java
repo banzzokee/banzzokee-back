@@ -15,8 +15,7 @@ import lombok.Getter;
 public class SignupDto {
 
   @NotBlank(message = "email 은 필수 입력 항목입니다.")
-  @Email(message = "올바른 이메일 형식을 입력해주세요.")
-  @Pattern(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
+  @Email(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", message = "올바른 이메일 형식을 입력해주세요.")
   private String email;
 
   @NotBlank(message = "password 는 필수 입력 항목입니다.")
