@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.room.controller;
 
-import homes.banzzokee.domain.room.dto.RoomCreateResponse;
+import homes.banzzokee.domain.room.dto.CreateRoomResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class ChatRoomController {
    * @return
    */
   @PostMapping("/adoptions/{adoptionId}")
-  public RoomCreateResponse createChatRoom(
+  public CreateRoomResponse createChatRoom(
 //      @AuthenticationPrincipal UserDetails,
       @PathVariable("adoptionId") Long adoptionId) {
 

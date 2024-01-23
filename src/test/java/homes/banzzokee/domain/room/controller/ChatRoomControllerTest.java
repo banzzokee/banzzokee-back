@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import homes.banzzokee.domain.room.dto.ChatShelterDto;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
-import homes.banzzokee.domain.room.dto.RoomCreateResponse;
+import homes.banzzokee.domain.room.dto.CreateRoomResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
 import homes.banzzokee.global.util.MockMvcUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +34,7 @@ class ChatRoomControllerTest {
   void success_createChatRoom() throws Exception {
     //given
     given(chatRoomService.createChatRoom(anyString(), anyLong(), anyLong()))
-        .willReturn(RoomCreateResponse.builder()
+        .willReturn(CreateRoomResponse.builder()
             .roomId(1L)
             .user(ChatUserDto.builder()
                 .userId(1L)
