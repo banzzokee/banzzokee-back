@@ -47,6 +47,9 @@ class UserServiceTest {
   @Autowired
   private ShelterRepository shelterRepository;
 
+  private User user1;
+  private User user2;
+
   @PostConstruct
   private void initialize() {
     userService = new UserService(userRepository, followRepository);
@@ -70,7 +73,7 @@ class UserServiceTest {
         .verified(false)
         .build());
 
-    userRepository.save(User.builder()
+    user1 = userRepository.save(User.builder()
         .email("user1@banzzokee.homes")
         .nickname("사용자1")
         .profileImgUrl("avatar.png")
@@ -80,7 +83,7 @@ class UserServiceTest {
         .shelter(shelter1)
         .build());
 
-    userRepository.save(User.builder()
+    user2 = userRepository.save(User.builder()
         .email("user2@banzzokee.homes")
         .nickname("사용자2")
         .profileImgUrl("avatar.png")
@@ -106,7 +109,7 @@ class UserServiceTest {
   void getUserProfile_Shelter_Is_Not_Null_When_Shelter_Is_Verified() {
     // given
     // when
-    UserProfileDto userProfile = userService.getUserProfile(1L);
+    UserProfileDto userProfile = userService.getUserProfile(user1.getId());
 
     // then
     assertNotNull(userProfile.shelter());
@@ -117,7 +120,7 @@ class UserServiceTest {
   void getUserProfile_Shelter_Is_Null_When_Shelter_Is_Not_Verified() {
     // given
     // when
-    UserProfileDto userProfile = userService.getUserProfile(2L);
+    UserProfileDto userProfile = userService.getUserProfile(user2.getId());
 
     // then
     assertNull(userProfile.shelter());
@@ -130,7 +133,7 @@ class UserServiceTest {
     // when
     // then
     assertThrows(CanNotFollowSelfException.class,
-        () -> userService.followUser(1L, 1L));
+        () -> userService.followUser(user1.getId(), user1.getId()));
   }
 
   @Test
@@ -140,7 +143,7 @@ class UserServiceTest {
     // when
     // then
     assertThrows(CanFollowOnlyShelterUserException.class,
-        () -> userService.followUser(2L, 1L));
+        () -> userService.followUser(user1.getId(), user2.getId()));
   }
 
   @Test
@@ -148,12 +151,12 @@ class UserServiceTest {
   void success_FollowUser() {
     // given
     // when
-    FollowDto follow = userService.followUser(2L, 1L);
+    FollowDto follow = userService.followUser(user2.getId(), user1.getId());
 
     // then
-    assertEquals(1L, follow.follower().userId());
-    assertEquals("사용자1", follow.follower().nickname());
-    assertEquals(2L, follow.followee().userId());
-    assertEquals("사용자2", follow.followee().nickname());
+    assertEquals(user1.getId(), follow.follower().userId());
+    assertEquals(user1.getNickname(), follow.follower().nickname());
+    assertEquals(user2.getId(), follow.followee().userId());
+    assertEquals(user2.getNickname(), follow.followee().nickname());
   }
 }
