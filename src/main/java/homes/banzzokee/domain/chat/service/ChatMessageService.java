@@ -12,10 +12,10 @@ import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.error.exception.CustomException;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,15 +71,14 @@ public class ChatMessageService {
    * @return
    */
   @Transactional(readOnly = true)
-  public List<MessageDto> getChatList(Long roomId) {
+  public Slice<MessageDto> getChatList(Long roomId, Pageable pageable) {
 
     // todo: FAILED -> ROOM_NOT_FOUND
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
         .orElseThrow(() -> new CustomException(FAILED));
 
-    return chatMessageRepository.findAllByRoom(chatRoom).stream()
-        .map(MessageDto::fromEntity)
-        .collect(Collectors.toList());
+    return chatMessageRepository.findAllByRoom(chatRoom, pageable)
+        .map(MessageDto::fromEntity);
   }
 
 }
