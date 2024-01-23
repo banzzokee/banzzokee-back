@@ -3,7 +3,7 @@ package homes.banzzokee.domain.room.service;
 import static homes.banzzokee.global.error.ErrorCode.FAILED;
 
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
-import homes.banzzokee.domain.room.dto.RoomCreateResponse;
+import homes.banzzokee.domain.room.dto.CreateRoomResponse;
 import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
@@ -27,7 +27,7 @@ public class ChatRoomService {
   private final ShelterRepository shelterRepository;
 //  private final AdoptionRepository;
 
-  public RoomCreateResponse createChatRoom(String email, Long adoptionId,
+  public CreateRoomResponse createChatRoom(String email, Long adoptionId,
       Long userId) {
 
     // todo: userRepository 에 findByUidAndDeletedAtNull(String email) 추가
@@ -39,7 +39,7 @@ public class ChatRoomService {
     Shelter shelter = shelterRepository.findById(1L)
         .orElseThrow(() -> new CustomException(FAILED));
 
-    return RoomCreateResponse.fromEntity(
+    return CreateRoomResponse.fromEntity(
         chatRoomRepository.save(ChatRoom.builder()
             .user(user)
             .shelter(shelter)

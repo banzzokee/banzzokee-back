@@ -11,14 +11,14 @@ import lombok.Builder;
  * @param shelter
  */
 @Builder
-public record RoomCreateResponse(
+public record CreateRoomResponse(
     Long roomId,
     ChatUserDto user,
     ChatShelterDto shelter
 ) {
 
-  public static RoomCreateResponse fromEntity(ChatRoom chatRoom) {
-    return RoomCreateResponse.builder()
+  public static CreateRoomResponse fromEntity(ChatRoom chatRoom) {
+    return CreateRoomResponse.builder()
         .roomId(chatRoom.getId())
         .user(ChatUserDto.fromEntity(chatRoom.getUser()))
         .shelter(ChatShelterDto.fromEntity(chatRoom.getShelter()))
