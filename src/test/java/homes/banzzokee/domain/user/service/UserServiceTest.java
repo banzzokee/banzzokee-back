@@ -38,6 +38,10 @@ class UserServiceTest {
   @Autowired
   private ShelterRepository shelterRepository;
 
+  private User user1;
+
+  private User user2;
+
   @PostConstruct
   private void initialize() {
     userService = new UserService(userRepository);
@@ -58,7 +62,7 @@ class UserServiceTest {
         .verified(false)
         .build());
 
-    userRepository.save(User.builder()
+    user1 = userRepository.save(User.builder()
         .email("user1@banzzokee.homes")
         .nickname("사용자1")
         .profileImgUrl("avatar.png")
@@ -68,7 +72,7 @@ class UserServiceTest {
         .shelter(shelter1)
         .build());
 
-    userRepository.save(User.builder()
+    user2 = userRepository.save(User.builder()
         .email("user2@banzzokee.homes")
         .nickname("사용자2")
         .profileImgUrl("avatar.png")
@@ -94,7 +98,7 @@ class UserServiceTest {
   void getUserProfile_Shelter_Is_Not_Null_When_Shelter_Is_Verified() {
     // given
     // when
-    UserProfileDto userProfile = userService.getUserProfile(1L);
+    UserProfileDto userProfile = userService.getUserProfile(user1.getId());
 
     // then
     assertNotNull(userProfile.shelter());
@@ -105,7 +109,7 @@ class UserServiceTest {
   void getUserProfile_Shelter_Is_Null_When_Shelter_Is_Not_Verified() {
     // given
     // when
-    UserProfileDto userProfile = userService.getUserProfile(2L);
+    UserProfileDto userProfile = userService.getUserProfile(user2.getId());
 
     // then
     assertNull(userProfile.shelter());
