@@ -6,7 +6,6 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -15,7 +14,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import org.testcontainers.utility.DockerImageName;
 
-@Slf4j
 @Testcontainers
 public class LocalStackTestContainersTest {
   private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack");
