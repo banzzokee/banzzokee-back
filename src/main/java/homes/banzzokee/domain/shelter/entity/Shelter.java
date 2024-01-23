@@ -63,13 +63,13 @@ public class Shelter extends BaseEntity {
 
   @Builder
   public Shelter(String name, String shelterImgUrl, String tel, String address,
-      Double latitude, Double longitude) {
+      Double latitude, Double longitude, boolean verified) {
     this.name = name;
     this.shelterImgUrl = shelterImgUrl;
     this.tel = tel;
     this.address = address;
     this.latitude = latitude;
     this.longitude = longitude;
-    this.verified = false;
+    this.verified = verified;
   }
 }
