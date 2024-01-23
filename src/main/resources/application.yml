@@ -3,6 +3,4 @@ server:
 
 spring:
   profiles:
-    include:
-      - jpa
-      - s3
+    include: jpa

@@ -89,11 +89,15 @@ public class User extends BaseEntity {
   private LocalDateTime deletedAt;
 
   @Builder
-  public User(String email, String password, Set<Role> role,
-      LoginType loginType) {
+  public User(String email, String password, String nickname, String profileImgUrl,
+      String introduce, Set<Role> role, LoginType loginType, Shelter shelter) {
     this.email = email;
     this.password = password;
+    this.nickname = nickname;
+    this.profileImgUrl = profileImgUrl;
+    this.introduce = introduce;
     this.role = role;
     this.loginType = loginType;
+    this.shelter = shelter;
   }
 }
