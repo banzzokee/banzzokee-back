@@ -35,7 +35,7 @@ public class ChatRoomService {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new CustomException(FAILED));
 
-    // todo: Adoption 에서 받아온 shelter 로 저장
+    // todo: 아래 코드 지우고 Adoption 에서 받아온 shelter 로 저장
     Shelter shelter = shelterRepository.findById(1L)
         .orElseThrow(() -> new CustomException(FAILED));
 
