@@ -10,10 +10,10 @@ public class ImageDto {
   /**
    * 이미지 파일 저장된 경로
    */
-  private String url;
+  private final String url;
 
   /**
    * 변환된 파일명(조회 시 key로 사용됨)
    */
-  private String filename;
+  private final String filename;
 }
