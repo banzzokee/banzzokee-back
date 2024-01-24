@@ -17,7 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,7 +63,7 @@ public class Adoption extends BaseEntity {
 
   // key를 filename, value를 이미지 저장 경로로 저장
   @JdbcTypeCode(SqlTypes.JSON)
-  private Map<String, String> images;
+  private List<String> images;
 
   private LocalDate adoptedAt;
 
@@ -84,7 +84,7 @@ public class Adoption extends BaseEntity {
   @Builder
   public Adoption(User user, String title, String content, BreedType breed, DogSize size,
       boolean neutering, DogGender gender, int age, boolean healthChecked,
-      LocalDate registeredAt, Map<String, String> images, AdoptionStatus status) {
+      LocalDate registeredAt, List<String> images, AdoptionStatus status) {
     this.user = user;
     this.title = title;
     this.content = content;
