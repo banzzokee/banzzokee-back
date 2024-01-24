@@ -1,4 +1,4 @@
-package homes.banzzokee.domain.common.image.service;
+package homes.banzzokee.infra.fileupload.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import homes.banzzokee.domain.common.image.dto.ImageDto;
+import homes.banzzokee.infra.fileupload.dto.ImageDto;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -26,13 +26,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
-class ImageServiceTest {
+class FileUploadServiceTest {
 
   @Mock
   private AmazonS3Client amazonS3Client;
 
   @InjectMocks
-  private ImageService imageService;
+  private FileUploadService fileUploadService;
 
   @Test
   @DisplayName("1개 파일 업로드 성공 테스트")
@@ -43,7 +43,7 @@ class ImageServiceTest {
     given(amazonS3Client.getUrl(any(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    ImageDto imageDto = imageService.uploadOneFile(multipartFile);
+    ImageDto imageDto = fileUploadService.uploadOneFile(multipartFile);
 
     // then
     assertEquals(imageDto.getUrl(), "https://imageUrl.com");
@@ -62,7 +62,7 @@ class ImageServiceTest {
     given(amazonS3Client.getUrl(any(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    List<ImageDto> imageDtoList = imageService.uploadManyFile(multipartFiles);
+    List<ImageDto> imageDtoList = fileUploadService.uploadManyFile(multipartFiles);
     //then
     assertEquals(3, imageDtoList.size());
     assertEquals("https://imageUrl.com", imageDtoList.get(0).getUrl());
@@ -75,7 +75,7 @@ class ImageServiceTest {
     //given
     String filename = "anything";
     //when
-    imageService.deleteFile(filename);
+    fileUploadService.deleteFile(filename);
     //then
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(amazonS3Client, times(1)).deleteObject(any(), captor.capture());

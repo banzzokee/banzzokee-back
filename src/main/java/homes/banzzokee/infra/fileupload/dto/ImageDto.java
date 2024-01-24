@@ -1,4 +1,4 @@
-package homes.banzzokee.domain.common.image.dto;
+package homes.banzzokee.infra.fileupload.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

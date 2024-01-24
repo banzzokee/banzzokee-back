@@ -1,4 +1,4 @@
-package homes.banzzokee.domain.common.image.service;
+package homes.banzzokee.infra.fileupload.service;
 
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
