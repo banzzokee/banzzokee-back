@@ -100,4 +100,14 @@ public class User extends BaseEntity {
     this.loginType = loginType;
     this.shelter = shelter;
   }
+
+  public boolean isWithdrawn() {
+    return this.deletedAt != null;
+  }
+
+  public void withdraw() {
+    if (this.deletedAt == null) {
+      this.deletedAt = LocalDateTime.now();
+    }
+  }
 }
