@@ -9,6 +9,8 @@ import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
+import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
@@ -74,6 +76,27 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("사용자 탈퇴 성공")
+  void successWithdrawUser() throws Exception {
+    // given
+    WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
+
+    given(userService.withdrawUser(request, 1))
+        .willReturn(WithdrawUserResponse.builder()
+            .userId(1L)
+            .email("user1@banzzokee.homes")
+            .build());
+
+    // when
+    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
+        "/api/users/me/withdraw?userId=1", request);
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
+  }
+  
   @DisplayName("사용자 팔로우 성공")
   void successFollowUser() throws Exception {
     // given

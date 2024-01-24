@@ -102,6 +102,16 @@ public class User extends BaseEntity {
     this.shelter = shelter;
   }
 
+  public boolean isWithdrawn() {
+    return this.deletedAt != null;
+  }
+
+  public void withdraw() {
+    if (this.deletedAt == null) {
+      this.deletedAt = LocalDateTime.now();
+    }
+  }
+  
   public boolean hasShelter() {
     return this.role.contains(SHELTER);
   }
