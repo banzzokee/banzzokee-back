@@ -7,9 +7,7 @@ import homes.banzzokee.global.validator.annotation.DogSizeValid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
 
-@Getter
 public record RegisterAdoptionDto (
     @NotNull Long shelterId,
     @NotNull @Size(max = 50) String title,

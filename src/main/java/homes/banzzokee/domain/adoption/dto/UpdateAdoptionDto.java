@@ -6,9 +6,7 @@ import homes.banzzokee.global.validator.annotation.DogGenderValid;
 import homes.banzzokee.global.validator.annotation.DogSizeValid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
 
-@Getter
 public record UpdateAdoptionDto (
     @Size(max = 50) String title,
     @Size(max = 500) String content,
