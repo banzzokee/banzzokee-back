@@ -61,7 +61,6 @@ public class Adoption extends BaseEntity {
 
   private LocalDate registeredAt;
 
-  // key를 filename, value를 이미지 저장 경로로 저장
   @JdbcTypeCode(SqlTypes.JSON)
   private List<String> images;
 
