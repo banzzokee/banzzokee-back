@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
+import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
@@ -69,5 +71,27 @@ class UserControllerTest {
         .andExpect(jsonPath("$.shelter.tel").value("02-1234-5678"))
         .andExpect(jsonPath("$.shelter.address").value("서울시 행복구"))
         .andExpect(jsonPath("$.shelter.registeredAt").value("2024-01-01"));
+  }
+
+  @Test
+  @DisplayName("사용자 탈퇴 성공")
+  void successWithdrawUser() throws Exception {
+    // given
+    WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
+
+    given(userService.withdrawUser(request, 1))
+        .willReturn(WithdrawUserResponse.builder()
+            .userId(1L)
+            .email("user1@banzzokee.homes")
+            .build());
+
+    // when
+    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
+        "/api/users/me/withdraw?userId=1", request);
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
   }
 }

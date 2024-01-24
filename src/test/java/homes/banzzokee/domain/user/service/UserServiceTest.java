@@ -5,15 +5,19 @@ import static homes.banzzokee.domain.type.Role.USER;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
+import homes.banzzokee.global.error.exception.CustomException;
 import jakarta.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +45,11 @@ class UserServiceTest {
   private User user1;
 
   private User user2;
+
+  private User user3;
+
+  private final static WithdrawUserRequest withdrawUserRequest = new WithdrawUserRequest(
+      "1q2W#e$R");
 
   @PostConstruct
   private void initialize() {
@@ -81,6 +90,11 @@ class UserServiceTest {
         .role(roles)
         .shelter(shelter2)
         .build());
+
+    user3 = userRepository.save(User.builder()
+        .email("user3@banzzokee.homes")
+        .password("1q2W#e$R")
+        .build());
   }
 
   @Test
@@ -113,5 +127,53 @@ class UserServiceTest {
 
     // then
     assertNull(userProfile.shelter());
+  }
+
+  @Test
+  @DisplayName("[회원탈퇴] 사용자가 없을 때 UserNotFoundException 발생")
+  void withdrawUser_Throw_UserNotFoundException_When_User_Not_Exists() {
+    // given
+    // when
+    // then
+    assertThrows(UserNotFoundException.class,
+        () -> userService.withdrawUser(withdrawUserRequest, 0L));
+  }
+
+  @Test
+  @DisplayName("[회원탈퇴] 성공 시 user.isWithdrawn true 반환")
+  void withdrawUser_isWithdrawn_Is_True_When_Success() {
+    // given
+    // when
+    user3.withdraw();
+    userRepository.save(user3);
+    user3 = userRepository.findById(user3.getId()).get();
+
+    // then
+    assertTrue(user3.isWithdrawn());
+  }
+
+  @Test
+  @DisplayName("[회원탈퇴] 이미 탈퇴한 사용자 UserAlreadyWithdrawnException 발생")
+  void withdrawUser_Throw_UserAlreadyWithdrawnException_When_User_Already_Withdrawn() {
+    // given
+    // when
+    user3.withdraw();
+    userRepository.save(user3);
+
+    // then
+    assertThrows(UserAlreadyWithdrawnException.class,
+        () -> userService.withdrawUser(withdrawUserRequest, user3.getId()));
+  }
+
+  @Test
+  @DisplayName("[회원탈퇴] 패스워드가 다를 경우 PasswordUnmatchedException 발생")
+  void withdrawUser_Throw_PasswordUnmatchedException_When_Password_Unmatched() {
+    // given
+    WithdrawUserRequest request = new WithdrawUserRequest("1234");
+
+    // when
+    // then
+    assertThrows(CustomException.class,
+        () -> userService.withdrawUser(request, user3.getId()));
   }
 }
