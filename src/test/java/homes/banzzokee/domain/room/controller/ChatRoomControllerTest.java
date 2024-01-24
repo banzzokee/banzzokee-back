@@ -48,7 +48,7 @@ class ChatRoomControllerTest {
 
     //when
     ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
-        "/api/rooms/adoptions/1");
+        "/api/rooms/adoptions/1", null);
 
     //then
     resultActions.andExpect(status().isOk())

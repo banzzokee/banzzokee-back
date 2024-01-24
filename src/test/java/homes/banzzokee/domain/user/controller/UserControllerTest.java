@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
+import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.service.UserService;
 import homes.banzzokee.global.util.MockMvcUtil;
@@ -69,5 +71,45 @@ class UserControllerTest {
         .andExpect(jsonPath("$.shelter.tel").value("02-1234-5678"))
         .andExpect(jsonPath("$.shelter.address").value("서울시 행복구"))
         .andExpect(jsonPath("$.shelter.registeredAt").value("2024-01-01"));
+  }
+
+  @Test
+  @DisplayName("사용자 팔로우 성공")
+  void successFollowUser() throws Exception {
+    // given
+    given(userService.followUser(anyLong(), anyLong()))
+        .willReturn(FollowDto.builder()
+            .follower(FollowUserDto.builder()
+                .userId(1L)
+                .nickname("사용자1")
+                .build())
+            .followee(FollowUserDto.builder()
+                .userId(2L)
+                .nickname("사용자2")
+                .build())
+            .build());
+
+    // when
+    ResultActions resultActions = MockMvcUtil
+        .performPost(mockMvc, "/api/users/2/follow?followerId=1", null);
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.follower.userId").value(1))
+        .andExpect(jsonPath("$.follower.nickname").value("사용자1"))
+        .andExpect(jsonPath("$.followee.userId").value(2))
+        .andExpect(jsonPath("$.followee.nickname").value("사용자2"));
+  }
+
+  @Test
+  @DisplayName("사용자 언팔로우 성공")
+  void successUnfollowUser() throws Exception {
+    // given
+    // when
+    ResultActions resultActions = MockMvcUtil
+        .performPost(mockMvc, "/api/users/2/unfollow?followerId=1", null);
+
+    // then
+    resultActions.andExpect(status().isOk());
   }
 }
