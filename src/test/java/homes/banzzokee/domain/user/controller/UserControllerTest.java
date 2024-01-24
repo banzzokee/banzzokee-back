@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
+import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
@@ -101,7 +103,7 @@ class UserControllerTest {
   @DisplayName("사용자 패스워드 변경 성공")
   void successChangePassword() throws Exception {
     // given
-    ChangePasswordRequest request =  ChangePasswordRequest.builder()
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
         .originPassword("1q2W#e$R")
         .newPassword("1q2W#e$R1")
         .confirmPassword("1q2W#e$R1")
@@ -121,5 +123,44 @@ class UserControllerTest {
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.userId").value(1))
         .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
+  }
+
+  @DisplayName("사용자 팔로우 성공")
+  void successFollowUser() throws Exception {
+    // given
+    given(userService.followUser(anyLong(), anyLong()))
+        .willReturn(FollowDto.builder()
+            .follower(FollowUserDto.builder()
+                .userId(1L)
+                .nickname("사용자1")
+                .build())
+            .followee(FollowUserDto.builder()
+                .userId(2L)
+                .nickname("사용자2")
+                .build())
+            .build());
+
+    // when
+    ResultActions resultActions = MockMvcUtil
+        .performPost(mockMvc, "/api/users/2/follow?followerId=1", null);
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.follower.userId").value(1))
+        .andExpect(jsonPath("$.follower.nickname").value("사용자1"))
+        .andExpect(jsonPath("$.followee.userId").value(2))
+        .andExpect(jsonPath("$.followee.nickname").value("사용자2"));
+  }
+
+  @Test
+  @DisplayName("사용자 언팔로우 성공")
+  void successUnfollowUser() throws Exception {
+    // given
+    // when
+    ResultActions resultActions = MockMvcUtil
+        .performPost(mockMvc, "/api/users/2/unfollow?followerId=1", null);
+
+    // then
+    resultActions.andExpect(status().isOk());
   }
 }

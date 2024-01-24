@@ -2,6 +2,7 @@ package homes.banzzokee.domain.user.controller;
 
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
+import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
@@ -41,5 +42,17 @@ public class UserController {
       @Valid @RequestBody ChangePasswordRequest request, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 변경
     return userService.changePassword(request, userId);
+  }
+
+  @PostMapping("{userId}/follow")
+  public FollowDto followUser(@PathVariable long userId, @RequestParam long followerId) {
+    // TODO: followerId -> @AuthenticationPrincipal로 바꾸기
+    return userService.followUser(userId, followerId);
+  }
+
+  @PostMapping("{userId}/unfollow")
+  public void unfollowUser(@PathVariable long userId, @RequestParam long followerId) {
+    // TODO: followerId -> @AuthenticationPrincipal로 바꾸기
+    userService.unfollowUser(userId, followerId);
   }
 }
