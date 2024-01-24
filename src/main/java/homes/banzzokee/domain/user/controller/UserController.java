@@ -3,20 +3,26 @@ package homes.banzzokee.domain.user.controller;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.UpdateUserRequest;
+import homes.banzzokee.domain.user.dto.UpdateUserResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
+import homes.banzzokee.global.validator.annotation.ImageFile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,5 +60,12 @@ public class UserController {
   public void unfollowUser(@PathVariable long userId, @RequestParam long followerId) {
     // TODO: followerId -> @AuthenticationPrincipal로 바꾸기
     userService.unfollowUser(userId, followerId);
+  }
+
+  @PutMapping(value = "me")
+  public UpdateUserResponse updateUserProfile(@Valid @RequestPart UpdateUserRequest request,
+      @ImageFile() MultipartFile profileImg, @RequestParam long userId) {
+    // TODO: userId -> @AuthenticationPrincipal로 바꾸기
+    return userService.updateUserProfile(request, profileImg, userId);
   }
 }

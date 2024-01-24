@@ -3,11 +3,14 @@ package homes.banzzokee.domain.user.service;
 import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.UpdateUserRequest;
+import homes.banzzokee.domain.user.dto.UpdateUserResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
@@ -19,16 +22,21 @@ import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordExce
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.CustomException;
+import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
   private final UserRepository userRepository;
   private final FollowRepository followRepository;
+  private final FileUploadService s3Service;
 
   @Transactional(readOnly = true)
   public UserProfileDto getUserProfile(long userId) {
@@ -145,6 +153,48 @@ public class UserService {
       String newPassword) {
     if (originPassword.equals(newPassword)) {
       throw new OriginPasswordEqualsNewPasswordException();
+    }
+  }
+
+  /**
+   * 사용자 프로필 수정
+   *
+   * @param request    사용자 프로필 수정 요청
+   * @param profileImage 프로필 이미지
+   * @param userId     사용자 아이디
+   * @return 사용자 프로필 수정 응답
+   */
+  @Transactional
+  public UpdateUserResponse updateUserProfile(UpdateUserRequest request,
+      MultipartFile profileImage, long userId) {
+    // TODO: userDetails & userId가 일치하는지 확인
+    User user = findByUserIdOrThrow(userId);
+    S3Object oldProfileImage = user.getProfileImage();
+
+    S3Object uploadedImage = uploadProfileImgIfExists(profileImage);
+    user.updateProfile(request.nickname(), request.introduce(), uploadedImage);
+    deleteOldProfileImageIfExists(oldProfileImage);
+
+    return UpdateUserResponse.fromEntity(user);
+  }
+
+  private S3Object uploadProfileImgIfExists(MultipartFile profileImage) {
+    if (profileImage != null && !profileImage.isEmpty()) {
+      return S3Object.from(s3Service.uploadOneFile(profileImage));
+    }
+    return null;
+  }
+
+  private void deleteOldProfileImageIfExists(S3Object oldProfileImage) {
+    if (oldProfileImage == null) {
+      return;
+    }
+
+    try {
+      s3Service.deleteFile(oldProfileImage.getFileName());
+    } catch (Exception e) {
+      // TODO: 삭제 못한 이미지에 대한 예외 처리
+      log.error("delete profile image failed. file={}", oldProfileImage, e);
     }
   }
 }

@@ -32,7 +32,7 @@ public record UserProfileDto(
     return UserProfileDto.builder()
         .userId(user.getId())
         .email(user.getEmail())
-        .profileImgUrl(user.getProfileImgUrl())
+        .profileImgUrl(user.getProfileImageUrl())
         .nickname(user.getNickname())
         .introduce(user.getIntroduce())
         .joinedAt(user.getCreatedAt().toLocalDate())
