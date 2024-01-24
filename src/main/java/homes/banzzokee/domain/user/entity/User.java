@@ -1,5 +1,6 @@
 package homes.banzzokee.domain.user.entity;
 
+import static homes.banzzokee.domain.type.Role.SHELTER;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
@@ -99,5 +100,9 @@ public class User extends BaseEntity {
     this.role = role;
     this.loginType = loginType;
     this.shelter = shelter;
+  }
+
+  public boolean hasShelter() {
+    return this.role.contains(SHELTER);
   }
 }

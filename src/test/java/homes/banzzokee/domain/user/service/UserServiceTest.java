@@ -1,7 +1,9 @@
 package homes.banzzokee.domain.user.service;
 
 import static homes.banzzokee.domain.type.LoginType.EMAIL;
+import static homes.banzzokee.domain.type.Role.SHELTER;
 import static homes.banzzokee.domain.type.Role.USER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,9 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.Role;
+import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
+import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
 import jakarta.annotation.PostConstruct;
@@ -36,21 +42,26 @@ class UserServiceTest {
   private UserRepository userRepository;
 
   @Autowired
+  private FollowRepository followRepository;
+
+  @Autowired
   private ShelterRepository shelterRepository;
 
   private User user1;
-
   private User user2;
 
   @PostConstruct
   private void initialize() {
-    userService = new UserService(userRepository);
+    userService = new UserService(userRepository, followRepository);
   }
 
   @BeforeAll
   public void setup() {
-    Set<Role> roles = new HashSet<>();
-    roles.add(USER);
+    Set<Role> roles1 = new HashSet<>();
+    roles1.add(USER);
+
+    Set<Role> roles2 = new HashSet<>();
+    roles2.add(SHELTER);
 
     Shelter shelter1 = shelterRepository.save(Shelter.builder()
         .name("보호소1")
@@ -68,7 +79,7 @@ class UserServiceTest {
         .profileImgUrl("avatar.png")
         .introduce("안녕하세요.")
         .loginType(EMAIL)
-        .role(roles)
+        .role(roles1)
         .shelter(shelter1)
         .build());
 
@@ -78,7 +89,7 @@ class UserServiceTest {
         .profileImgUrl("avatar.png")
         .introduce("안녕하세요.")
         .loginType(EMAIL)
-        .role(roles)
+        .role(roles2)
         .shelter(shelter2)
         .build());
   }
@@ -113,5 +124,39 @@ class UserServiceTest {
 
     // then
     assertNull(userProfile.shelter());
+  }
+
+  @Test
+  @DisplayName("사용자 본인이 팔로우하면 CanNotFollowSelfException 발생")
+  void followUser_Throw_CanNotFollowSelfException_When_Follower_Same_Followee() {
+    // given
+    // when
+    // then
+    assertThrows(CanNotFollowSelfException.class,
+        () -> userService.followUser(user1.getId(), user1.getId()));
+  }
+
+  @Test
+  @DisplayName("팔로우하는 사용자가 Shelter 권한이 없으면 CanFollowOnlyShelterUserException 발생")
+  void followUser_Throw_CanFollowOnlyShelterUserException_When_User_Dont_Has_Role_Shelter() {
+    // given
+    // when
+    // then
+    assertThrows(CanFollowOnlyShelterUserException.class,
+        () -> userService.followUser(user1.getId(), user2.getId()));
+  }
+
+  @Test
+  @DisplayName("사용자 팔로우 성공")
+  void success_FollowUser() {
+    // given
+    // when
+    FollowDto follow = userService.followUser(user2.getId(), user1.getId());
+
+    // then
+    assertEquals(user1.getId(), follow.follower().userId());
+    assertEquals(user1.getNickname(), follow.follower().nickname());
+    assertEquals(user2.getId(), follow.followee().userId());
+    assertEquals(user2.getNickname(), follow.followee().nickname());
   }
 }
