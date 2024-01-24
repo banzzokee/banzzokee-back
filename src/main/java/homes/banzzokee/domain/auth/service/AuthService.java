@@ -3,8 +3,9 @@ package homes.banzzokee.domain.auth.service;
 import homes.banzzokee.domain.auth.dto.EmailDto;
 import homes.banzzokee.domain.auth.dto.SignupDto;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.global.util.redis.RedisService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -12,15 +13,19 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-  private static final String EMAIL_SUBJECT = "인증 코드";
-  private static final String EMAIL_TEXT = "인증 코드는 %s 입니다.";
+  private static final String EMAIL_SUBJECT = "인증 코드" ;
+  private static final String EMAIL_TEXT = "인증 코드는 %s 입니다." ;
+  private static final int VERIFICATION_CODE_EXPIRATION_TIME = 3;
+  private static final int VERIFICATION_CODE_MIN_VALUE = 100000;
+  private static final int VERIFICATION_CODE_MAX_VALUE = 900000;
 
-  private JavaMailSender mailSender;
-  private StringRedisTemplate redisTemplate;
+  private final JavaMailSender mailSender;
+  private final RedisService redisService;
 
   private final UserRepository userRepository;
 
@@ -30,7 +35,7 @@ public class AuthService {
 
   public void sendVerificationCode(EmailDto emailDto) {
     String code = generateVerificationCode();
-    redisTemplate.opsForValue().set(emailDto.getEmail(), code, Duration.ofMinutes(3));
+    redisService.setData(emailDto.getEmail(), code, Duration.ofMinutes(VERIFICATION_CODE_EXPIRATION_TIME).getSeconds());
     SimpleMailMessage message = new SimpleMailMessage();
     message.setTo(emailDto.getEmail());
     message.setSubject(EMAIL_SUBJECT);
@@ -39,7 +44,6 @@ public class AuthService {
   }
 
   private String generateVerificationCode() {
-    return String.valueOf(100000 + new Random().nextInt(900000));
+    return String.valueOf(VERIFICATION_CODE_MIN_VALUE + new Random().nextInt(VERIFICATION_CODE_MAX_VALUE));
   }
-
 }

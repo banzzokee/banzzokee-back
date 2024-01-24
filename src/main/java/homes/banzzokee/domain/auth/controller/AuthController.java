@@ -18,15 +18,14 @@ public class AuthController {
 
   private final AuthService authService;
 
-  @PostMapping("/sign-up")
-  public ResponseEntity<Void> signup(@Valid @RequestBody SignupDto signupDto) {
-    return ResponseEntity.ok().body(authService.signup(signupDto));
-  }
+//  @PostMapping("/sign-up")
+//  public ResponseEntity<Void> signup(@Valid @RequestBody SignupDto signupDto) {
+//    return ResponseEntity.ok().body(authService.signup(signupDto));
+//  }
 
   @PostMapping("/send-verify")
   public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody EmailDto emailDto) {
     authService.sendVerificationCode(emailDto);
     return ResponseEntity.ok().build();
   }
-
 }
