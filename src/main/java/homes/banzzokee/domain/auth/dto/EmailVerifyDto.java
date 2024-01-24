@@ -7,8 +7,9 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
 /**
- * 이메일 인증 요청
+ * 이메일 인증 요청 dto
  *
  * @param email
  * @param code

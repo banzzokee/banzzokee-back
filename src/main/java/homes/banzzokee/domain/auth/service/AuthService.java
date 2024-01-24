@@ -6,18 +6,14 @@ import homes.banzzokee.domain.auth.dto.SignupDto;
 import homes.banzzokee.domain.auth.exception.EmailCodeInvalidException;
 import homes.banzzokee.domain.auth.exception.EmailCodeUnmatchedException;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.global.util.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.Random;
 
 @Slf4j
@@ -60,7 +56,7 @@ public class AuthService {
     if (redisCode == null) {
       throw new EmailCodeUnmatchedException();
     }
-    if (!Objects.equals(redisCode, code)) {
+    if (!code.equals(redisCode)) {
       throw new EmailCodeInvalidException();
     }
     redisService.deleteKey(email);
