@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.user.controller;
 
+import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
+import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
@@ -7,6 +9,7 @@ import homes.banzzokee.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,5 +34,12 @@ public class UserController {
       @Valid @RequestBody WithdrawUserRequest request, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 변경
     return userService.withdrawUser(request, userId);
+  }
+
+  @PatchMapping("me/change-password")
+  public ChangePasswordResponse changePassword(
+      @Valid @RequestBody ChangePasswordRequest request, @RequestParam long userId) {
+    // TODO: userId -> @AuthenticationPrincipal 변경
+    return userService.changePassword(request, userId);
   }
 }
