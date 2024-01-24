@@ -67,11 +67,11 @@ public class Adoption extends BaseEntity {
   private LocalDate adoptedAt;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(referencedColumnName = "user_id", name = "user_id", nullable = false)
+  @JoinColumn(referencedColumnName = "id", name = "user_id", nullable = false)
   private User user;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(referencedColumnName = "user_id", name = "assigned_user_id")
+  @JoinColumn(referencedColumnName = "id", name = "assigned_user_id")
   private User assignedUser;
 
 //  @OneToOne(fetch = FetchType.LAZY)
