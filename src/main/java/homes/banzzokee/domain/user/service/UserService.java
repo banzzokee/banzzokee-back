@@ -1,19 +1,22 @@
 package homes.banzzokee.domain.user.service;
 
+import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
+import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
-import homes.banzzokee.domain.user.entity.User;
-import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
 import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
+import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
+import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -92,8 +95,7 @@ public class UserService {
   }
 
   @Transactional
-  public WithdrawUserResponse withdrawUser(WithdrawUserRequest request,
-      long userId) {
+  public WithdrawUserResponse withdrawUser(WithdrawUserRequest request, long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.password());
@@ -107,12 +109,42 @@ public class UserService {
     }
   }
 
-  private void throwIfPasswordUnmatched(User user, String password)
-      throws CustomException {
+  private void throwIfPasswordUnmatched(User user, String password) {
     // TODO: Auth 회원가입 기능 완료 후, PasswordEncoder 비교 로직 추가
     if (!user.getPassword().equals(password)) {
       // TODO: Auth에 PasswordUnmatchedException 추가
       throw new CustomException(PASSWORD_UNMATCHED);
+    }
+  }
+
+  private void throwIfConfirmPasswordUnmatched(String password, String confirmPassword) {
+    // TODO: Auth 회원가입 기능 완료 후, PasswordEncoder 비교 로직 추가
+    if (!password.equals(confirmPassword)) {
+      // TODO: Auth에 ConfirmPasswordUnmatched 추가
+      throw new CustomException(CONFIRM_PASSWORD_UNMATCHED);
+    }
+  }
+
+  @Transactional
+  public ChangePasswordResponse changePassword(ChangePasswordRequest request,
+      long userId) {
+    User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+    validateChangePasswordRequest(request, user);
+    user.changePassword(request.newPassword());
+    return ChangePasswordResponse.fromEntity(user);
+  }
+
+  private void validateChangePasswordRequest(ChangePasswordRequest request, User user) {
+    throwIfAlreadyWithdrawn(user);
+    throwIfPasswordUnmatched(user, request.originPassword());
+    throwIfOriginPasswordSameNewPassword(request.originPassword(), request.newPassword());
+    throwIfConfirmPasswordUnmatched(request.newPassword(), request.confirmPassword());
+  }
+
+  private void throwIfOriginPasswordSameNewPassword(String originPassword,
+      String newPassword) {
+    if (originPassword.equals(newPassword)) {
+      throw new OriginPasswordEqualsNewPasswordException();
     }
   }
 }

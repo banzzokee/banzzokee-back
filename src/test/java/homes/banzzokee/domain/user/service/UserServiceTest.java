@@ -14,13 +14,15 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.entity.User;
-import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
 import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
+import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
+import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
 import homes.banzzokee.global.error.exception.CustomException;
@@ -84,6 +86,7 @@ class UserServiceTest {
 
     user1 = userRepository.save(User.builder()
         .email("user1@banzzokee.homes")
+        .password("1q2W#e$R")
         .nickname("사용자1")
         .profileImgUrl("avatar.png")
         .introduce("안녕하세요.")
@@ -187,7 +190,71 @@ class UserServiceTest {
     assertThrows(CustomException.class,
         () -> userService.withdrawUser(request, user3.getId()));
   }
-  
+
+  @Test
+  @DisplayName("[패스워드 변경] 기존 패스워드와 같은 경우 OriginPasswordEqualsNewPasswordException 발생")
+  void changePassword_Throw_OriginPasswordEqualsNewPasswordException_When_OriginPassword_Equals_NewPassword() {
+    // given
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
+        .originPassword(user1.getPassword())
+        .newPassword(user1.getPassword())
+        .confirmPassword(user1.getPassword())
+        .build();
+
+    // when
+    // then
+    assertThrows(OriginPasswordEqualsNewPasswordException.class,
+        () -> userService.changePassword(request, user1.getId()));
+  }
+
+  @Test
+  @DisplayName("[패스워드 변경] 사용자의 패스워드와 입력한 originPassword가 다른 경우 PasswordUnmatchedException 발생")
+  void changePassword_Throw_PasswordUnmatchedException_When_UserPassword_Not_Equals_OriginPassword() {
+    // given
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
+        .originPassword(user1.getPassword() + "123")
+        .build();
+
+    // when
+    // then
+    assertThrows(CustomException.class,
+        () -> userService.changePassword(request, user1.getId()));
+  }
+
+  @Test
+  @DisplayName("[패스워드 변경] 새로운 패스워드와 재입력 패스워드가 다른 경우 ConfirmPasswordUnmatchedException 발생")
+  void changePassword_Throw_ConfirmPasswordUnmatchedException_When_NewPassword_Not_Equals_ConfirmPassword() {
+    // given
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
+        .originPassword(user1.getPassword())
+        .newPassword("1q2W#e$R1")
+        .confirmPassword("1q2W#e$R2")
+        .build();
+
+    // when
+    // then
+    assertThrows(CustomException.class,
+        () -> userService.changePassword(request, user1.getId()));
+  }
+
+  @Test
+  @DisplayName("[패스워드 변경] 성공 시 로그인 성공")
+  void changePassword_Success_SignIn_When_Success() {
+    // given
+    String newPassword = user1.getPassword() + "123";
+
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
+        .originPassword(user1.getPassword())
+        .newPassword(newPassword)
+        .confirmPassword(newPassword)
+        .build();
+
+    // when
+    // then
+    userService.changePassword(request, user1.getId());
+    // TODO 로그인 확인
+  }
+
   @DisplayName("사용자 본인이 팔로우하면 CanNotFollowSelfException 발생")
   void followUser_Throw_CanNotFollowSelfException_When_Follower_Same_Followee() {
     // given

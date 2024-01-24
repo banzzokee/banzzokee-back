@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
+import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
+import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
@@ -96,7 +98,33 @@ class UserControllerTest {
         .andExpect(jsonPath("$.userId").value(1))
         .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
   }
-  
+
+  @Test
+  @DisplayName("사용자 패스워드 변경 성공")
+  void successChangePassword() throws Exception {
+    // given
+    ChangePasswordRequest request = ChangePasswordRequest.builder()
+        .originPassword("1q2W#e$R")
+        .newPassword("1q2W#e$R1")
+        .confirmPassword("1q2W#e$R1")
+        .build();
+
+    given(userService.changePassword(request, 1))
+        .willReturn(ChangePasswordResponse.builder()
+            .userId(1L)
+            .email("user1@banzzokee.homes")
+            .build());
+
+    // when
+    ResultActions resultActions = MockMvcUtil.performPatch(mockMvc,
+        "/api/users/me/change-password?userId=1", request);
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
+  }
+
   @DisplayName("사용자 팔로우 성공")
   void successFollowUser() throws Exception {
     // given

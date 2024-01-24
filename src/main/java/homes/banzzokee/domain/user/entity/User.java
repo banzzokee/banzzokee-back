@@ -111,7 +111,11 @@ public class User extends BaseEntity {
       this.deletedAt = LocalDateTime.now();
     }
   }
-  
+
+  public void changePassword(String newPassword) {
+    this.password = newPassword;
+  }
+
   public boolean hasShelter() {
     return this.role.contains(SHELTER);
   }
