@@ -1,0 +1,18 @@
+cloud:
+  aws:
+    s3:
+      bucket: ${IMAGE_BUCKET_NAME}
+    credentials:
+      access-key: ${AWS_IMAGE_ACCESS_KEY}
+      secret-key: ${AWS_IMAGE_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
