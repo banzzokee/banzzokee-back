@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,8 +61,9 @@ public class UserController {
     userService.unfollowUser(userId, followerId);
   }
 
-  @PutMapping(value = "me")
-  public UpdateUserResponse updateUserProfile(@Valid @RequestPart UpdateUserRequest request,
+  @PatchMapping(value = "me")
+  public UpdateUserResponse updateUserProfile(
+      @Valid @RequestPart UpdateUserRequest request,
       @ImageFile() MultipartFile profileImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal로 바꾸기
     return userService.updateUserProfile(request, profileImg, userId);
