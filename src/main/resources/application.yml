@@ -3,4 +3,7 @@ server:
 
 spring:
   profiles:
-    include: jpa, redis
+    include:
+      - jpa
+      - s3
+      - redis
