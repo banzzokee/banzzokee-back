@@ -1,19 +1,26 @@
 package homes.banzzokee.domain.user.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
+import homes.banzzokee.domain.user.dto.UpdateUserRequest;
+import homes.banzzokee.domain.user.dto.UpdateUserResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
+import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(value = UserController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class UserControllerTest {
@@ -125,6 +136,7 @@ class UserControllerTest {
         .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
   }
 
+  @Test
   @DisplayName("사용자 팔로우 성공")
   void successFollowUser() throws Exception {
     // given
@@ -162,5 +174,47 @@ class UserControllerTest {
 
     // then
     resultActions.andExpect(status().isOk());
+  }
+
+  @Test
+  void successUpdateUserProfile() throws Exception {
+    // given
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    UpdateUserRequest request = UpdateUserRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+
+    MockPart mockPart = new MockPart("request", objectMapper.writeValueAsBytes(request));
+    mockPart.getHeaders().set("Content-Type", "application/json");
+
+    MockMultipartFile mockFile = MockDataUtil.createMockMultipartFile(
+        "src/test/resources/images/banzzokee.png");
+
+    MockMultipartHttpServletRequestBuilder patch = MockMvcRequestBuilders
+        .multipart(PATCH, "/api/users/me?userId=1")
+        .file("profileImg", mockFile.getBytes())
+        .part(mockPart);
+
+    given(userService.updateUserProfile(any(), any(), anyLong()))
+        .willReturn(UpdateUserResponse.builder()
+            .userId(1L)
+            .email("email")
+            .profileImgUrl("profileImgUrl")
+            .nickname(request.nickname())
+            .introduce(request.introduce())
+            .build());
+
+    // when
+    ResultActions resultActions = mockMvc.perform(patch).andDo(print());
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.email").value("email"))
+        .andExpect(jsonPath("$.profileImgUrl").value("profileImgUrl"))
+        .andExpect(jsonPath("$.nickname").value("nickname"))
+        .andExpect(jsonPath("$.introduce").value("introduce"));
   }
 }

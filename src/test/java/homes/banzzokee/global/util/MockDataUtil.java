@@ -6,13 +6,13 @@ import java.nio.file.Path;
 import org.apache.tika.Tika;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 public class MockDataUtil {
 
   private final static Tika tika = new Tika();
 
-  public static MultipartFile createMockMultipartFile(String file) throws IOException {
+  public static MockMultipartFile createMockMultipartFile(String file)
+      throws IOException {
     Path path = Path.of(file);
     byte[] bytes = Files.readAllBytes(path);
     String originFilename = StringUtils.getFilename(file);
