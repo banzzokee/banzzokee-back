@@ -6,3 +6,8 @@ spring:
     include:
       - jpa
       - s3
+
+logging:
+  level:
+    org.springframework.data.elasticsearch.client:
+      WIRE: TRACE
