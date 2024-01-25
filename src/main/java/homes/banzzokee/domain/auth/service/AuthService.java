@@ -61,4 +61,8 @@ public class AuthService {
     }
     redisService.deleteKey(email);
   }
+
+  public boolean checkNickname(String nickname) {
+    return !userRepository.existsByNickname(nickname);
+  }
 }

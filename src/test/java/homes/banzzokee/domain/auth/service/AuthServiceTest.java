@@ -4,6 +4,7 @@ import homes.banzzokee.domain.auth.dto.EmailVerifyDto;
 import homes.banzzokee.domain.auth.exception.EmailCodeInvalidException;
 import homes.banzzokee.domain.auth.exception.EmailCodeUnmatchedException;
 import homes.banzzokee.global.util.redis.RedisService;
+import homes.banzzokee.domain.user.dao.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class AuthServiceTest {
 
   @Mock
   private RedisService redisService;
+
+  @Mock
+  private UserRepository userRepository;
 
   @InjectMocks
   private AuthService authService;
@@ -74,5 +78,32 @@ class AuthServiceTest {
 
     // when & then
     assertThrows(EmailCodeUnmatchedException.class, () -> authService.verifyEmail(emailVerifyDto));
+  }
+
+  @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
+  void successCheckNickname() {
+    // given
+    String nickname = "반쪽이" ;
+    when(userRepository.existsByNickname(nickname)).thenReturn(true);
+
+    // when
+    boolean result = !authService.checkNickname("반쪽이");
+
+    // then
+    assertTrue(result);
+  }
+
+  @Test
+  @DisplayName("닉네임 중복확인 테스트 - 실패 케이스")
+  void failCheckNickname() {
+    // given
+    String nickname = "반쪽이" ;
+    when(userRepository.existsByNickname(nickname)).thenReturn(false);
+
+    // when
+    boolean result = authService.checkNickname("반쪽이");
+
+    // then
+    assertTrue(result);
   }
 }
