@@ -21,6 +21,16 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -60,5 +70,39 @@ class AuthControllerTest {
 
     assertEquals("test@test.com", capturedDto.getEmail());
     assertEquals("123456", capturedDto.getCode());
+  }
+
+  @Test
+  @WithMockUser
+  @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
+  void successCheckNickname() throws Exception {
+    // given
+    String nickname = "반쪽이" ;
+    when(authService.checkNickname(nickname)).thenReturn(true);
+
+    // when & then
+    mockMvc.perform(get("/api/auth/nickname-check")
+            .param("nickname", nickname))
+        .andExpect(status().isOk())
+        .andExpect(content().string("true"));
+
+    verify(authService, times(1)).checkNickname("반쪽이");
+  }
+
+  @Test
+  @WithMockUser
+  @DisplayName("닉네임 중복확인 테스트 - 실패 케이스")
+  void failCheckNickname() throws Exception {
+    //given
+    String nickname = "반쪽이" ;
+    when(authService.checkNickname(nickname)).thenReturn(false);
+
+    //when & then
+    mockMvc.perform(get("/api/auth/nickname-check")
+            .param("nickname", nickname))
+        .andExpect(status().isOk())
+        .andExpect(content().string("false"));
+
+    verify(authService, times(1)).checkNickname("반쪽이");
   }
 }
