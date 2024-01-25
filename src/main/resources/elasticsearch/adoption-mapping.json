@@ -1,0 +1,159 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "title": {
+      "type": "text",
+      "analyzer": "korean"
+    },
+    "content": {
+      "type": "text",
+      "analyzer": "korean"
+    },
+    "status": {
+      "type": "keyword",
+      "analyzer": "korean"
+    },
+    "breed": {
+      "type": "keyword",
+      "analyzer": "korean"
+    },
+    "size": {
+      "type": "keyword",
+      "analyzer": "korean"
+    },
+    "neutering": {
+      "type": "boolean"
+    },
+    "gender": {
+      "type": "keyword",
+      "analyzer": "korean"
+    },
+    "age": {
+      "type": "long"
+    },
+    "healthChecked": {
+      "type": "boolean"
+    },
+    "registeredAt": {
+      "type": "date"
+    },
+    "images": {
+      "type": "text"
+    },
+    "user": {
+      "properties": {
+        "userId": {
+          "type": "keyword"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "profileImgUrl": {
+          "type": "text"
+        },
+        "nickname": {
+          "type": "keyword",
+          "analyzer": "korean"
+        },
+        "introduce": {
+          "type": "text",
+          "analyzer": "korean"
+        },
+        "joinedAt": {
+          "type": "date"
+        },
+        "shelter": {
+          "properties": {
+            "shelterId": {
+              "type": "keyword"
+            },
+            "shelterImgUrl": {
+              "type": "text"
+            },
+            "name": {
+              "type": "keyword",
+              "analyzer": "korean"
+            },
+            "description": {
+              "type": "text",
+              "analyzer": "korean"
+            },
+            "tel": {
+              "type": "keyword"
+            },
+            "address": {
+              "type": "text",
+              "analyzer": "korean"
+            },
+            "registeredAt": {
+              "type": "date"
+            }
+          }
+        }
+      }
+    },
+    "assignedUser": {
+      "properties": {
+        "userId": {
+          "type": "keyword"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "profileImgUrl": {
+          "type": "text"
+        },
+        "nickname": {
+          "type": "keyword",
+          "analyzer": "korean"
+        },
+        "introduce": {
+          "type": "text",
+          "analyzer": "korean"
+        },
+        "joinedAt": {
+          "type": "date"
+        },
+        "shelter": {
+          "properties": {
+            "shelterId": {
+              "type": "keyword"
+            },
+            "shelterImgUrl": {
+              "type": "text"
+            },
+            "name": {
+              "type": "keyword",
+              "analyzer": "korean"
+            },
+            "description": {
+              "type": "text",
+              "analyzer": "korean"
+            },
+            "tel": {
+              "type": "keyword"
+            },
+            "address": {
+              "type": "text",
+              "analyzer": "korean"
+            },
+            "registeredAt": {
+              "type": "date"
+            }
+          }
+        }
+      }
+    },
+    "deletedAt": {
+      "type": "date"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    }
+  }
+}
