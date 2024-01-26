@@ -1,7 +1,8 @@
 package homes.banzzokee.domain.chat.service;
 
 import static homes.banzzokee.domain.type.MessageType.ENTER;
-import static homes.banzzokee.global.error.ErrorCode.FAILED;
+import static homes.banzzokee.global.error.ErrorCode.ROOM_NOT_FOUND;
+import static homes.banzzokee.global.error.ErrorCode.USER_NOT_FOUND;
 
 import homes.banzzokee.domain.chat.dao.ChatMessageRepository;
 import homes.banzzokee.domain.chat.dto.MessageDto;
@@ -11,7 +12,7 @@ import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
-import homes.banzzokee.global.error.exception.CustomException;
+import homes.banzzokee.global.config.stomp.exception.SocketException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -40,14 +41,13 @@ public class ChatMessageService {
    */
   public MessageDto sendMessage(Long roomId, SendChatDto message) {
 
-    // todo: FAILED -> ROOM_NOT_FOUND
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-        .orElseThrow(() -> new CustomException(FAILED));
+        .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));
 
     // todo: FAILED -> USER_NOT_FOUND
     // todo: @AuthenticationPrincipal username -> findByEmail(email) 로 변경
     User user = userRepository.findById(1L)
-        .orElseThrow(() -> new CustomException(FAILED));
+        .orElseThrow(() -> new SocketException(USER_NOT_FOUND));
 
     String realMessage = message.getMessageType().equals(ENTER) ?
         user.getNickname() + " 님이 입장하였습니다." :
@@ -73,9 +73,8 @@ public class ChatMessageService {
   @Transactional(readOnly = true)
   public Slice<MessageDto> getChatList(Long roomId, Pageable pageable) {
 
-    // todo: FAILED -> ROOM_NOT_FOUND
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-        .orElseThrow(() -> new CustomException(FAILED));
+        .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));
 
     return chatMessageRepository.findAllByRoom(chatRoom, pageable)
         .map(MessageDto::fromEntity);
