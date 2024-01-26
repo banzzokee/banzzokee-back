@@ -16,6 +16,7 @@ public class FollowDto {
   private final FollowUserDto followee;
 
   @Builder
+  @Getter
   @AllArgsConstructor
   public static class FollowUserDto {
 

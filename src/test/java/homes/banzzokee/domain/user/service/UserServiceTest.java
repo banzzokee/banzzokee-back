@@ -129,7 +129,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user1.getId());
 
     // then
-    assertNotNull(userProfile.shelter());
+    assertNotNull(userProfile.getShelter());
   }
 
   @Test
@@ -140,7 +140,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user2.getId());
 
     // then
-    assertNull(userProfile.shelter());
+    assertNull(userProfile.getShelter());
   }
 
   @Test
@@ -282,9 +282,9 @@ class UserServiceTest {
     FollowDto follow = userService.followUser(user2.getId(), user1.getId());
 
     // then
-    assertEquals(user1.getId(), follow.follower().userId());
-    assertEquals(user1.getNickname(), follow.follower().nickname());
-    assertEquals(user2.getId(), follow.followee().userId());
-    assertEquals(user2.getNickname(), follow.followee().nickname());
+    assertEquals(user1.getId(), follow.getFollower().getUserId());
+    assertEquals(user1.getNickname(), follow.getFollower().getNickname());
+    assertEquals(user2.getId(), follow.getFollowee().getUserId());
+    assertEquals(user2.getNickname(), follow.getFollowee().getNickname());
   }
 }
