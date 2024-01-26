@@ -17,10 +17,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
 import java.util.Set;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -29,6 +27,7 @@ import org.hibernate.type.SqlTypes;
  */
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
