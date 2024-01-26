@@ -4,31 +4,25 @@
       "type": "keyword"
     },
     "title": {
-      "type": "text",
-      "analyzer": "korean"
+      "type": "text"
     },
     "content": {
-      "type": "text",
-      "analyzer": "korean"
+      "type": "text"
     },
     "status": {
-      "type": "keyword",
-      "analyzer": "korean"
+      "type": "keyword"
     },
     "breed": {
-      "type": "keyword",
-      "analyzer": "korean"
+      "type": "keyword"
     },
     "size": {
-      "type": "keyword",
-      "analyzer": "korean"
+      "type": "keyword"
     },
     "neutering": {
       "type": "boolean"
     },
     "gender": {
-      "type": "keyword",
-      "analyzer": "korean"
+      "type": "keyword"
     },
     "age": {
       "type": "long"
@@ -54,12 +48,10 @@
           "type": "text"
         },
         "nickname": {
-          "type": "keyword",
-          "analyzer": "korean"
+          "type": "keyword"
         },
         "introduce": {
-          "type": "text",
-          "analyzer": "korean"
+          "type": "text"
         },
         "joinedAt": {
           "type": "date"
@@ -73,19 +65,16 @@
               "type": "text"
             },
             "name": {
-              "type": "keyword",
-              "analyzer": "korean"
+              "type": "keyword"
             },
             "description": {
-              "type": "text",
-              "analyzer": "korean"
+              "type": "text"
             },
             "tel": {
               "type": "keyword"
             },
             "address": {
-              "type": "text",
-              "analyzer": "korean"
+              "type": "text"
             },
             "registeredAt": {
               "type": "date"
@@ -106,12 +95,10 @@
           "type": "text"
         },
         "nickname": {
-          "type": "keyword",
-          "analyzer": "korean"
+          "type": "keyword"
         },
         "introduce": {
-          "type": "text",
-          "analyzer": "korean"
+          "type": "text"
         },
         "joinedAt": {
           "type": "date"
@@ -125,19 +112,16 @@
               "type": "text"
             },
             "name": {
-              "type": "keyword",
-              "analyzer": "korean"
+              "type": "keyword"
             },
             "description": {
-              "type": "text",
-              "analyzer": "korean"
+              "type": "text"
             },
             "tel": {
               "type": "keyword"
             },
             "address": {
-              "type": "text",
-              "analyzer": "korean"
+              "type": "text"
             },
             "registeredAt": {
               "type": "date"
