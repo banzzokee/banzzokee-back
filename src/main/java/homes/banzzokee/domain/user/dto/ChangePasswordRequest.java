@@ -4,6 +4,7 @@ import homes.banzzokee.global.validator.annotation.Password;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 패스워드 변경 요청
@@ -11,15 +12,16 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ChangePasswordRequest {
 
   @Password
-  private final String originPassword;
+  private String originPassword;
 
   @Password
-  private final String newPassword;
+  private String newPassword;
 
   @Password
-  private final String confirmPassword;
+  private String confirmPassword;
 
 }
