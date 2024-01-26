@@ -1,4 +1,4 @@
-package homes.banzzokee.infra.fileupload.service;
+package homes.banzzokee.global.config.s3;
 
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -15,7 +15,7 @@ import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
-public class LocalStackTestContainersTest {
+public class S3ContainersTest {
   private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack");
 
   @Container
