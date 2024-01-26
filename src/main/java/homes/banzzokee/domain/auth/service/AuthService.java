@@ -21,14 +21,15 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class AuthService {
 
-  private static final String EMAIL_SUBJECT = "인증 코드" ;
-  private static final String EMAIL_TEXT = "인증 코드는 %s 입니다." ;
+  private static final String EMAIL_SUBJECT = "인증 코드";
+  private static final String EMAIL_TEXT = "인증 코드는 %s 입니다.";
   private static final int VERIFICATION_CODE_EXPIRATION_TIME = 3;
   private static final int VERIFICATION_CODE_MIN_VALUE = 100000;
   private static final int VERIFICATION_CODE_MAX_VALUE = 900000;
 
   private final JavaMailSender mailSender;
   private final RedisService redisService;
+
   private final UserRepository userRepository;
 
   public void signup(SignupDto signupDto) {
