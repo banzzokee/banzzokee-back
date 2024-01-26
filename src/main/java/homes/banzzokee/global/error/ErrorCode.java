@@ -1,12 +1,10 @@
 package homes.banzzokee.global.error;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+
+import static org.springframework.http.HttpStatus.*;
 
 @Getter
 @AllArgsConstructor
@@ -23,6 +21,8 @@ public enum ErrorCode {
   FAIL_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "이미지 업로드에 실패하였습니다."),
   EMAIL_CODE_UNMATCHED(BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
   EMAIL_CODE_INVALID(BAD_REQUEST, "인증 코드가 유효하지 않습니다."),
+  EMAIL_DUPLICATED(CONFLICT, "중복되는 이메일이 존재합니다."),
+  NICKNAME_DUPLICATED(BAD_REQUEST, "중복되는 닉네임이 존재합니다."),
 
   ;
 
