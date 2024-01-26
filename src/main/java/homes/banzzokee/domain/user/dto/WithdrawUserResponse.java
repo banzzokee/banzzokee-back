@@ -1,19 +1,21 @@
 package homes.banzzokee.domain.user.dto;
 
 import homes.banzzokee.domain.user.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 회원 탈퇴 응답
- *
- * @param userId 사용자 아이디
- * @param email  이메일
  */
 @Builder
-public record WithdrawUserResponse(
-    Long userId,
-    String email
-) {
+@Getter
+@AllArgsConstructor
+public class WithdrawUserResponse {
+
+  private final Long userId;
+
+  private final String email;
 
   public static WithdrawUserResponse fromEntity(User user) {
     return WithdrawUserResponse.builder()

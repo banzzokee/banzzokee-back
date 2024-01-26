@@ -10,9 +10,6 @@ import lombok.Getter;
 
 /**
  * 이메일 인증 요청 dto
- *
- * @param email
- * @param code
  */
 @Getter
 @Builder
@@ -21,10 +18,10 @@ public class EmailVerifyDto {
 
   @NotBlank(message = "email 은 필수 입력 항목입니다.")
   @Email(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", message = "올바른 이메일 형식을 입력해주세요.")
-  private String email;
+  private final String email;
 
   @NotBlank(message = "인증 코드는 필수 입력 항목입니다.")
   @Pattern(regexp = "\\d{6}", message = "인증 코드는 6자리 숫자여야 합니다.")
-  private String code;
+  private final String code;
 
 }

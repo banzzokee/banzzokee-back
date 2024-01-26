@@ -49,16 +49,16 @@ public class ChatMessageService {
     User user = userRepository.findById(1L)
         .orElseThrow(() -> new CustomException(FAILED));
 
-    String realMessage = message.messageType().equals(ENTER) ?
+    String realMessage = message.getMessageType().equals(ENTER) ?
         user.getNickname() + " 님이 입장하였습니다." :
-        message.message();
+        message.getMessage();
 
     return MessageDto.fromEntity(
         chatMessageRepository.save(ChatMessage.builder()
             .room(chatRoom)
             .user(user)
             .message(realMessage)
-            .messageType(message.messageType())
+            .messageType(message.getMessageType())
             .build()
         )
     );

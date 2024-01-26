@@ -4,29 +4,31 @@ import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 사용자 프로필
- *
- * @param userId        사용자 아이디
- * @param email         이메일
- * @param profileImgUrl 프로필 이미지 경로
- * @param nickname      닉네임
- * @param introduce     자기소개
- * @param joinedAt      가입일
- * @param shelter       보호소
  */
 @Builder
-public record UserProfileDto(
-    Long userId,
-    String email,
-    String profileImgUrl,
-    String nickname,
-    String introduce,
-    LocalDate joinedAt,
-    ShelterDto shelter
-) {
+@AllArgsConstructor
+@Getter
+public class UserProfileDto {
+
+  private final Long userId;
+
+  private final String email;
+
+  private final String profileImgUrl;
+
+  private final String nickname;
+
+  private final String introduce;
+
+  private final LocalDate joinedAt;
+
+  private final ShelterDto shelter;
 
   public static UserProfileDto fromEntity(User user) {
     return UserProfileDto.builder()

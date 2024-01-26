@@ -2,29 +2,31 @@ package homes.banzzokee.domain.shelter.dto;
 
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 보호소
- *
- * @param shelterId     보호소 아이디
- * @param shelterImgUrl 이미지 경로
- * @param name          이름
- * @param description   설명
- * @param tel           연락처
- * @param address       주소
- * @param registeredAt  등록일
  */
 @Builder
-public record ShelterDto(
-    Long shelterId,
-    String shelterImgUrl,
-    String name,
-    String description,
-    String tel,
-    String address,
-    LocalDate registeredAt
-) {
+@Getter
+@AllArgsConstructor
+public class ShelterDto {
+
+  private final Long shelterId;
+
+  private final String shelterImgUrl;
+
+  private final String name;
+
+  private final String description;
+
+  private final String tel;
+
+  private final String address;
+
+  private final LocalDate registeredAt;
 
   public static ShelterDto fromEntity(Shelter shelter) {
     // TODO: shelter description 추가하기
