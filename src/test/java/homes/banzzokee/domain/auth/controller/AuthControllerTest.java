@@ -22,13 +22,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @ExtendWith(SpringExtension.class)
@@ -52,8 +49,8 @@ class AuthControllerTest {
   @DisplayName("이메일 인증 성공 테스트")
   void successVerifyEmail() throws Exception {
     // given
-    String email = "test@test.com" ;
-    String code = "123456" ;
+    String email = "test@test.com";
+    String code = "123456";
     EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
         .email(email)
         .code(code)
@@ -77,7 +74,7 @@ class AuthControllerTest {
   @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
   void successCheckNickname() throws Exception {
     // given
-    String nickname = "반쪽이" ;
+    String nickname = "반쪽이";
     when(authService.checkNickname(nickname)).thenReturn(true);
 
     // when & then
@@ -94,7 +91,7 @@ class AuthControllerTest {
   @DisplayName("닉네임 중복확인 테스트 - 실패 케이스")
   void failCheckNickname() throws Exception {
     //given
-    String nickname = "반쪽이" ;
+    String nickname = "반쪽이";
     when(authService.checkNickname(nickname)).thenReturn(false);
 
     //when & then

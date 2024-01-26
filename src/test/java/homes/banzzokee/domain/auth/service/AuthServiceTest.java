@@ -32,8 +32,8 @@ class AuthServiceTest {
   @DisplayName("이메일 인증 테스트 - 성공 케이스")
   void successVerifyEmail() {
     // given
-    String email = "test@test.com" ;
-    String code = "123456" ;
+    String email = "test@test.com";
+    String code = "123456";
     EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
         .email("test@test.com")
         .code("123456")
@@ -52,8 +52,8 @@ class AuthServiceTest {
   @DisplayName("이메일 인증 테스트 - 실패 케이스 (코드 불일치)")
   void failVerifyEmailCodeUnmatched() {
     // given
-    String email = "test@test.com" ;
-    String code = "123456" ;
+    String email = "test@test.com";
+    String code = "123456";
     EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
         .email(email)
         .code(code)
@@ -68,8 +68,8 @@ class AuthServiceTest {
   @DisplayName("이메일 인증 테스트 - 실패 케이스 (코드 없음)")
   void failVerifyEmailCodeInvalid() {
     // given
-    String email = "test@test.com" ;
-    String code = "123456" ;
+    String email = "test@test.com";
+    String code = "123456";
     EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
         .email(email)
         .code(code)
@@ -83,7 +83,7 @@ class AuthServiceTest {
   @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
   void successCheckNickname() {
     // given
-    String nickname = "반쪽이" ;
+    String nickname = "반쪽이";
     when(userRepository.existsByNickname(nickname)).thenReturn(true);
 
     // when
@@ -97,7 +97,7 @@ class AuthServiceTest {
   @DisplayName("닉네임 중복확인 테스트 - 실패 케이스")
   void failCheckNickname() {
     // given
-    String nickname = "반쪽이" ;
+    String nickname = "반쪽이";
     when(userRepository.existsByNickname(nickname)).thenReturn(false);
 
     // when
