@@ -11,37 +11,39 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
 @Builder
+@NoArgsConstructor
 public class RegisterAdoptionRequest {
 
   @NotBlank @Size(max = 50)
-  private final String title;
+  private String title;
 
   @NotBlank @Size(max = 500)
-  private final String content;
+  private String content;
 
   @NotNull @BreedValid
-  private final String breed;
+  private String breed;
 
   @NotNull @DogSizeValid
-  private final String size;
+  private String size;
 
   @NotNull
-  private final boolean neutering;
+  private boolean neutering;
 
   @NotNull @DogGenderValid
-  private final String gender;
+  private String gender;
 
   @NotNull @Max(100)
-  private final int age;
+  private int age;
 
   @NotNull
-  private final boolean healthChecked;
+  private boolean healthChecked;
 
   @NotNull @DateValid
-  private final String registeredAt;
+  private String registeredAt;
 
 }
