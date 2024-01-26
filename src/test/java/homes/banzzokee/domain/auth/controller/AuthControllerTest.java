@@ -87,15 +87,16 @@ class AuthControllerTest {
     String requestBody = objectMapper.writeValueAsString(emailVerifyDto);
 
     // when & then
-    mockMvc.perform(post("/api/auth/verify")
+    mockMvc.perform(post("/api/auth/send-verify")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
         .andExpect(status().isOk());
-    verify(authService).verifyEmail(captor.capture());
-    EmailVerifyDto capturedDto = captor.getValue();
+
+    ArgumentCaptor<EmailDto> captor = ArgumentCaptor.forClass(EmailDto.class);
+    verify(authService).sendVerificationCode(captor.capture());
+    EmailDto capturedDto = captor.getValue();
 
     assertEquals("test@test.com", capturedDto.getEmail());
-    assertEquals("123456", capturedDto.getCode());
   }
 
   @Test
