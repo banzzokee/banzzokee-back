@@ -7,10 +7,6 @@ import lombok.Getter;
 
 /**
  * 채팅방 생성 Response
- *
- * @param roomId
- * @param user
- * @param shelter
  */
 @Builder
 @Getter
