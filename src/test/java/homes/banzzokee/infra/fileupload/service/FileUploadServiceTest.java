@@ -8,13 +8,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import homes.banzzokee.domain.type.ImagePath;
 import homes.banzzokee.infra.fileupload.dto.ImageDto;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,16 +37,24 @@ class FileUploadServiceTest {
   @InjectMocks
   private FileUploadService fileUploadService;
 
+  @BeforeEach
+  void injectBucketNameField() throws NoSuchFieldException, IllegalAccessException {
+    Field field = FileUploadService.class.getDeclaredField("bucketName");
+    field.setAccessible(true);
+    field.set(fileUploadService, "bucketName");
+  }
+
   @Test
   @DisplayName("1개 파일 업로드 성공 테스트")
   void successUploadFile() throws IOException {
     //given
     MultipartFile multipartFile = createMockMultipartFile();
 
-    given(amazonS3Client.getUrl(any(), anyString())).willReturn(
+    given(amazonS3Client.getUrl(anyString(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    ImageDto imageDto = fileUploadService.uploadOneFile(multipartFile);
+    ImageDto imageDto = fileUploadService.uploadOneFile(multipartFile,
+        ImagePath.ADOPTION);
 
     // then
     assertEquals(imageDto.getUrl(), "https://imageUrl.com");
@@ -59,10 +70,11 @@ class FileUploadServiceTest {
       multipartFiles.add(createMockMultipartFile());
     }
 
-    given(amazonS3Client.getUrl(any(), anyString())).willReturn(
+    given(amazonS3Client.getUrl(anyString(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    List<ImageDto> imageDtoList = fileUploadService.uploadManyFile(multipartFiles);
+    List<ImageDto> imageDtoList = fileUploadService.uploadManyFile(multipartFiles,
+        ImagePath.ADOPTION);
     //then
     assertEquals(3, imageDtoList.size());
     assertEquals("https://imageUrl.com", imageDtoList.get(0).getUrl());
