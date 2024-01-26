@@ -6,6 +6,7 @@ spring:
     include:
       - jpa
       - s3
+      - elasticsearch
 
 logging:
   level:
