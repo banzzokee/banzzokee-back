@@ -2,7 +2,8 @@ package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 
@@ -20,11 +21,11 @@ public record AdoptionResponse (
   String gender,
   int age,
   boolean healthChecked,
-  String registeredAt,
+  LocalDate registeredAt,
   String status,
-  String adoptedAt,
-  String createdAt,
-  String updatedAt
+  LocalDate adoptedAt,
+  LocalDateTime createdAt,
+  LocalDateTime updatedAt
 //  ReviewDto review
 ) {
   public static AdoptionResponse fromEntity(Adoption adoption) {
@@ -41,10 +42,11 @@ public record AdoptionResponse (
         .gender(adoption.getGender().getGender())
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
+        .registeredAt(adoption.getRegisteredAt())
         .status(adoption.getStatus().getStatus())
-        .adoptedAt(adoption.getAdoptedAt().format(DateTimeFormatter.ISO_DATE))
-        .createdAt(adoption.getCreatedAt().format(DateTimeFormatter.ISO_DATE))
-        .updatedAt(adoption.getUpdatedAt().format(DateTimeFormatter.ISO_DATE))
+        .adoptedAt(adoption.getAdoptedAt())
+        .createdAt(adoption.getCreatedAt())
+        .updatedAt(adoption.getUpdatedAt())
 //        .review(ReviewDto.fromEntity(adoption.getReview()))
         .build();
   }
