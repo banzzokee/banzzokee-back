@@ -1,5 +1,6 @@
 package homes.banzzokee.domain.adoption.document;
 
+import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
@@ -60,4 +61,25 @@ public class AdoptionDocument {
 
   private LocalDateTime updatedAt;
 
+  public AdoptionDocument fromEntity(Adoption adoption) {
+    return AdoptionDocument.builder()
+        .id(adoption.getId())
+        .title(adoption.getTitle())
+        .content(adoption.getContent())
+        .status(adoption.getStatus().getStatus())
+        .breed(adoption.getBreed().getBreed())
+        .size(adoption.getSize().getSize())
+        .neutering(adoption.isNeutering())
+        .gender(adoption.getGender().getGender())
+        .age(adoption.getAge())
+        .healthChecked(adoption.isHealthChecked())
+        .registeredAt(adoption.getRegisteredAt())
+        .images(adoption.getImages())
+        .user(UserProfileDto.fromEntity(adoption.getUser()))
+        .assignedUser(UserProfileDto.fromEntity(adoption.getAssignedUser()))
+        .deletedAt(adoption.getDeletedAt())
+        .createdAt(adoption.getCreatedAt())
+        .updatedAt(adoption.getUpdatedAt())
+        .build();
+  }
 }
