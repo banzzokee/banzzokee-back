@@ -33,6 +33,7 @@ public enum ErrorCode {
   ROOM_NOT_FOUND(NOT_FOUND, "채팅방을 찾을 수 없습니다."),
   SHELTER_NOT_FOUND(NOT_FOUND, "보호소를 찾을 수 없습니다."),
   SHELTER_ALREADY_VERIFIED(BAD_REQUEST, "이미 승인된 보호소입니다."),
+  NOT_VERIFIED_SHELTER_EXISTS(BAD_REQUEST, "승인되지 않은 보호소가 존재합니다."),
   ;
 
   private final HttpStatus httpStatus;

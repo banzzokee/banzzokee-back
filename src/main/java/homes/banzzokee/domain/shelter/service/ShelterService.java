@@ -8,6 +8,7 @@ import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.ShelterAlreadyVerifiedException;
 import homes.banzzokee.domain.shelter.exception.ShelterNotFoundException;
+import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.shelter.exception.UserAlreadyRegisterShelterException;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -34,6 +35,7 @@ public class ShelterService {
     User user = findByUserIdOrThrow(userId);
 
     throwIfUserAlreadyRegisterShelter(user);
+    throwIfShelterNotVerified(user.getShelter());
 
     S3Object uploadedImage = uploadShelterImage(shelterImg);
 
@@ -50,7 +52,6 @@ public class ShelterService {
         .build());
   }
 
-  @Transactional
   public void verifyShelter(long shelterId, long userId) {
     User user = findByUserIdOrThrow(userId);
     throwIfUserHasNotAdminRole(user);
@@ -61,10 +62,15 @@ public class ShelterService {
     shelter.verify();
   }
 
+  private void throwIfShelterNotVerified(Shelter shelter) {
+    if (shelter != null && !shelter.isVerified()) {
+      throw new NotVerifiedShelterExistsException();
+    }
+  }
+
   private void throwIfUserAlreadyRegisterShelter(User user) {
-    if (user.hasShelter()) {
-      throw new UserAlreadyRegisterShelterException(user.getId(),
-          (user.getShelter() != null) ? user.getShelter().getId() : null);
+    if (user.getShelter() != null && user.getShelter().isVerified()) {
+      throw new UserAlreadyRegisterShelterException();
     }
   }
 
