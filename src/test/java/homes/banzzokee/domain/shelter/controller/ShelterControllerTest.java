@@ -1,7 +1,6 @@
 package homes.banzzokee.domain.shelter.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -10,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
 import homes.banzzokee.domain.shelter.service.ShelterService;
 import homes.banzzokee.global.util.MockDataUtil;
+import homes.banzzokee.global.util.MockMvcUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -66,13 +66,33 @@ class ShelterControllerTest {
         = ArgumentCaptor.forClass(MultipartFile.class);
     ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
 
-    verify(shelterService, times(1))
+    verify(shelterService)
         .registerShelter(requestCaptor.capture(),
             fileCaptor.capture(),
             userIdCaptor.capture());
 
     assertEquals(request, requestCaptor.getValue());
     assertEquals(mockFile.getSize(), fileCaptor.getValue().getSize());
+    assertEquals(1L, userIdCaptor.getValue());
+  }
+
+  @Test
+  @DisplayName("[보호소 승인] - 요청 데이터가 서비스 메서드에 잘 들어가는지 검증")
+  void verifyShelter_when_validInput_then_success() throws Exception {
+    // when
+    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
+        "/api/shelters/2/verify?userId=1", null);
+
+    // then
+    resultActions.andExpect(status().isOk());
+
+    ArgumentCaptor<Long> shelterIdCaptor = ArgumentCaptor.forClass(Long.class);
+    ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+
+    verify(shelterService)
+        .verifyShelter(shelterIdCaptor.capture(), userIdCaptor.capture());
+
+    assertEquals(2L, shelterIdCaptor.getValue());
     assertEquals(1L, userIdCaptor.getValue());
   }
 }
