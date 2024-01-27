@@ -184,12 +184,12 @@ class UserControllerTest {
         .introduce("introduce")
         .build();
     MockPart mockPart = MockDataUtil.createMockPart("request", request);
-    MockMultipartFile mockFile = MockDataUtil.createMockMultipartFile(
+    MockMultipartFile mockFile = MockDataUtil.createMockMultipartFile("profileImg",
         "src/test/resources/images/banzzokee.png");
 
     MockMultipartHttpServletRequestBuilder patch = MockMvcRequestBuilders
         .multipart(PATCH, "/api/users/me?userId=1")
-        .file("profileImg", mockFile.getBytes())
+        .file(mockFile)
         .part(mockPart);
 
     given(userService.updateUserProfile(eq(request), any(MultipartFile.class), eq(1L)))

@@ -76,7 +76,7 @@ class UserServiceTest {
   private void initialize() throws IOException {
     s3Service = Mockito.mock(FileUploadService.class);
     userService = new UserService(userRepository, followRepository, s3Service);
-    mockFile = MockDataUtil.createMockMultipartFile(
+    mockFile = MockDataUtil.createMockMultipartFile("profileImg",
         "src/test/resources/images/banzzokee.png");
   }
 

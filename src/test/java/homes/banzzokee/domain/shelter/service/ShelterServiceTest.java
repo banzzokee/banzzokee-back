@@ -15,16 +15,19 @@ import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
+import homes.banzzokee.domain.shelter.dto.ShelterUpdateRequest;
 import homes.banzzokee.domain.shelter.entity.Shelter;
+import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.shelter.exception.ShelterAlreadyVerifiedException;
 import homes.banzzokee.domain.shelter.exception.ShelterNotFoundException;
-import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.shelter.exception.UserAlreadyRegisterShelterException;
 import homes.banzzokee.domain.type.Role;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.CustomException;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.ImageDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
@@ -62,10 +65,13 @@ class ShelterServiceTest {
   private final User mockShelterUser = mock(User.class);
   private final Shelter mockShelter = mock(Shelter.class);
   private final MultipartFile mockFile = MockDataUtil.createMockMultipartFile(
+      "shelterImg",
       "src/test/resources/images/banzzokee.png");
   private final Set<Role> adminRole = new HashSet<>(Collections.singleton(ADMIN));
   private final ShelterRegisterRequest mockShelterRegisterRequest = mock(
       ShelterRegisterRequest.class);
+  private final ShelterUpdateRequest mockShelterUpdateRequest
+      = mock(ShelterUpdateRequest.class);
 
   ShelterServiceTest() throws IOException {
   }
@@ -239,5 +245,123 @@ class ShelterServiceTest {
     assertTrue(shelter.isVerified());
     assertTrue(user.getRole().contains(SHELTER));
     assertTrue(user.getRole().contains(USER));
+  }
+
+  @Test
+  @DisplayName("[보호소 수정] - 보호소를 찾을 수 없으면 ShelterNotFoundException 발생")
+  void updateShelter_when_shelterNotExists_then_throwShelterNotFoundException() {
+    // given
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.empty());
+
+    // when
+    // then
+    assertThrows(ShelterNotFoundException.class,
+        () -> shelterService.updateShelter(mockShelter.getId(),
+            mockShelterUpdateRequest,
+            mockFile,
+            mockUser.getId()));
+  }
+
+  @Test
+  @DisplayName("[보호소 수정] - 사용자가 보호소를 등록한 사용자가 아니면 NoAuthorizedException 발생")
+  void updateShelter_when_userIsNotShelterUser_then_throwNoAuthorizedException() {
+    // given
+    given(mockShelter.getUser()).willReturn(mock(User.class));
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.of(mockShelter));
+
+    // when
+    // then
+    assertThrows(NoAuthorizedException.class,
+        () -> shelterService.updateShelter(mockShelter.getId(),
+            mockShelterUpdateRequest,
+            mockFile,
+            mockUser.getId()));
+  }
+
+  @Test
+  @DisplayName("[보호소 수정] - 성공 검증, 이전 이미지가 null이 아닌 경우 삭제한다")
+  void updateShelter_when_oldShelterImageNotNull_then_deleteOldShelterImage() {
+    // given
+    S3Object oldShelterImage = new S3Object("oldShelterImage.png");
+    given(mockShelter.getUser()).willReturn(mockUser);
+    given(mockShelter.getShelterImage()).willReturn(oldShelterImage);
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.of(mockShelter));
+
+    // when
+    shelterService.updateShelter(mockShelter.getId(),
+        mockShelterUpdateRequest,
+        mockFile,
+        mockUser.getId());
+
+    // then
+    verify(s3Service).deleteFile(oldShelterImage.getFileName());
+  }
+
+  @Test
+  @DisplayName("[보호소 수정] - 성공 검증, 이전 이미지가 null이 아닌 경우 삭제한다")
+  void updateShelter_when_shelterImageNotNull_then_uploadShelterImage() {
+    // given
+    given(mockShelter.getUser()).willReturn(mockUser);
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.of(mockShelter));
+
+    // when
+    shelterService.updateShelter(mockShelter.getId(),
+        mockShelterUpdateRequest,
+        mockFile,
+        mockUser.getId());
+
+    // then
+    verify(s3Service).uploadOneFile(mockFile);
+  }
+
+  @Test
+  @DisplayName("[보호소 수정] - 성공 검증")
+  void updateShelter_when_success_then_verify() {
+    // given
+    Shelter shelter = spy(Shelter.builder()
+        .user(mockUser)
+        .build());
+
+    given(mockShelter.getUser()).willReturn(mockUser);
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.of(shelter));
+    given(s3Service.uploadOneFile(mockFile))
+        .willReturn(ImageDto.builder()
+            .filename("filename")
+            .url("url")
+            .build());
+
+    // when
+    ShelterUpdateRequest request = ShelterUpdateRequest.builder()
+        .name("name")
+        .description("description")
+        .tel("02-1234-5678")
+        .address("address")
+        .latitude(1.0)
+        .longitude(2.0)
+        .build();
+
+    shelterService.updateShelter(mockShelter.getId(),
+        request,
+        mockFile,
+        mockUser.getId());
+
+    // then
+    assertEquals(request.getName(), shelter.getName());
+    assertEquals(request.getDescription(), shelter.getDescription());
+    assertEquals(request.getTel(), shelter.getTel());
+    assertEquals(request.getAddress(), shelter.getAddress());
+    assertEquals(request.getLatitude(), shelter.getLatitude());
+    assertEquals(request.getLongitude(), shelter.getLongitude());
+    assertEquals("url", shelter.getShelterImageUrl());
   }
 }
