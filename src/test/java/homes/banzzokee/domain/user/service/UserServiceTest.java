@@ -21,8 +21,8 @@ import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
@@ -88,16 +88,6 @@ class UserServiceTest {
     Set<Role> roles2 = new HashSet<>();
     roles2.add(SHELTER);
 
-    Shelter shelter1 = shelterRepository.save(Shelter.builder()
-        .name("보호소1")
-        .verified(true)
-        .build());
-
-    Shelter shelter2 = shelterRepository.save(Shelter.builder()
-        .name("보호소2")
-        .verified(false)
-        .build());
-
     user1 = userRepository.save(User.builder()
         .email("user1@banzzokee.homes")
         .password("1q2W#e$R")
@@ -105,7 +95,6 @@ class UserServiceTest {
         .introduce("안녕하세요.")
         .loginType(EMAIL)
         .role(roles1)
-        .shelter(shelter1)
         .build());
 
     user2 = userRepository.save(User.builder()
@@ -115,13 +104,28 @@ class UserServiceTest {
         .introduce("안녕하세요.")
         .loginType(EMAIL)
         .role(roles2)
-        .shelter(shelter2)
         .build());
 
     user3 = userRepository.save(User.builder()
         .email("user3@banzzokee.homes")
         .password("1q2W#e$R")
         .build());
+
+    Shelter shelter1 = shelterRepository.save(Shelter.builder()
+        .name("보호소1")
+        .verified(true)
+        .user(user1)
+        .build());
+
+    user1.registerShelter(shelter1);
+
+    Shelter shelter2 = shelterRepository.save(Shelter.builder()
+        .name("보호소2")
+        .verified(false)
+        .user(user2)
+        .build());
+
+    user2.registerShelter(shelter2);
   }
 
   @Test
