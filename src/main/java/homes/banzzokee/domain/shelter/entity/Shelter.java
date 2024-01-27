@@ -6,7 +6,12 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PROTECTED;
 
 import homes.banzzokee.domain.common.entity.BaseEntity;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,6 +22,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.util.StringUtils;
 
 /**
  * 보호소
@@ -47,7 +53,11 @@ public class Shelter extends BaseEntity {
   /**
    * 이미지 경로
    */
-  private String shelterImgUrl;
+  @Embedded
+  @AttributeOverrides(
+      @AttributeOverride(name = "url", column = @Column(name = "shelterImgUrl"))
+  )
+  private S3Object shelterImage;
 
   /**
    * 연락처
@@ -84,18 +94,38 @@ public class Shelter extends BaseEntity {
       Double latitude, Double longitude, boolean verified, User user) {
     this.name = name;
     this.description = description;
-    this.shelterImgUrl = shelterImgUrl;
     this.tel = tel;
     this.address = address;
     this.latitude = latitude;
     this.longitude = longitude;
     this.verified = verified;
     this.user = Objects.requireNonNull(user);
+
+    if (StringUtils.hasText(shelterImgUrl)) {
+      this.shelterImage = new S3Object(shelterImgUrl);
+    }
+  }
+
+  public String getShelterImageUrl() {
+    return this.getShelterImage() != null ? this.getShelterImage().getUrl() : null;
   }
 
   public void verify() {
     this.verified = true;
     assert this.user != null;
     this.user.addRoles(SHELTER);
+  }
+
+  public void updateProfile(String name, String description, String tel, String address,
+      Double latitude, Double longitude, S3Object shelterImage) {
+    this.name = name;
+    this.description = description;
+    this.tel = tel;
+    this.address = address;
+    this.latitude = latitude;
+    this.longitude = longitude;
+    if (shelterImage != null) {
+      this.shelterImage = shelterImage;
+    }
   }
 }

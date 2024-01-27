@@ -164,7 +164,7 @@ class ShelterServiceTest {
     assertEquals(request.getAddress(), shelter.getAddress());
     assertEquals(request.getLatitude(), shelter.getLatitude());
     assertEquals(request.getLongitude(), shelter.getLongitude());
-    assertEquals(image.getUrl(), shelter.getShelterImgUrl());
+    assertEquals(image.getUrl(), shelter.getShelterImageUrl());
     assertFalse(shelter.isVerified());
   }
 
