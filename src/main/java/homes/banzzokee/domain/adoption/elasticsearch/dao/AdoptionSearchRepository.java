@@ -1,6 +1,6 @@
-package homes.banzzokee.domain.adoption.dao;
+package homes.banzzokee.domain.adoption.elasticsearch.dao;
 
-import homes.banzzokee.domain.adoption.document.AdoptionDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import java.util.List;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 

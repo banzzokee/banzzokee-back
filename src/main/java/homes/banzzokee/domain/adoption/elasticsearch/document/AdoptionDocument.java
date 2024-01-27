@@ -1,4 +1,4 @@
-package homes.banzzokee.domain.adoption.document;
+package homes.banzzokee.domain.adoption.elasticsearch.document;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
