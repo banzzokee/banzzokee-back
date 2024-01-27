@@ -1,18 +1,18 @@
 package homes.banzzokee.domain.user.dto;
 
-import homes.banzzokee.domain.shelter.dto.ShelterDto;
-import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.entity.User;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
- * 사용자 프로필
+ * 사용자 프로필 수정 응답
  */
 @Getter
 @Builder
-public class UserProfileDto {
+@EqualsAndHashCode
+public class UserProfileUpdateResponse {
 
   /**
    * 사용자 아이디
@@ -40,31 +40,18 @@ public class UserProfileDto {
   private final String introduce;
 
   /**
-   * 가입일
+   * 수정일시
    */
-  private final LocalDate joinedAt;
+  private final LocalDateTime updatedAt;
 
-  /**
-   * 보호소
-   */
-  private final ShelterDto shelter;
-
-  public static UserProfileDto fromEntity(User user) {
-    return UserProfileDto.builder()
+  public static UserProfileUpdateResponse fromEntity(User user) {
+    return UserProfileUpdateResponse.builder()
         .userId(user.getId())
         .email(user.getEmail())
         .profileImgUrl(user.getProfileImageUrl())
         .nickname(user.getNickname())
         .introduce(user.getIntroduce())
-        .joinedAt(user.getCreatedAt().toLocalDate())
-        .shelter(getShelterDto(user.getShelter()))
+        .updatedAt(user.getUpdatedAt())
         .build();
-  }
-
-  private static ShelterDto getShelterDto(Shelter shelter) {
-    if (shelter != null && shelter.isVerified()) {
-      return ShelterDto.fromEntity(shelter);
-    }
-    return null;
   }
 }

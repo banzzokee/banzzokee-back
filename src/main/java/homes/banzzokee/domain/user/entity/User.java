@@ -9,6 +9,11 @@ import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.type.Role;
+import homes.banzzokee.domain.type.S3Object;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -21,14 +26,17 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.util.StringUtils;
 
 /**
  * 사용자
  */
 @Entity
 @Getter
+@DynamicUpdate
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
@@ -57,7 +65,11 @@ public class User extends BaseEntity {
   /**
    * 프로필 이미지 경로
    */
-  private String profileImgUrl;
+  @Embedded
+  @AttributeOverrides(
+      @AttributeOverride(name = "url", column = @Column(name = "profileImgUrl"))
+  )
+  private S3Object profileImage;
 
   /**
    * 자기소개
@@ -95,15 +107,22 @@ public class User extends BaseEntity {
     this.email = email;
     this.password = password;
     this.nickname = nickname;
-    this.profileImgUrl = profileImgUrl;
     this.introduce = introduce;
     this.role = role;
     this.loginType = loginType;
     this.shelter = shelter;
+
+    if (StringUtils.hasText(profileImgUrl)) {
+      this.profileImage = new S3Object(profileImgUrl);
+    }
   }
 
   public boolean isWithdrawn() {
     return this.deletedAt != null;
+  }
+
+  public String getProfileImageUrl() {
+    return this.getProfileImage() != null ? this.getProfileImage().getUrl() : null;
   }
 
   public void withdraw() {
@@ -118,5 +137,14 @@ public class User extends BaseEntity {
 
   public boolean hasShelter() {
     return this.role.contains(SHELTER);
+  }
+
+  public void updateProfile(String nickname, String introduce,
+      S3Object profileImage) {
+    this.nickname = nickname;
+    this.introduce = introduce;
+    if (profileImage != null) {
+      this.profileImage = profileImage;
+    }
   }
 }

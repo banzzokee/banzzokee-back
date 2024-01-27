@@ -8,6 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
@@ -16,6 +21,7 @@ import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.entity.User;
@@ -26,23 +32,28 @@ import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
 import homes.banzzokee.global.error.exception.CustomException;
+import homes.banzzokee.global.util.MockDataUtil;
+import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.multipart.MultipartFile;
 
 @Import(JpaAuditingConfig.class)
 @DataJpaTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServiceTest {
 
   private UserService userService;
+
+  private FileUploadService s3Service;
 
   @Autowired
   private UserRepository userRepository;
@@ -55,18 +66,21 @@ class UserServiceTest {
 
   private User user1;
   private User user2;
-
   private User user3;
+  private MultipartFile mockFile;
 
   private final static WithdrawUserRequest withdrawUserRequest = new WithdrawUserRequest(
       "1q2W#e$R");
 
   @PostConstruct
-  private void initialize() {
-    userService = new UserService(userRepository, followRepository);
+  private void initialize() throws IOException {
+    s3Service = Mockito.mock(FileUploadService.class);
+    userService = new UserService(userRepository, followRepository, s3Service);
+    mockFile = MockDataUtil.createMockMultipartFile(
+        "src/test/resources/images/banzzokee.png");
   }
 
-  @BeforeAll
+  @BeforeEach
   public void setup() {
     Set<Role> roles1 = new HashSet<>();
     roles1.add(USER);
@@ -88,7 +102,6 @@ class UserServiceTest {
         .email("user1@banzzokee.homes")
         .password("1q2W#e$R")
         .nickname("사용자1")
-        .profileImgUrl("avatar.png")
         .introduce("안녕하세요.")
         .loginType(EMAIL)
         .role(roles1)
@@ -129,7 +142,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user1.getId());
 
     // then
-    assertNotNull(userProfile.shelter());
+    assertNotNull(userProfile.getShelter());
   }
 
   @Test
@@ -140,7 +153,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user2.getId());
 
     // then
-    assertNull(userProfile.shelter());
+    assertNull(userProfile.getShelter());
   }
 
   @Test
@@ -286,5 +299,72 @@ class UserServiceTest {
     assertEquals(user1.getNickname(), follow.follower().nickname());
     assertEquals(user2.getId(), follow.followee().userId());
     assertEquals(user2.getNickname(), follow.followee().nickname());
+  }
+
+  @Test
+  @DisplayName("[프로필 수정] 파일이 있으면 업로드 호출 검증")
+  void updateUserProfile_Verify_uploadOneFile_1_Times_When_ProfileFile_Is_Not_Null()
+      throws IOException {
+    // given
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+
+    // when
+    userService.updateUserProfile(request, mockFile, user1.getId());
+
+    // then
+    verify(s3Service, times(1)).uploadOneFile(mockFile);
+  }
+
+  @Test
+  @DisplayName("[프로필 수정] 파일이 없으면 업로드 호출 검증")
+  void updateUserProfile_Verify_uploadOneFile_0_Times_When_ProfileFile_Is_Null()
+      throws IOException {
+    // given
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+
+    // when
+    userService.updateUserProfile(request, null, user1.getId());
+
+    // then
+    verify(s3Service, times(0)).uploadOneFile(any());
+  }
+
+  @Test
+  @DisplayName("[프로필 수정] 원본 프로필 사진이 없으면 삭제 호출 검증")
+  void updateUserProfile_Verify_deleteFile_Never_When_Origin_ProfileFile_Is_Null()
+      throws IOException {
+    // given
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+
+    // when
+    userService.updateUserProfile(request, mockFile, user1.getId());
+
+    // then
+    verify(s3Service, never()).deleteFile(anyString());
+  }
+
+  @Test
+  @DisplayName("[프로필 수정] 원본 프로필 사진이 있으면 삭제 호출 검증")
+  void updateUserProfile_Verify_deleteFile_1_Times_When_Origin_ProfileFile_Is_Not_Null() {
+    // given
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+
+    // when
+    userService.updateUserProfile(request, null, user2.getId());
+
+    // then
+    verify(s3Service, times(1)).deleteFile(any());
   }
 }
