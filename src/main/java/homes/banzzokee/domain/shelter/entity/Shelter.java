@@ -32,6 +32,11 @@ public class Shelter extends BaseEntity {
   private String name;
 
   /**
+   * 설명
+   */
+  private String description;
+
+  /**
    * 이미지 경로
    */
   private String shelterImgUrl;
@@ -62,9 +67,11 @@ public class Shelter extends BaseEntity {
   private boolean verified;
 
   @Builder
-  public Shelter(String name, String shelterImgUrl, String tel, String address,
+  public Shelter(String name, String description, String shelterImgUrl, String tel,
+      String address,
       Double latitude, Double longitude, boolean verified) {
     this.name = name;
+    this.description = description;
     this.shelterImgUrl = shelterImgUrl;
     this.tel = tel;
     this.address = address;

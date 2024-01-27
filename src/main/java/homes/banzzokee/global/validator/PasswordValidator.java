@@ -15,6 +15,6 @@ public class PasswordValidator implements ConstraintValidator<Password, String> 
       return false;
     }
 
-    return value.matches(PASSWORD.getPattern());
+    return value.matches(PASSWORD);
   }
 }

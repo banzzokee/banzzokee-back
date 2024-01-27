@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.user.entity;
 
 import static homes.banzzokee.domain.type.Role.SHELTER;
+import static jakarta.persistence.CascadeType.PERSIST;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
@@ -92,7 +93,7 @@ public class User extends BaseEntity {
   /**
    * 보호소
    */
-  @OneToOne(fetch = LAZY)
+  @OneToOne(fetch = LAZY, cascade = PERSIST)
   @JoinColumn(name = "shelter_id")
   private Shelter shelter;
 
@@ -145,6 +146,12 @@ public class User extends BaseEntity {
     this.introduce = introduce;
     if (profileImage != null) {
       this.profileImage = profileImage;
+    }
+  }
+
+  public void registerShelter(Shelter shelter) {
+    if (this.shelter == null) {
+      this.shelter = shelter;
     }
   }
 }

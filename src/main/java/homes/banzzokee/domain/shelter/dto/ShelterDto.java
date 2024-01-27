@@ -27,12 +27,11 @@ public record ShelterDto(
 ) {
 
   public static ShelterDto fromEntity(Shelter shelter) {
-    // TODO: shelter description 추가하기
     return ShelterDto.builder()
         .shelterId(shelter.getId())
         .shelterImgUrl(shelter.getShelterImgUrl())
         .name(shelter.getName())
-        .description(null)
+        .description(shelter.getDescription())
         .tel(shelter.getTel())
         .address(shelter.getAddress())
         .registeredAt(shelter.getCreatedAt().toLocalDate())
