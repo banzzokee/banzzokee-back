@@ -22,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -153,5 +154,9 @@ public class User extends BaseEntity {
     if (this.shelter == null) {
       this.shelter = shelter;
     }
+  }
+
+  public void addRoles(Role... roles) {
+    this.role.addAll(Arrays.asList(roles));
   }
 }

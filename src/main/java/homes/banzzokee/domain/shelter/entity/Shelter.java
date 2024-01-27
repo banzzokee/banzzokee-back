@@ -1,20 +1,28 @@
 package homes.banzzokee.domain.shelter.entity;
 
+import static homes.banzzokee.domain.type.Role.SHELTER;
+import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PROTECTED;
 
 import homes.banzzokee.domain.common.entity.BaseEntity;
+import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 /**
  * 보호소
  */
 @Entity
+@DynamicUpdate
 @Getter
 @NoArgsConstructor(force = true, access = PROTECTED)
 public class Shelter extends BaseEntity {
@@ -66,10 +74,14 @@ public class Shelter extends BaseEntity {
    */
   private boolean verified;
 
+  @OneToOne(fetch = LAZY)
+  @JoinColumn(name = "user_id")
+  private final User user;
+
   @Builder
   public Shelter(String name, String description, String shelterImgUrl, String tel,
       String address,
-      Double latitude, Double longitude, boolean verified) {
+      Double latitude, Double longitude, boolean verified, User user) {
     this.name = name;
     this.description = description;
     this.shelterImgUrl = shelterImgUrl;
@@ -78,5 +90,12 @@ public class Shelter extends BaseEntity {
     this.latitude = latitude;
     this.longitude = longitude;
     this.verified = verified;
+    this.user = Objects.requireNonNull(user);
+  }
+
+  public void verify() {
+    this.verified = true;
+    assert this.user != null;
+    this.user.addRoles(SHELTER);
   }
 }
