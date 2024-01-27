@@ -8,10 +8,10 @@ import lombok.Getter;
 @Getter
 public class UserAlreadyRegisterShelterException extends CustomException {
 
-  private final long userId;
-  private final long shelterId;
+  private final Long userId;
+  private final Long shelterId;
 
-  public UserAlreadyRegisterShelterException(long userId, long shelterId) {
+  public UserAlreadyRegisterShelterException(Long userId, Long shelterId) {
     super(USER_ALREADY_REGISTER_SHELTER);
     this.userId = userId;
     this.shelterId = shelterId;

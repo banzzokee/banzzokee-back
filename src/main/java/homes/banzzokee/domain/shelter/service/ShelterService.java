@@ -44,7 +44,7 @@ public class ShelterService {
   private void throwIfUserAlreadyRegisterShelter(User user) {
     if (user.hasShelter()) {
       throw new UserAlreadyRegisterShelterException(user.getId(),
-          user.getShelter().getId());
+          (user.getShelter() != null) ? user.getShelter().getId() : null);
     }
   }
 
