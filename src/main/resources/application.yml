@@ -6,3 +6,5 @@ spring:
     include:
       - jpa
       - s3
+      - smtp
+      - redis

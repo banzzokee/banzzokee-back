@@ -4,12 +4,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum ErrorCode {
 
   FAILED(BAD_REQUEST, "실패했습니다."),
@@ -26,6 +26,10 @@ public enum ErrorCode {
   HTTP_MESSAGE_NOT_READABLE(BAD_REQUEST, "HTTP 메시지를 읽을 수 없습니다."),
   INTERNAL_ERROR(INTERNAL_SERVER_ERROR, "처리되지 않은 에러가 발생했습니다."),
   MIME_TYPE_INVALID(INTERNAL_SERVER_ERROR, "MIME TYPE을 찾을 수 없습니다."),
+  EMAIL_CODE_UNMATCHED(BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
+  EMAIL_CODE_INVALID(BAD_REQUEST, "인증 코드가 유효하지 않습니다."),
+  // chat & room
+  ROOM_NOT_FOUND(NOT_FOUND, "채팅방을 찾을 수 없습니다."),
   ;
 
   private final HttpStatus httpStatus;
