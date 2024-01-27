@@ -6,15 +6,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Collections;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterValidationResult;
 
 @Getter
 @Builder
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ErrorResponse {
 
   private final ErrorCode error;

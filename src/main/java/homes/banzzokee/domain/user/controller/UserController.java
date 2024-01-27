@@ -3,9 +3,9 @@ package homes.banzzokee.domain.user.controller;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UpdateUserRequest;
-import homes.banzzokee.domain.user.dto.UpdateUserResponse;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
@@ -62,8 +62,8 @@ public class UserController {
   }
 
   @PatchMapping(value = "me")
-  public UpdateUserResponse updateUserProfile(
-      @Valid @RequestPart UpdateUserRequest request,
+  public UserProfileUpdateResponse updateUserProfile(
+      @Valid @RequestPart UserProfileUpdateRequest request,
       @ImageFile() MultipartFile profileImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal로 바꾸기
     return userService.updateUserProfile(request, profileImg, userId);

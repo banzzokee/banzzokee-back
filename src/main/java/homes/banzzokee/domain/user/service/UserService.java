@@ -9,9 +9,9 @@ import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UpdateUserRequest;
-import homes.banzzokee.domain.user.dto.UpdateUserResponse;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.entity.Follow;
@@ -165,17 +165,17 @@ public class UserService {
    * @return 사용자 프로필 수정 응답
    */
   @Transactional
-  public UpdateUserResponse updateUserProfile(UpdateUserRequest request,
+  public UserProfileUpdateResponse updateUserProfile(UserProfileUpdateRequest request,
       MultipartFile profileImage, long userId) {
     // TODO: userDetails & userId가 일치하는지 확인
     User user = findByUserIdOrThrow(userId);
     S3Object oldProfileImage = user.getProfileImage();
 
     S3Object uploadedImage = uploadProfileImgIfExists(profileImage);
-    user.updateProfile(request.nickname(), request.introduce(), uploadedImage);
+    user.updateProfile(request.getNickname(), request.getIntroduce(), uploadedImage);
     deleteOldProfileImageIfExists(oldProfileImage);
 
-    return UpdateUserResponse.fromEntity(user);
+    return UserProfileUpdateResponse.fromEntity(user);
   }
 
   private S3Object uploadProfileImgIfExists(MultipartFile profileImage) {

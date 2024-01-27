@@ -21,7 +21,7 @@ import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UpdateUserRequest;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.entity.User;
@@ -142,7 +142,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user1.getId());
 
     // then
-    assertNotNull(userProfile.shelter());
+    assertNotNull(userProfile.getShelter());
   }
 
   @Test
@@ -153,7 +153,7 @@ class UserServiceTest {
     UserProfileDto userProfile = userService.getUserProfile(user2.getId());
 
     // then
-    assertNull(userProfile.shelter());
+    assertNull(userProfile.getShelter());
   }
 
   @Test
@@ -306,7 +306,7 @@ class UserServiceTest {
   void updateUserProfile_Verify_uploadOneFile_1_Times_When_ProfileFile_Is_Not_Null()
       throws IOException {
     // given
-    UpdateUserRequest request = UpdateUserRequest.builder()
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
         .nickname("nickname")
         .introduce("introduce")
         .build();
@@ -323,7 +323,7 @@ class UserServiceTest {
   void updateUserProfile_Verify_uploadOneFile_0_Times_When_ProfileFile_Is_Null()
       throws IOException {
     // given
-    UpdateUserRequest request = UpdateUserRequest.builder()
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
         .nickname("nickname")
         .introduce("introduce")
         .build();
@@ -340,7 +340,7 @@ class UserServiceTest {
   void updateUserProfile_Verify_deleteFile_Never_When_Origin_ProfileFile_Is_Null()
       throws IOException {
     // given
-    UpdateUserRequest request = UpdateUserRequest.builder()
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
         .nickname("nickname")
         .introduce("introduce")
         .build();
@@ -356,7 +356,7 @@ class UserServiceTest {
   @DisplayName("[프로필 수정] 원본 프로필 사진이 있으면 삭제 호출 검증")
   void updateUserProfile_Verify_deleteFile_1_Times_When_Origin_ProfileFile_Is_Not_Null() {
     // given
-    UpdateUserRequest request = UpdateUserRequest.builder()
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
         .nickname("nickname")
         .introduce("introduce")
         .build();
