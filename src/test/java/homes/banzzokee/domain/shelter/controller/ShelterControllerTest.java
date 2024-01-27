@@ -1,7 +1,6 @@
 package homes.banzzokee.domain.shelter.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -66,7 +65,7 @@ class ShelterControllerTest {
         = ArgumentCaptor.forClass(MultipartFile.class);
     ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
 
-    verify(shelterService, times(1))
+    verify(shelterService)
         .registerShelter(requestCaptor.capture(),
             fileCaptor.capture(),
             userIdCaptor.capture());

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
 import homes.banzzokee.domain.shelter.entity.Shelter;
+import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.shelter.exception.UserAlreadyRegisterShelterException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -73,10 +74,31 @@ class ShelterServiceTest {
   }
 
   @Test
-  @DisplayName("[보호소 등록] - 보호소 권한이 있으면 UserAlreadyRegisterShelterException 발생")
-  void registerShelter_when_hasShelterRole_then_throwUserAlreadyRegisterShelterException() {
+  @DisplayName("[보호소 등록] - 승인되지 않은 보호소가 존재하는 경우 NotVerifiedShelterExistsException 발생")
+  void registerShelter_when_ShelterIsNotVerified_then_throwNotVerifiedShelterExistsException() {
     // given
-    given(mockUser.hasShelter()).willReturn(true);
+    Shelter mockShelter = mock(Shelter.class);
+    given(mockShelter.isVerified()).willReturn(false);
+
+    given(mockUser.getShelter()).willReturn(mockShelter);
+    given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
+
+    // when
+    // then
+    assertThrows(NotVerifiedShelterExistsException.class,
+        () -> shelterService.registerShelter(mockShelterRegisterRequest,
+            mockFile,
+            mockUser.getId()));
+  }
+
+  @Test
+  @DisplayName("[보호소 등록] - 등록된 보호소가 있으면 UserAlreadyRegisterShelterException 발생")
+  void registerShelter_when_hasShelter_then_throwUserAlreadyRegisterShelterException() {
+    // given
+    Shelter mockShelter = mock(Shelter.class);
+    given(mockShelter.isVerified()).willReturn(true);
+
+    given(mockUser.getShelter()).willReturn(mockShelter);
     given(userRepository.findById(mockUser.getId())).willReturn(Optional.of(mockUser));
 
     // when
