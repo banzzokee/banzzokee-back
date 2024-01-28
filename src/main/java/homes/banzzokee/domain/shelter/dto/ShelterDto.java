@@ -29,7 +29,7 @@ public record ShelterDto(
   public static ShelterDto fromEntity(Shelter shelter) {
     return ShelterDto.builder()
         .shelterId(shelter.getId())
-        .shelterImgUrl(shelter.getShelterImgUrl())
+        .shelterImgUrl(shelter.getShelterImageUrl())
         .name(shelter.getName())
         .description(shelter.getDescription())
         .tel(shelter.getTel())
