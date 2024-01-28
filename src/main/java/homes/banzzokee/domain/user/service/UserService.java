@@ -3,6 +3,7 @@ package homes.banzzokee.domain.user.service;
 import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
+import homes.banzzokee.domain.type.ImagePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -180,7 +181,7 @@ public class UserService {
 
   private S3Object uploadProfileImgIfExists(MultipartFile profileImage) {
     if (profileImage != null && !profileImage.isEmpty()) {
-      return S3Object.from(s3Service.uploadOneFile(profileImage));
+      return S3Object.from(s3Service.uploadOneFile(profileImage, ImagePath.PROFILE));
     }
     return null;
   }
