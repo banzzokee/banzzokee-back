@@ -12,11 +12,12 @@ import lombok.Getter;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
+import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 
 @Getter
 @Builder
 @AllArgsConstructor
-@Document(indexName = "adoption")
+@Document(indexName = "adoption", writeTypeHint = WriteTypeHint.FALSE)
 @Setting(settingPath = "/elasticsearch/adoption-setting.json")
 @Mapping(mappingPath = "/elasticsearch/adoption-mapping.json")
 public class AdoptionDocument {
