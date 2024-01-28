@@ -1,5 +1,4 @@
 elasticsearch:
   hostAndPort: localhost:9200
-  username: elastic
-  password: 0mHY4Gl9=*fGQRVIAbXi
-  fingerprint: F9:79:06:CB:10:BF:82:72:44:10:D7:54:77:8B:9E:58:92:27:E4:D7:75:33:25:DF:34:4B:B3:CA:B5:B1:F6:82
+  username: banzzokee
+  password: funnycode
