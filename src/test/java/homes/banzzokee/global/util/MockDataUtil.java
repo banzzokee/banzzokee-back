@@ -15,12 +15,11 @@ public class MockDataUtil {
   private final static Tika tika = new Tika();
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public static MockMultipartFile createMockMultipartFile(String file)
+  public static MockMultipartFile createMockMultipartFile(String name, String file)
       throws IOException {
     Path path = Path.of(file);
     byte[] bytes = Files.readAllBytes(path);
     String originFilename = StringUtils.getFilename(file);
-    String name = StringUtils.stripFilenameExtension(originFilename);
     String contentType = tika.detect(path);
     return new MockMultipartFile(name, originFilename, contentType, bytes);
   }

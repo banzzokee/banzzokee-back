@@ -1,6 +1,7 @@
 package homes.banzzokee.global.error;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -31,7 +32,10 @@ public enum ErrorCode {
   USER_ALREADY_REGISTER_SHELTER(BAD_REQUEST, "이미 보호소를 등록한 사용자입니다."),
   // chat & room
   ROOM_NOT_FOUND(NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+  SHELTER_NOT_FOUND(NOT_FOUND, "보호소를 찾을 수 없습니다."),
+  SHELTER_ALREADY_VERIFIED(BAD_REQUEST, "이미 승인된 보호소입니다."),
   NOT_VERIFIED_SHELTER_EXISTS(BAD_REQUEST, "승인되지 않은 보호소가 존재합니다."),
+  NO_AUTHORIZED(FORBIDDEN, "권한이 없는 유저입니다."),
   ;
 
   private final HttpStatus httpStatus;

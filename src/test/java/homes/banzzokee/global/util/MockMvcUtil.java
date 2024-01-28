@@ -1,6 +1,7 @@
 package homes.banzzokee.global.util;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,5 +39,10 @@ public class MockMvcUtil {
             get(url)
                 .contentType(APPLICATION_JSON))
         .andDo(print());
+  }
+
+  public static ResultActions performDelete(MockMvc mockMvc, String url)
+      throws Exception {
+    return mockMvc.perform(delete(url)).andDo(print());
   }
 }

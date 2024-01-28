@@ -20,7 +20,7 @@ public record ChatShelterDto(
   public static ChatShelterDto fromEntity(Shelter shelter) {
     return ChatShelterDto.builder()
         .shelterId(shelter.getId())
-        .shelterImgUrl(shelter.getShelterImgUrl())
+        .shelterImgUrl(shelter.getShelterImageUrl())
         .name(shelter.getName())
         .build();
   }
