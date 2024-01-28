@@ -1,8 +1,10 @@
 package homes.banzzokee.domain.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,10 +13,13 @@ import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
 import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
 import homes.banzzokee.domain.user.service.UserService;
+import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(value = UserController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class UserControllerTest {
@@ -39,7 +49,7 @@ class UserControllerTest {
   @DisplayName("사용자 프로필 조회 성공")
   void successGetUserProfile() throws Exception {
     // given
-    given(userService.getUserProfile(anyLong())).willReturn(
+    given(userService.getUserProfile(1L)).willReturn(
         UserProfileDto.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
@@ -84,7 +94,7 @@ class UserControllerTest {
     // given
     WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
 
-    given(userService.withdrawUser(any(WithdrawUserRequest.class), anyLong()))
+    given(userService.withdrawUser(request, 1))
         .willReturn(WithdrawUserResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
@@ -110,7 +120,7 @@ class UserControllerTest {
         .confirmPassword("1q2W#e$R1")
         .build();
 
-    given(userService.changePassword(any(ChangePasswordRequest.class), anyLong()))
+    given(userService.changePassword(request, 1))
         .willReturn(ChangePasswordResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
@@ -126,10 +136,11 @@ class UserControllerTest {
         .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
   }
 
+  @Test
   @DisplayName("사용자 팔로우 성공")
   void successFollowUser() throws Exception {
     // given
-    given(userService.followUser(anyLong(), anyLong()))
+    given(userService.followUser(2L, 1L))
         .willReturn(FollowDto.builder()
             .follower(FollowUserDto.builder()
                 .userId(1L)
@@ -163,5 +174,42 @@ class UserControllerTest {
 
     // then
     resultActions.andExpect(status().isOk());
+  }
+
+  @Test
+  void successUpdateUserProfile() throws Exception {
+    // given
+    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+        .nickname("nickname")
+        .introduce("introduce")
+        .build();
+    MockPart mockPart = MockDataUtil.createMockPart("request", request);
+    MockMultipartFile mockFile = MockDataUtil.createMockMultipartFile(
+        "src/test/resources/images/banzzokee.png");
+
+    MockMultipartHttpServletRequestBuilder patch = MockMvcRequestBuilders
+        .multipart(PATCH, "/api/users/me?userId=1")
+        .file("profileImg", mockFile.getBytes())
+        .part(mockPart);
+
+    given(userService.updateUserProfile(eq(request), any(MultipartFile.class), eq(1L)))
+        .willReturn(UserProfileUpdateResponse.builder()
+            .userId(1L)
+            .email("email")
+            .profileImgUrl("profileImgUrl")
+            .nickname(request.getNickname())
+            .introduce(request.getIntroduce())
+            .build());
+
+    // when
+    ResultActions resultActions = mockMvc.perform(patch).andDo(print());
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.email").value("email"))
+        .andExpect(jsonPath("$.profileImgUrl").value("profileImgUrl"))
+        .andExpect(jsonPath("$.nickname").value("nickname"))
+        .andExpect(jsonPath("$.introduce").value("introduce"));
   }
 }

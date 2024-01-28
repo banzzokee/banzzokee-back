@@ -22,7 +22,7 @@ public class ChatUserDto {
   public static ChatUserDto fromEntity(User user) {
     return ChatUserDto.builder()
         .userId(user.getId())
-        .profileImgUrl(user.getProfileImgUrl())
+        .profileImgUrl(user.getProfileImageUrl())
         .nickname(user.getNickname())
         .build();
   }

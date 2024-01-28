@@ -4,12 +4,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum ErrorCode {
 
   FAILED(BAD_REQUEST, "실패했습니다."),
@@ -21,13 +21,15 @@ public enum ErrorCode {
   CAN_FOLLOW_ONLY_SHELTER_USER(BAD_REQUEST, "보호소를 등록한 사용자만 팔로우할 수 있습니다."),
   CAN_NOT_FOLLOW_SELF(BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
   FAIL_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "이미지 업로드에 실패하였습니다."),
+  ARGUMENT_NOT_VALID(BAD_REQUEST, "잘못된 입력입니다."),
+  JSON_EOF_ERROR(BAD_REQUEST, "잘못된 JSON 데이터입니다."),
+  HTTP_MESSAGE_NOT_READABLE(BAD_REQUEST, "HTTP 메시지를 읽을 수 없습니다."),
+  INTERNAL_ERROR(INTERNAL_SERVER_ERROR, "처리되지 않은 에러가 발생했습니다."),
+  MIME_TYPE_INVALID(INTERNAL_SERVER_ERROR, "MIME TYPE을 찾을 수 없습니다."),
   EMAIL_CODE_UNMATCHED(BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
   EMAIL_CODE_INVALID(BAD_REQUEST, "인증 코드가 유효하지 않습니다."),
-
   // chat & room
   ROOM_NOT_FOUND(NOT_FOUND, "채팅방을 찾을 수 없습니다."),
-  ;
-
   ;
 
   private final HttpStatus httpStatus;
