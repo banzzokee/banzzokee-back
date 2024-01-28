@@ -17,6 +17,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.Builder;
 import lombok.Getter;
@@ -88,6 +89,8 @@ public class Shelter extends BaseEntity {
   @JoinColumn(name = "user_id")
   private final User user;
 
+  private LocalDateTime deletedAt;
+
   @Builder
   public Shelter(String name, String description, String shelterImgUrl, String tel,
       String address,
@@ -106,16 +109,33 @@ public class Shelter extends BaseEntity {
     }
   }
 
+  /**
+   * @return 보호소 이미지 경로
+   */
   public String getShelterImageUrl() {
     return this.getShelterImage() != null ? this.getShelterImage().getUrl() : null;
   }
 
+  /**
+   * 보호소 승인
+   */
   public void verify() {
     this.verified = true;
     assert this.user != null;
     this.user.addRoles(SHELTER);
   }
 
+  /**
+   * 보호소 정보 수정
+   *
+   * @param name         이름
+   * @param description  설명
+   * @param tel          연락처
+   * @param address      주소
+   * @param latitude     위도
+   * @param longitude    경도
+   * @param shelterImage 보호소 이미지
+   */
   public void updateProfile(String name, String description, String tel, String address,
       Double latitude, Double longitude, S3Object shelterImage) {
     this.name = name;
@@ -127,5 +147,30 @@ public class Shelter extends BaseEntity {
     if (shelterImage != null) {
       this.shelterImage = shelterImage;
     }
+  }
+
+  /**
+   * 보호소 삭제
+   */
+  public void delete() {
+    if (this.deletedAt == null) {
+      this.verified = false;
+      this.deletedAt = LocalDateTime.now();
+    }
+  }
+
+  /**
+   * @return 보호소 삭제 여부
+   */
+  public boolean isDeleted() {
+    return this.deletedAt != null;
+  }
+
+  /**
+   * 보호소 복구
+   */
+  public void restore() {
+    this.verified = false;
+    this.deletedAt = null;
   }
 }
