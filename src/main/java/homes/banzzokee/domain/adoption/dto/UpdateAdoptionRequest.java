@@ -31,16 +31,14 @@ public class UpdateAdoptionRequest {
   @NotNull @DogSizeValid
   private String size;
 
-  @NotNull
   private boolean neutering;
 
   @NotNull @DogGenderValid
   private String gender;
 
-  @NotNull @Max(100)
+  @Max(100)
   private int age;
 
-  @NotNull
   private boolean healthChecked;
 
   @NotNull @DateValid
