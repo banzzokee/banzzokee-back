@@ -53,10 +53,11 @@ class ChatRoomServiceTest {
         .nickname("test_nickname")
         .build());
 
+    User shelterUser = userRepository.save(User.builder().build());
     shelter = shelterRepository.save(Shelter.builder()
         .name("test_shelter_name")
+        .user(shelterUser)
         .build());
-
   }
 
   @Test
