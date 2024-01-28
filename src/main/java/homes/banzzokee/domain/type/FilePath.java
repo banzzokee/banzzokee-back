@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ImagePath {
+public enum FilePath {
 
   PROFILE("profile"),
   ADOPTION("adoption"),

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
-import homes.banzzokee.domain.type.ImagePath;
+import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -316,7 +316,7 @@ class UserServiceTest {
     userService.updateUserProfile(request, mockFile, user1.getId());
 
     // then
-    verify(s3Service, times(1)).uploadOneFile(mockFile, ImagePath.PROFILE);
+    verify(s3Service, times(1)).uploadOneFile(mockFile, FilePath.PROFILE);
   }
 
   @Test

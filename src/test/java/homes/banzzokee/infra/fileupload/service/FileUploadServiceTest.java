@@ -8,8 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import homes.banzzokee.domain.type.ImagePath;
-import homes.banzzokee.infra.fileupload.dto.ImageDto;
+import homes.banzzokee.domain.type.FilePath;
+import homes.banzzokee.infra.fileupload.dto.FileDto;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -53,11 +53,11 @@ class FileUploadServiceTest {
     given(amazonS3Client.getUrl(anyString(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    ImageDto imageDto = fileUploadService.uploadOneFile(multipartFile,
-        ImagePath.ADOPTION);
+    FileDto fileDto = fileUploadService.uploadOneFile(multipartFile,
+        FilePath.ADOPTION);
 
     // then
-    assertEquals(imageDto.getUrl(), "https://imageUrl.com");
+    assertEquals(fileDto.getUrl(), "https://imageUrl.com");
 
   }
 
@@ -73,11 +73,11 @@ class FileUploadServiceTest {
     given(amazonS3Client.getUrl(anyString(), anyString())).willReturn(
         new URL("https://imageUrl.com"));
     //when
-    List<ImageDto> imageDtoList = fileUploadService.uploadManyFile(multipartFiles,
-        ImagePath.ADOPTION);
+    List<FileDto> fileDtoList = fileUploadService.uploadManyFile(multipartFiles,
+        FilePath.ADOPTION);
     //then
-    assertEquals(3, imageDtoList.size());
-    assertEquals("https://imageUrl.com", imageDtoList.get(0).getUrl());
+    assertEquals(3, fileDtoList.size());
+    assertEquals("https://imageUrl.com", fileDtoList.get(0).getUrl());
     verify(amazonS3Client, times(3)).getUrl(any(), anyString());
   }
 

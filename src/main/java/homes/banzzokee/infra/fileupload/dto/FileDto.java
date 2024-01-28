@@ -5,10 +5,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ImageDto {
+public class FileDto {
 
   /**
-   * 이미지 파일 저장된 경로
+   * 파일 저장된 경로
    */
   private final String url;
 
