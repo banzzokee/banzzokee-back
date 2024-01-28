@@ -175,4 +175,26 @@ class ShelterControllerTest {
     assertEquals(mockFile.getOriginalFilename(),
         shelterImageCaptor.getValue().getOriginalFilename());
   }
+
+  @Test
+  @DisplayName("[보호소 삭제] - 성공 검증")
+  void unregisterShelter_when_validInput_then_success() throws Exception {
+    // given
+    // when
+    ResultActions resultActions = MockMvcUtil.performDelete(mockMvc, "/api/shelters/1?userId=1");
+
+    // then
+    resultActions.andExpect(status().isOk());
+
+    ArgumentCaptor<Long> shelterIdCaptor
+        = ArgumentCaptor.forClass(Long.class);
+    ArgumentCaptor<Long> userIdCaptor
+        = ArgumentCaptor.forClass(Long.class);
+
+    verify(shelterService)
+        .unregisterShelter(shelterIdCaptor.capture(), userIdCaptor.capture());
+
+    assertEquals(1L, shelterIdCaptor.getValue());
+    assertEquals(1L, userIdCaptor.getValue());
+  }
 }

@@ -7,6 +7,7 @@ import homes.banzzokee.domain.shelter.service.ShelterService;
 import homes.banzzokee.global.validator.annotation.ImageFile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,5 +44,11 @@ public class ShelterController {
       @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 바꾸기
     return shelterService.updateShelter(shelterId, request, shelterImg, userId);
+  }
+
+  @DeleteMapping("{shelterId}")
+  public void unregisterShelter(@PathVariable long shelterId, @RequestParam long userId) {
+    // TODO: userId -> @AuthenticationPrincipal 바꾸기
+    shelterService.unregisterShelter(shelterId, userId);
   }
 }
