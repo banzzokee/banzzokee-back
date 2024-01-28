@@ -17,7 +17,6 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.util.Objects;
@@ -39,9 +38,10 @@ public class ShelterService {
 
   /**
    * 보호소 등록
-   * @param request 보호소 등록 요청
+   *
+   * @param request    보호소 등록 요청
    * @param shelterImg 보호소 이미지
-   * @param userId 보호소를 등록할 사용자 아이디
+   * @param userId     보호소를 등록할 사용자 아이디
    */
   @Transactional
   public void registerShelter(ShelterRegisterRequest request, MultipartFile shelterImg,
@@ -57,8 +57,9 @@ public class ShelterService {
 
   /**
    * 보호소 승인
+   *
    * @param shelterId 승인할 보호소 아이디
-   * @param userId 보호소를 승인할 사용자 아이디
+   * @param userId    보호소를 승인할 사용자 아이디
    */
   @Transactional
   public void verifyShelter(long shelterId, long userId) {
@@ -73,10 +74,11 @@ public class ShelterService {
 
   /**
    * 보호소 정보 수정
-   * @param shelterId 수정할 보호소 아이디
-   * @param request 보호소 수정 요청
+   *
+   * @param shelterId    수정할 보호소 아이디
+   * @param request      보호소 수정 요청
    * @param shelterImage 보호소 이미지
-   * @param userId 보호소를 수정할 사용자 아이디
+   * @param userId       보호소를 수정할 사용자 아이디
    * @return 보호소 수정 응답
    */
   @Transactional
@@ -99,8 +101,9 @@ public class ShelterService {
 
   /**
    * 보호소 삭제
+   *
    * @param shelterId 삭제할 보호소 아이디
-   * @param userId 보호소를 삭제할 사용자 아이디
+   * @param userId    보호소를 삭제할 사용자 아이디
    */
   @Transactional
   public void unregisterShelter(long shelterId, long userId) {
@@ -119,7 +122,8 @@ public class ShelterService {
 
   /**
    * 보호소를 등록한 사용자가 아니라면 예외를 발생한다.
-   * @param user 확인할 사용자
+   *
+   * @param user    확인할 사용자
    * @param shelter 보호소
    */
   private void throwIfUserIsNotShelterUser(User user, Shelter shelter) {
@@ -130,6 +134,7 @@ public class ShelterService {
 
   /**
    * 보호소가 승인되지 않은 상태면 예외를 발생한다.
+   *
    * @param shelter 보호소
    */
   private void throwIfShelterNotVerified(Shelter shelter) {
@@ -140,6 +145,7 @@ public class ShelterService {
 
   /**
    * 사용자가 이미 승인된 보호소를 등록한 상태라면 예외를 발생한다.
+   *
    * @param user 사용자
    */
   private void throwIfUserAlreadyRegisterShelter(User user) {
@@ -151,6 +157,7 @@ public class ShelterService {
 
   /**
    * 사용자가 ADMIN 권한이 없으면 예외를 발생한다.
+   *
    * @param user 사용자
    */
   private void throwIfUserHasNotAdminRole(User user) {
