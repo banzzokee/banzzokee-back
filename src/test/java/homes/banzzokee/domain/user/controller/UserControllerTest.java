@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpMethod.PATCH;
@@ -94,7 +95,7 @@ class UserControllerTest {
     // given
     WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
 
-    given(userService.withdrawUser(request, 1))
+    given(userService.withdrawUser(any(WithdrawUserRequest.class), anyLong()))
         .willReturn(WithdrawUserResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
@@ -120,7 +121,7 @@ class UserControllerTest {
         .confirmPassword("1q2W#e$R1")
         .build();
 
-    given(userService.changePassword(request, 1))
+    given(userService.changePassword(any(ChangePasswordRequest.class), anyLong()))
         .willReturn(ChangePasswordResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
