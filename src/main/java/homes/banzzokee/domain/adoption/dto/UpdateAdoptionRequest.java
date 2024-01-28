@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class UpdateAdoptionRequest {
+class UpdateAdoptionRequest {
 
   @NotBlank @Size(max = 50)
   private String title;
