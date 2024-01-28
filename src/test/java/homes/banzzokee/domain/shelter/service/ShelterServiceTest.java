@@ -242,6 +242,23 @@ class ShelterServiceTest {
   }
 
   @Test
+  @DisplayName("[보호소 승인] - 삭제된 보호소이면 ShelterNotFoundException 발생")
+  void verifyShelter_when_shelterIsDeleted_then_throwShelterNotFoundException() {
+    // given
+    User user = mock(User.class);
+    given(user.getRole()).willReturn(getRoles(ADMIN));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+
+    Shelter shelter = mock(Shelter.class);
+    given(shelter.isDeleted()).willReturn(true);
+    given(shelterRepository.findById(1L)).willReturn(Optional.of(shelter));
+
+    // when & then
+    assertThrows(ShelterNotFoundException.class,
+        () -> shelterService.verifyShelter(1L, user.getId()));
+  }
+
+  @Test
   @DisplayName("[보호소 승인] - 승인된 보호소면 ShelterAlreadyVerifiedException 발생")
   void verifyShelter_when_shelterVerified_then_throwShelterAlreadyVerifiedException() {
     // given
