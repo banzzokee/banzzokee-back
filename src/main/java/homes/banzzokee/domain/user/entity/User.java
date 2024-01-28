@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.user.entity;
 
 import static homes.banzzokee.domain.type.Role.SHELTER;
+import static jakarta.persistence.CascadeType.PERSIST;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
@@ -21,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -92,7 +94,7 @@ public class User extends BaseEntity {
   /**
    * 보호소
    */
-  @OneToOne(fetch = LAZY)
+  @OneToOne(fetch = LAZY, cascade = PERSIST)
   @JoinColumn(name = "shelter_id")
   private Shelter shelter;
 
@@ -117,28 +119,52 @@ public class User extends BaseEntity {
     }
   }
 
+  /**
+   * @return 사용자 탈퇴 여부
+   */
   public boolean isWithdrawn() {
     return this.deletedAt != null;
   }
 
+  /**
+   * @return 사용자 프로필 이미지 경로
+   */
   public String getProfileImageUrl() {
     return this.getProfileImage() != null ? this.getProfileImage().getUrl() : null;
   }
 
+  /**
+   * 사용자 탈퇴
+   */
   public void withdraw() {
     if (this.deletedAt == null) {
       this.deletedAt = LocalDateTime.now();
     }
   }
 
+  /**
+   * 사용자 패스워드 변경
+   *
+   * @param newPassword 새로운 패스워드
+   */
   public void changePassword(String newPassword) {
     this.password = newPassword;
   }
 
+  /**
+   * @return SHELTER 권한 소유 확인
+   */
   public boolean hasShelter() {
     return this.role.contains(SHELTER);
   }
 
+  /**
+   * 사용자 프로필 수정
+   *
+   * @param nickname     닉네임
+   * @param introduce    자기소개
+   * @param profileImage 프로필 이미지
+   */
   public void updateProfile(String nickname, String introduce,
       S3Object profileImage) {
     this.nickname = nickname;
@@ -146,5 +172,35 @@ public class User extends BaseEntity {
     if (profileImage != null) {
       this.profileImage = profileImage;
     }
+  }
+
+  /**
+   * 보호소 등록
+   * @param shelter 보호소
+   */
+  public void registerShelter(Shelter shelter) {
+    if (this.shelter == null) {
+      this.shelter = shelter;
+    }
+
+    if (this.shelter.isDeleted()) {
+      this.shelter.restore();
+    }
+  }
+
+  /**
+   * 권한 추가
+   * @param roles 권한 목록
+   */
+  public void addRoles(Role... roles) {
+    this.role.addAll(Arrays.asList(roles));
+  }
+
+  /**
+   * 보호소 삭제
+   */
+  public void unregisterShelter() {
+    this.shelter.delete();
+    this.role.remove(SHELTER);
   }
 }
