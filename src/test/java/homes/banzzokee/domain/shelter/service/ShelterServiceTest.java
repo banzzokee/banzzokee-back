@@ -5,14 +5,18 @@ import static homes.banzzokee.domain.type.Role.SHELTER;
 import static homes.banzzokee.domain.type.Role.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import homes.banzzokee.domain.room.dao.ChatRoomRepository;
+import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
 import homes.banzzokee.domain.shelter.dto.ShelterUpdateRequest;
@@ -32,10 +36,13 @@ import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.ImageDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +61,9 @@ class ShelterServiceTest {
 
   @Mock
   private ShelterRepository shelterRepository;
+
+  @Mock
+  private ChatRoomRepository chatRoomRepository;
 
   @Mock
   private FileUploadService s3Service;
@@ -363,5 +373,95 @@ class ShelterServiceTest {
     assertEquals(request.getLatitude(), shelter.getLatitude());
     assertEquals(request.getLongitude(), shelter.getLongitude());
     assertEquals("url", shelter.getShelterImageUrl());
+  }
+
+  @Test
+  @DisplayName("[보호소 삭제] - 보호소를 찾을 수 없으면 ShelterNotFoundException 발생")
+  void unregisterShelter_when_shelterNotExists_then_throwShelterNotFoundException() {
+    // given
+    given(userRepository.findById(mockUser.getId()))
+        .willReturn(Optional.of(mockUser));
+    given(shelterRepository.findById(mockShelter.getId()))
+        .willReturn(Optional.empty());
+
+    // when
+    // then
+    assertThrows(ShelterNotFoundException.class,
+        () -> shelterService.unregisterShelter(mockShelter.getId(), mockUser.getId()));
+  }
+
+  @Test
+  @DisplayName("[보호소 삭제] - 삭제하는 사용자가 보호소를 등록한 사용자가 아니라면 NoAuthorizedException 발생")
+  void unregisterShelter_when_userIsNotShelterUser_then_throwNoAuthorizedException() {
+    // given
+    User user1 = mock(User.class);
+    given(user1.getId()).willReturn(1L);
+
+    User user2 = mock(User.class);
+    given(user2.getId()).willReturn(2L);
+
+    Shelter shelter = mock(Shelter.class);
+    given(shelter.getUser()).willReturn(user2);
+
+    given(userRepository.findById(anyLong()))
+        .willReturn(Optional.of(user1));
+    given(shelterRepository.findById(anyLong()))
+        .willReturn(Optional.of(shelter));
+
+    // when
+    // then
+    assertThrows(NoAuthorizedException.class,
+        () -> shelterService.unregisterShelter(shelter.getId(), user1.getId()));
+  }
+
+  @Test
+  @DisplayName("[보호소 삭제] - 성공 검증")
+  void unregisterShelter_when_success_then_verify() {
+    // given
+    Shelter shelter = spy(Shelter.builder()
+        .user(User.builder().build())
+        .build());
+    given(shelter.getId()).willReturn(1L);
+
+    Set<Role> roles = new HashSet<>(Arrays.asList(USER, SHELTER));
+    User user = spy(User.builder()
+        .role(roles)
+        .shelter(shelter)
+        .build());
+    given(user.getId()).willReturn(1L);
+    given(shelter.getUser()).willReturn(user);
+
+    given(userRepository.findById(shelter.getId()))
+        .willReturn(Optional.of(user));
+    given(shelterRepository.findById(user.getId()))
+        .willReturn(Optional.of(shelter));
+
+    List<ChatRoom> chatRooms = getMockChatRooms(shelter);
+    given(chatRoomRepository.findAllByShelterId(shelter.getId()))
+        .willReturn(chatRooms);
+
+    // when
+    shelterService.unregisterShelter(shelter.getId(), user.getId());
+
+    // then
+    verify(user).unregisterShelter();
+    assertFalse(user.getRole().contains(SHELTER));
+
+    verify(shelter).delete();
+    assertTrue(shelter.isDeleted());
+    assertFalse(shelter.isVerified());
+
+    for (ChatRoom chatRoom: chatRooms) {
+      verify(chatRoom).leaveShelter();
+      assertNull(chatRoom.getShelter());
+    }
+  }
+
+  private List<ChatRoom> getMockChatRooms(Shelter shelter) {
+    return IntStream.range(0, 5)
+        .mapToObj(m -> spy(ChatRoom.builder()
+            .shelter(shelter)
+            .build()))
+        .toList();
   }
 }
