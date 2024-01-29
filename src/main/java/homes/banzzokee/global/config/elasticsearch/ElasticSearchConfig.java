@@ -1,7 +1,5 @@
 package homes.banzzokee.global.config.elasticsearch;
 
-import co.elastic.clients.transport.TransportUtils;
-import javax.net.ssl.SSLContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
