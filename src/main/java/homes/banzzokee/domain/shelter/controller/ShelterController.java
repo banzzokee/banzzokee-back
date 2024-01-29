@@ -51,4 +51,10 @@ public class ShelterController {
     // TODO: userId -> @AuthenticationPrincipal 바꾸기
     shelterService.unregisterShelter(shelterId, userId);
   }
+
+  @DeleteMapping("{shelterId}")
+  public void unregisterShelter(@PathVariable long shelterId, @RequestParam long userId) {
+    // TODO: userId -> @AuthenticationPrincipal 바꾸기
+    shelterService.unregisterShelter(shelterId, userId);
+  }
 }
