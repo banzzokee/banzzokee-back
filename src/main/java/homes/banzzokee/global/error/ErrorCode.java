@@ -40,6 +40,11 @@ public enum ErrorCode {
   NO_AUTHORIZED(FORBIDDEN, "권한이 없는 유저입니다."),
   EMAIL_DUPLICATED(CONFLICT, "중복되는 이메일이 존재합니다."),
   NICKNAME_DUPLICATED(BAD_REQUEST, "중복되는 닉네임이 존재합니다."),
+  EMAIL_NOT_FOUND(NOT_FOUND, "이메일을 찾을 수 없습니다."),
+  TOKEN_REQUIRED(UNAUTHORIZED, "토큰이 필요합니다."),
+  REFRESH_TOKEN_EXPIRED(UNAUTHORIZED, "다시 로그인 해주세요."),
+  INVALID_TOKEN(UNAUTHORIZED, "유효하지 않는 토큰입니다."),
+  ACCESS_TOKEN_EXPIRED(UNAUTHORIZED, "만료된 토큰입니다. 토큰을 재발급 해주세요."),
 
   ;
 

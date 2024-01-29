@@ -1,8 +1,6 @@
 package homes.banzzokee.domain.auth.controller;
 
-import homes.banzzokee.domain.auth.dto.EmailDto;
-import homes.banzzokee.domain.auth.dto.EmailVerifyDto;
-import homes.banzzokee.domain.auth.dto.SignupDto;
+import homes.banzzokee.domain.auth.dto.*;
 import homes.banzzokee.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,26 +16,31 @@ public class AuthController {
   private final AuthService authService;
 
   @PostMapping("/sign-up")
-  public ResponseEntity<Void> signup(@Valid @RequestBody SignupDto signupDto) {
-    authService.signup(signupDto);
+  public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest signupRequest) {
+    authService.signup(signupRequest);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping("/send-verify")
-  public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody EmailDto emailDto) {
-    authService.sendVerificationCode(emailDto);
+  public ResponseEntity<Void> sendVerificationCode(@Valid @RequestBody EmailRequest emailRequest) {
+    authService.sendVerificationCode(emailRequest);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping("/verify")
-  public ResponseEntity<?> verifyEmail(@Valid @RequestBody EmailVerifyDto emailVerifyDto) {
-    authService.verifyEmail(emailVerifyDto);
+  public ResponseEntity<Void> verifyEmail(@Valid @RequestBody EmailVerifyRequest emailVerifyRequest) {
+    authService.verifyEmail(emailVerifyRequest);
     return ResponseEntity.ok().build();
   }
 
   @GetMapping("/nickname-check")
-  public ResponseEntity<?> checkNickname(
+  public ResponseEntity<Boolean> checkNickname(
       @Length(max = 10, message = "닉네임은 최대 10자리까지 가능합니다.") @RequestParam String nickname) {
     return ResponseEntity.ok(authService.checkNickname(nickname));
+  }
+
+  @PostMapping("/sign-in")
+  public ResponseEntity<TokenResponse> signIn(@Valid @RequestBody SignInRequest signInRequest) {
+    return ResponseEntity.ok(authService.signIn(signInRequest));
   }
 }
