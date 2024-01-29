@@ -43,13 +43,7 @@ public class ShelterController {
                                              @Valid @RequestPart ShelterUpdateRequest request,
                                              @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 바꾸기
-    return shelterService.updateShelter(shelterIdz, request, shelterImg, userId);
-  }
-
-  @DeleteMapping("{shelterId}")
-  public void unregisterShelter(@PathVariable long shelterId, @RequestParam long userId) {
-    // TODO: userId -> @AuthenticationPrincipal 바꾸기
-    shelterService.unregisterShelter(shelterId, userId);
+    return shelterService.updateShelter(shelterId, request, shelterImg, userId);
   }
 
   @DeleteMapping("{shelterId}")

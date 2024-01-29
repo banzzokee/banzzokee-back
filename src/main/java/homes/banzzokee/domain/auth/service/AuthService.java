@@ -106,4 +106,13 @@ public class AuthService {
         .refreshToken(refreshToken)
         .build();
   }
+
+  /**
+   * 로그아웃
+   * @param token
+   */
+  public void logout(String token) {
+    redisService.addToBlacklist(token);
+    redisService.deleteRefreshToken(token);
+  }
 }

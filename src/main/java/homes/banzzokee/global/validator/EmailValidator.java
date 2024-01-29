@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import static homes.banzzokee.global.validator.constant.RegexPattern.EMAIL;
+import static homes.banzzokee.global.validator.constant.RegexPattern.PASSWORD;
 
 public class EmailValidator implements ConstraintValidator<EmailValid, String> {
 
@@ -13,6 +14,6 @@ public class EmailValidator implements ConstraintValidator<EmailValid, String> {
     if (value == null) {
       return false;
     }
-    return value.matches(EMAIL.getPattern());
+    return value.matches(EMAIL);
   }
 }

@@ -4,7 +4,6 @@ import homes.banzzokee.global.validator.annotation.EmailValid;
 import lombok.*;
 
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
