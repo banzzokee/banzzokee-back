@@ -7,14 +7,14 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
-import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
@@ -104,12 +104,12 @@ public class UserService {
   }
 
   @Transactional
-  public WithdrawUserResponse withdrawUser(WithdrawUserRequest request, long userId) {
+  public UserWithdrawResponse withdrawUser(UserWithdrawRequest request, long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getPassword());
     user.withdraw();
-    return WithdrawUserResponse.fromEntity(user);
+    return UserWithdrawResponse.fromEntity(user);
   }
 
   private void throwIfAlreadyWithdrawn(User user) {
@@ -135,15 +135,15 @@ public class UserService {
   }
 
   @Transactional
-  public ChangePasswordResponse changePassword(ChangePasswordRequest request,
+  public PasswordChangeResponse changePassword(PasswordChangeRequest request,
       long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
     user.changePassword(request.getNewPassword());
-    return ChangePasswordResponse.fromEntity(user);
+    return PasswordChangeResponse.fromEntity(user);
   }
 
-  private void validateChangePasswordRequest(ChangePasswordRequest request, User user) {
+  private void validateChangePasswordRequest(PasswordChangeRequest request, User user) {
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getOriginPassword());
     throwIfOriginPasswordSameNewPassword(request.getOriginPassword(), request.getNewPassword());

@@ -10,15 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
-import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
-import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.service.UserService;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
@@ -93,10 +93,11 @@ class UserControllerTest {
   @DisplayName("사용자 탈퇴 성공")
   void successWithdrawUser() throws Exception {
     // given
-    WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
+    UserWithdrawRequest request = UserWithdrawRequest.builder().password("1q2W#e$R")
+        .build();
 
-    given(userService.withdrawUser(any(WithdrawUserRequest.class), anyLong()))
-        .willReturn(WithdrawUserResponse.builder()
+    given(userService.withdrawUser(any(UserWithdrawRequest.class), anyLong()))
+        .willReturn(UserWithdrawResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
             .build());
@@ -115,14 +116,14 @@ class UserControllerTest {
   @DisplayName("사용자 패스워드 변경 성공")
   void successChangePassword() throws Exception {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword("1q2W#e$R")
         .newPassword("1q2W#e$R1")
         .confirmPassword("1q2W#e$R1")
         .build();
 
-    given(userService.changePassword(any(ChangePasswordRequest.class), anyLong()))
-        .willReturn(ChangePasswordResponse.builder()
+    given(userService.changePassword(any(PasswordChangeRequest.class), anyLong()))
+        .willReturn(PasswordChangeResponse.builder()
             .userId(1L)
             .email("user1@banzzokee.homes")
             .build());

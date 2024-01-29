@@ -20,11 +20,11 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
 import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
@@ -70,8 +70,10 @@ class UserServiceTest {
   private User user3;
   private MultipartFile mockFile;
 
-  private final static WithdrawUserRequest withdrawUserRequest = new WithdrawUserRequest(
-      "1q2W#e$R");
+  private final static UserWithdrawRequest USER_WITHDRAW_REQUEST
+      = UserWithdrawRequest.builder()
+      .password("1q2W#e$R")
+      .build();
 
   @PostConstruct
   private void initialize() throws IOException {
@@ -168,7 +170,7 @@ class UserServiceTest {
     // when
     // then
     assertThrows(UserNotFoundException.class,
-        () -> userService.withdrawUser(withdrawUserRequest, 0L));
+        () -> userService.withdrawUser(USER_WITHDRAW_REQUEST, 0L));
   }
 
   @Test
@@ -194,14 +196,14 @@ class UserServiceTest {
 
     // then
     assertThrows(UserAlreadyWithdrawnException.class,
-        () -> userService.withdrawUser(withdrawUserRequest, user3.getId()));
+        () -> userService.withdrawUser(USER_WITHDRAW_REQUEST, user3.getId()));
   }
 
   @Test
   @DisplayName("[회원탈퇴] 패스워드가 다를 경우 PasswordUnmatchedException 발생")
   void withdrawUser_Throw_PasswordUnmatchedException_When_Password_Unmatched() {
     // given
-    WithdrawUserRequest request = new WithdrawUserRequest("1234");
+    UserWithdrawRequest request = UserWithdrawRequest.builder().password("1234").build();
 
     // when
     // then
@@ -213,7 +215,7 @@ class UserServiceTest {
   @DisplayName("[패스워드 변경] 기존 패스워드와 같은 경우 OriginPasswordEqualsNewPasswordException 발생")
   void changePassword_Throw_OriginPasswordEqualsNewPasswordException_When_OriginPassword_Equals_NewPassword() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword(user1.getPassword())
         .newPassword(user1.getPassword())
         .confirmPassword(user1.getPassword())
@@ -229,7 +231,7 @@ class UserServiceTest {
   @DisplayName("[패스워드 변경] 사용자의 패스워드와 입력한 originPassword가 다른 경우 PasswordUnmatchedException 발생")
   void changePassword_Throw_PasswordUnmatchedException_When_UserPassword_Not_Equals_OriginPassword() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword(user1.getPassword() + "123")
         .build();
 
@@ -243,7 +245,7 @@ class UserServiceTest {
   @DisplayName("[패스워드 변경] 새로운 패스워드와 재입력 패스워드가 다른 경우 ConfirmPasswordUnmatchedException 발생")
   void changePassword_Throw_ConfirmPasswordUnmatchedException_When_NewPassword_Not_Equals_ConfirmPassword() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword(user1.getPassword())
         .newPassword("1q2W#e$R1")
         .confirmPassword("1q2W#e$R2")
@@ -261,7 +263,7 @@ class UserServiceTest {
     // given
     String newPassword = user1.getPassword() + "123";
 
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword(user1.getPassword())
         .newPassword(newPassword)
         .confirmPassword(newPassword)
