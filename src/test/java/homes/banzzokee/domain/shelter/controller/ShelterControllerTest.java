@@ -87,7 +87,7 @@ class ShelterControllerTest {
   }
 
   @Test
-  @DisplayName("[보호소 승인] - 성공 검증")
+  @DisplayName("[보호소 승인] - 요청 데이터가 서비스 메서드에 잘 들어가는지 검증")
   void verifyShelter_when_validInput_then_success() throws Exception {
     // when
     ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
