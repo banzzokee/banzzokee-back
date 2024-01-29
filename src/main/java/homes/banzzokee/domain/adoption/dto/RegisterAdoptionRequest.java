@@ -8,18 +8,40 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public record RegisterAdoptionRequest(
-    @NotBlank @Size(max = 50) String title,
-    @NotBlank @Size(max = 500) String content,
-    @NotNull @BreedValid String breed,
-    @NotNull @DogSizeValid String size,
-    @NotNull boolean neutering,
-    @NotNull @DogGenderValid String gender,
-    @NotNull @Max(100) int age,
-    @NotNull boolean healthChecked,
-    @NotNull @DateValid String registeredAt
+@Getter
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
+class RegisterAdoptionRequest {
 
-) {
+  @NotBlank @Size(max = 50)
+  private String title;
+
+  @NotBlank @Size(max = 500)
+  private String content;
+
+  @NotNull @BreedValid
+  private String breed;
+
+  @NotNull @DogSizeValid
+  private String size;
+
+  private boolean neutering;
+
+  @NotNull @DogGenderValid
+  private String gender;
+
+  @Max(100)
+  private int age;
+
+  private boolean healthChecked;
+
+  @NotNull @DateValid
+  private String registeredAt;
 
 }

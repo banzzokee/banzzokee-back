@@ -1,0 +1,143 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "title": {
+      "type": "text"
+    },
+    "content": {
+      "type": "text"
+    },
+    "status": {
+      "type": "keyword"
+    },
+    "breed": {
+      "type": "keyword"
+    },
+    "size": {
+      "type": "keyword"
+    },
+    "neutering": {
+      "type": "boolean"
+    },
+    "gender": {
+      "type": "keyword"
+    },
+    "age": {
+      "type": "long"
+    },
+    "healthChecked": {
+      "type": "boolean"
+    },
+    "registeredAt": {
+      "type": "date"
+    },
+    "images": {
+      "type": "text"
+    },
+    "user": {
+      "properties": {
+        "userId": {
+          "type": "keyword"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "profileImgUrl": {
+          "type": "text"
+        },
+        "nickname": {
+          "type": "keyword"
+        },
+        "introduce": {
+          "type": "text"
+        },
+        "joinedAt": {
+          "type": "date"
+        },
+        "shelter": {
+          "properties": {
+            "shelterId": {
+              "type": "keyword"
+            },
+            "shelterImgUrl": {
+              "type": "text"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "description": {
+              "type": "text"
+            },
+            "tel": {
+              "type": "keyword"
+            },
+            "address": {
+              "type": "text"
+            },
+            "registeredAt": {
+              "type": "date"
+            }
+          }
+        }
+      }
+    },
+    "assignedUser": {
+      "properties": {
+        "userId": {
+          "type": "keyword"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "profileImgUrl": {
+          "type": "text"
+        },
+        "nickname": {
+          "type": "keyword"
+        },
+        "introduce": {
+          "type": "text"
+        },
+        "joinedAt": {
+          "type": "date"
+        },
+        "shelter": {
+          "properties": {
+            "shelterId": {
+              "type": "keyword"
+            },
+            "shelterImgUrl": {
+              "type": "text"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "description": {
+              "type": "text"
+            },
+            "tel": {
+              "type": "keyword"
+            },
+            "address": {
+              "type": "text"
+            },
+            "registeredAt": {
+              "type": "date"
+            }
+          }
+        }
+      }
+    },
+    "deletedAt": {
+      "type": "date"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    }
+  }
+}

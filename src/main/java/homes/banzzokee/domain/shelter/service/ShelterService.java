@@ -13,6 +13,7 @@ import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsExceptio
 import homes.banzzokee.domain.shelter.exception.ShelterAlreadyVerifiedException;
 import homes.banzzokee.domain.shelter.exception.ShelterNotFoundException;
 import homes.banzzokee.domain.shelter.exception.UserAlreadyRegisterShelterException;
+import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -239,7 +240,7 @@ public class ShelterService {
    */
   private S3Object uploadShelterImage(MultipartFile shelterImage) {
     if (shelterImage != null && !shelterImage.isEmpty()) {
-      return S3Object.from(s3Service.uploadOneFile(shelterImage));
+      return S3Object.from(s3Service.uploadOneFile(shelterImage, FilePath.SHELTER));
     }
     return null;
   }

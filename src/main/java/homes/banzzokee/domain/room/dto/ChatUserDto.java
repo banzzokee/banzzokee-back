@@ -1,21 +1,23 @@
 package homes.banzzokee.domain.room.dto;
 
 import homes.banzzokee.domain.user.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 채팅 유저
- *
- * @param userId
- * @param profileImgUrl
- * @param nickname
  */
 @Builder
-public record ChatUserDto(
-    Long userId,
-    String profileImgUrl,
-    String nickname
-) {
+@Getter
+@AllArgsConstructor
+public class ChatUserDto {
+
+  private final Long userId;
+
+  private final String profileImgUrl;
+
+  private final String nickname;
 
   public static ChatUserDto fromEntity(User user) {
     return ChatUserDto.builder()

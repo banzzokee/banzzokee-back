@@ -25,6 +25,7 @@ import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsExceptio
 import homes.banzzokee.domain.shelter.exception.ShelterAlreadyVerifiedException;
 import homes.banzzokee.domain.shelter.exception.ShelterNotFoundException;
 import homes.banzzokee.domain.shelter.exception.UserAlreadyRegisterShelterException;
+import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -32,7 +33,7 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
-import homes.banzzokee.infra.fileupload.dto.ImageDto;
+import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.io.IOException;
 import java.util.Arrays;
@@ -90,7 +91,7 @@ class ShelterServiceTest {
       .longitude(2.0)
       .build();
 
-  private static final ImageDto image = ImageDto.builder()
+  private static final FileDto image = FileDto.builder()
       .url("url")
       .filename("filename")
       .build();
@@ -153,7 +154,7 @@ class ShelterServiceTest {
     // given
     User user = mock(User.class);
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-    given(s3Service.uploadOneFile(any(MultipartFile.class))).willReturn(image);
+    given(s3Service.uploadOneFile(any(MultipartFile.class), any(FilePath.class))).willReturn(image);
 
     // when
     shelterService.registerShelter(shelterRegisterRequest, mockFile, anyLong());
@@ -162,7 +163,7 @@ class ShelterServiceTest {
     // 이미지 업로드 검증
     ArgumentCaptor<MultipartFile> shelterImgCaptor
         = ArgumentCaptor.forClass(MultipartFile.class);
-    verify(s3Service).uploadOneFile(shelterImgCaptor.capture());
+    verify(s3Service).uploadOneFile(shelterImgCaptor.capture(), any(FilePath.class));
     assertEquals(mockFile.getSize(), shelterImgCaptor.getValue().getSize());
     assertEquals(mockFile.getName(), shelterImgCaptor.getValue().getName());
 
@@ -196,7 +197,7 @@ class ShelterServiceTest {
     given(user.getId()).willReturn(1L);
     given(userRepository.findById(shelter.getId())).willReturn(Optional.of(user));
 
-    given(s3Service.uploadOneFile(any(MultipartFile.class))).willReturn(image);
+    given(s3Service.uploadOneFile(any(MultipartFile.class), any(FilePath.class))).willReturn(image);
 
     // when
     shelterService.registerShelter(shelterRegisterRequest, mockFile, user.getId());
@@ -205,7 +206,7 @@ class ShelterServiceTest {
     // 이미지 업로드 검증
     ArgumentCaptor<MultipartFile> shelterImgCaptor = ArgumentCaptor.forClass(
         MultipartFile.class);
-    verify(s3Service).uploadOneFile(shelterImgCaptor.capture());
+    verify(s3Service).uploadOneFile(shelterImgCaptor.capture(), any(FilePath.class));
     assertEquals(mockFile.getSize(), shelterImgCaptor.getValue().getSize());
 
     // 보호소 복구 검증
@@ -378,7 +379,7 @@ class ShelterServiceTest {
         user.getId());
 
     // then
-    verify(s3Service).uploadOneFile(mockFile);
+    verify(s3Service).uploadOneFile(mockFile, FilePath.SHELTER);
   }
 
   @Test
@@ -395,7 +396,7 @@ class ShelterServiceTest {
     given(shelter.getUser()).willReturn(user);
     given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
 
-    given(s3Service.uploadOneFile(mockFile)).willReturn(image);
+    given(s3Service.uploadOneFile(mockFile, FilePath.SHELTER)).willReturn(image);
 
     // when
     shelterService.updateShelter(shelter.getId(),

@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class EmailDto {
   /**
    * email 인증할 이메일

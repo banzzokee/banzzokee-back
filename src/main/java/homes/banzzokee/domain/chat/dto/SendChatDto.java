@@ -1,16 +1,20 @@
 package homes.banzzokee.domain.chat.dto;
 
 import homes.banzzokee.domain.type.MessageType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 채팅 전송 Request dto
- *
- * @param message
- * @param messageType
  */
-public record SendChatDto(
-    String message,
-    MessageType messageType
-) {
+@Getter
+@Builder
+@AllArgsConstructor
+public class SendChatDto {
+
+  private final String message;
+
+  private final MessageType messageType;
 
 }

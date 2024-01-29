@@ -3,6 +3,7 @@ package homes.banzzokee.domain.user.service;
 import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
+import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -106,7 +107,7 @@ public class UserService {
   public WithdrawUserResponse withdrawUser(WithdrawUserRequest request, long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     throwIfAlreadyWithdrawn(user);
-    throwIfPasswordUnmatched(user, request.password());
+    throwIfPasswordUnmatched(user, request.getPassword());
     user.withdraw();
     return WithdrawUserResponse.fromEntity(user);
   }
@@ -138,15 +139,15 @@ public class UserService {
       long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
-    user.changePassword(request.newPassword());
+    user.changePassword(request.getNewPassword());
     return ChangePasswordResponse.fromEntity(user);
   }
 
   private void validateChangePasswordRequest(ChangePasswordRequest request, User user) {
     throwIfAlreadyWithdrawn(user);
-    throwIfPasswordUnmatched(user, request.originPassword());
-    throwIfOriginPasswordSameNewPassword(request.originPassword(), request.newPassword());
-    throwIfConfirmPasswordUnmatched(request.newPassword(), request.confirmPassword());
+    throwIfPasswordUnmatched(user, request.getOriginPassword());
+    throwIfOriginPasswordSameNewPassword(request.getOriginPassword(), request.getNewPassword());
+    throwIfConfirmPasswordUnmatched(request.getNewPassword(), request.getConfirmPassword());
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
@@ -180,7 +181,7 @@ public class UserService {
 
   private S3Object uploadProfileImgIfExists(MultipartFile profileImage) {
     if (profileImage != null && !profileImage.isEmpty()) {
-      return S3Object.from(s3Service.uploadOneFile(profileImage));
+      return S3Object.from(s3Service.uploadOneFile(profileImage, FilePath.PROFILE));
     }
     return null;
   }

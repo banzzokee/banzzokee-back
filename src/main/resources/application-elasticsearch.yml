@@ -1,0 +1,4 @@
+elasticsearch:
+  hostAndPort: localhost:9200
+  username: banzzokee
+  password: funnycode

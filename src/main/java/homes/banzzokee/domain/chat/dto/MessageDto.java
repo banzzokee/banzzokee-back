@@ -4,23 +4,25 @@ import homes.banzzokee.domain.chat.entity.ChatMessage;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
 import homes.banzzokee.domain.type.MessageType;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * 채팅 조회 dto
- *
- * @param user
- * @param message
- * @param messageType
- * @param createdAt
  */
 @Builder
-public record MessageDto(
-    ChatUserDto user,
-    String message,
-    MessageType messageType,
-    LocalDateTime createdAt
-) {
+@Getter
+@AllArgsConstructor
+public class MessageDto {
+
+  private final ChatUserDto user;
+
+  private final String message;
+
+  private final MessageType messageType;
+
+  private final LocalDateTime createdAt;
 
   public static MessageDto fromEntity(ChatMessage chatMessage) {
     return MessageDto.builder()

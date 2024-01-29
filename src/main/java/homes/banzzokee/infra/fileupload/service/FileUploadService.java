@@ -3,7 +3,8 @@ package homes.banzzokee.infra.fileupload.service;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import homes.banzzokee.infra.fileupload.dto.ImageDto;
+import homes.banzzokee.domain.type.FilePath;
+import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.exception.FileFailToUploadException;
 import java.io.IOException;
 import java.util.List;
@@ -27,9 +28,9 @@ public class FileUploadService {
   /**
    * 1개의 이미지 파일 업로드
    */
-  public ImageDto uploadOneFile(MultipartFile multipartFile) {
+  public FileDto uploadOneFile(MultipartFile multipartFile, FilePath path) {
     try {
-      return uploadFile(multipartFile);
+      return uploadFile(multipartFile, path);
     } catch (IOException e) {
       throw new FileFailToUploadException();
     }
@@ -39,11 +40,12 @@ public class FileUploadService {
    * 여러 개의 이미지 파일 업로드
    */
   @Transactional
-  public List<ImageDto> uploadManyFile(List<MultipartFile> multipartFiles) {
+  public List<FileDto> uploadManyFile(List<MultipartFile> multipartFiles,
+      FilePath path) {
     return multipartFiles.stream()
         .map(multipartFile -> {
           try {
-            return this.uploadFile(multipartFile);
+            return this.uploadFile(multipartFile, path);
           } catch (IOException e) {
             throw new FileFailToUploadException();
           }
@@ -54,14 +56,15 @@ public class FileUploadService {
     amazonS3Client.deleteObject(bucketName, filename);
   }
 
-  private ImageDto uploadFile(MultipartFile multipartFile) throws IOException {
+  private FileDto uploadFile(MultipartFile multipartFile, FilePath path)
+      throws IOException {
     ObjectMetadata objectMetadata = new ObjectMetadata();
     objectMetadata.setContentType(multipartFile.getContentType());
     objectMetadata.setContentLength(multipartFile.getSize());
 
     String extension = StringUtils.getFilenameExtension(
         multipartFile.getOriginalFilename());
-    String filename = UUID.randomUUID() + "." + extension;
+    String filename = path + "/" + UUID.randomUUID() + "." + extension;
 
     PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, filename,
         multipartFile.getInputStream(), objectMetadata);
@@ -69,6 +72,6 @@ public class FileUploadService {
     amazonS3Client.putObject(putObjectRequest);
 
     String objectUrl = amazonS3Client.getUrl(bucketName, filename).toString();
-    return new ImageDto(objectUrl, filename);
+    return new FileDto(objectUrl, filename);
   }
 }

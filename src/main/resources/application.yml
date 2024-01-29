@@ -8,3 +8,9 @@ spring:
       - s3
       - smtp
       - redis
+      - elasticsearch
+
+logging:
+  level:
+    org.springframework.data.elasticsearch.client:
+      WIRE: TRACE

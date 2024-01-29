@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.type;
 
-import homes.banzzokee.infra.fileupload.dto.ImageDto;
+import homes.banzzokee.infra.fileupload.dto.FileDto;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class S3Object {
     return StringUtils.getFilename(url);
   }
 
-  public static S3Object from(ImageDto image) {
+  public static S3Object from(FileDto image) {
     return (image != null) ? new S3Object(image.getUrl()) : null;
   }
 }
