@@ -2,6 +2,7 @@ package homes.banzzokee.domain.user.dto;
 
 import homes.banzzokee.global.validator.annotation.Password;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
+@EqualsAndHashCode
 public class PasswordChangeRequest {
 
   @Password

@@ -6,6 +6,7 @@ import static lombok.AccessLevel.PROTECTED;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import homes.banzzokee.global.validator.annotation.Password;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @Builder
 @RequiredArgsConstructor(onConstructor_ = @JsonCreator, access = PRIVATE)
+@EqualsAndHashCode
 public class UserWithdrawRequest {
 
   @Password
