@@ -1,375 +1,458 @@
 package homes.banzzokee.domain.user.service;
 
-import static homes.banzzokee.domain.type.LoginType.EMAIL;
+import static homes.banzzokee.domain.type.FilePath.PROFILE;
 import static homes.banzzokee.domain.type.Role.SHELTER;
 import static homes.banzzokee.domain.type.Role.USER;
+import static homes.banzzokee.global.util.MockDataUtil.createMockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.FilePath;
-import homes.banzzokee.domain.type.Role;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
+import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
 import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
 import homes.banzzokee.global.error.exception.CustomException;
-import homes.banzzokee.global.util.MockDataUtil;
+import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
-@Import(JpaAuditingConfig.class)
-@DataJpaTest
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
+  @InjectMocks
   private UserService userService;
 
+  @Mock
   private FileUploadService s3Service;
 
-  @Autowired
+  @Mock
   private UserRepository userRepository;
 
-  @Autowired
+  @Mock
   private FollowRepository followRepository;
 
-  @Autowired
-  private ShelterRepository shelterRepository;
+  private final static MultipartFile MOCK_FILE;
 
-  private User user1;
-  private User user2;
-  private User user3;
-  private MultipartFile mockFile;
-
-  private final static WithdrawUserRequest withdrawUserRequest = new WithdrawUserRequest(
-      "1q2W#e$R");
-
-  @PostConstruct
-  private void initialize() throws IOException {
-    s3Service = Mockito.mock(FileUploadService.class);
-    userService = new UserService(userRepository, followRepository, s3Service);
-    mockFile = MockDataUtil.createMockMultipartFile("profileImg",
-        "src/test/resources/images/banzzokee.png");
+  static {
+    try {
+      MOCK_FILE = createMockMultipartFile("profileImg",
+          "src/test/resources/images/banzzokee.png");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  @BeforeEach
-  public void setup() {
-    Set<Role> roles1 = new HashSet<>();
-    roles1.add(USER);
+  private final static LocalDateTime NOW = LocalDateTime.now();
 
-    Set<Role> roles2 = new HashSet<>();
-    roles2.add(SHELTER);
+  private final static UserWithdrawRequest USER_WITHDRAW_REQUEST
+      = UserWithdrawRequest.builder()
+      .password("1q2W#e$R")
+      .build();
 
-    user1 = userRepository.save(User.builder()
-        .email("user1@banzzokee.homes")
-        .password("1q2W#e$R")
-        .nickname("사용자1")
-        .introduce("안녕하세요.")
-        .loginType(EMAIL)
-        .role(roles1)
-        .build());
-
-    user2 = userRepository.save(User.builder()
-        .email("user2@banzzokee.homes")
-        .nickname("사용자2")
-        .profileImgUrl("avatar.png")
-        .introduce("안녕하세요.")
-        .loginType(EMAIL)
-        .role(roles2)
-        .build());
-
-    user3 = userRepository.save(User.builder()
-        .email("user3@banzzokee.homes")
-        .password("1q2W#e$R")
-        .build());
-
-    Shelter shelter1 = shelterRepository.save(Shelter.builder()
-        .name("보호소1")
-        .verified(true)
-        .user(user1)
-        .build());
-
-    user1.registerShelter(shelter1);
-
-    Shelter shelter2 = shelterRepository.save(Shelter.builder()
-        .name("보호소2")
-        .verified(false)
-        .user(user2)
-        .build());
-
-    user2.registerShelter(shelter2);
-  }
+  private final static UserProfileUpdateRequest USER_PROFILE_UPDATE_REQUEST
+      = UserProfileUpdateRequest.builder()
+      .nickname("nickname")
+      .introduce("introduce")
+      .build();
 
   @Test
-  @DisplayName("사용자가 없을 때 UserNotFoundException 발생")
-  void getUserProfile_Throw_UserNotFoundException_When_User_Not_Exists() {
+  @DisplayName("[사용자 프로필 조회] - 사용자를 찾을 수 없으면 UserNotFoundException 발생")
+  void getUserProfile_when_userNotExists_then_throwUserNotFoundException() {
     // given
-    // when
-    // then
+    given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    // when & then
     assertThrows(UserNotFoundException.class,
         () -> userService.getUserProfile(0L));
   }
 
   @Test
-  @DisplayName("승인된 보호소는 사용자 프로필 조회시 null이면 안됨")
-  void getUserProfile_Shelter_Is_Not_Null_When_Shelter_Is_Verified() {
+  @DisplayName("[사용자 프로필 조회] - 승인된 보호소 포함")
+  void getUserProfile_when_shelterIsVerified_then_includeShelter() {
     // given
+    Shelter shelter = createMockShelter();
+    given(shelter.isVerified()).willReturn(true);
+
+    User user = createMockUser();
+    given(user.getShelter()).willReturn(shelter);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
     // when
-    UserProfileDto userProfile = userService.getUserProfile(user1.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId());
 
     // then
-    assertNotNull(userProfile.getShelter());
+    assertEquals(user.getId(), profile.getUserId());
+    assertEquals(user.getEmail(), profile.getEmail());
+    assertEquals(user.getProfileImageUrl(), profile.getProfileImgUrl());
+    assertEquals(user.getNickname(), profile.getNickname());
+    assertEquals(user.getIntroduce(), profile.getIntroduce());
+    assertEquals(user.getCreatedAt().toLocalDate(), NOW.toLocalDate());
+    assertEquals(shelter.getId(), profile.getShelter().getShelterId());
+    assertEquals(shelter.getName(), profile.getShelter().getName());
+    assertEquals(shelter.getDescription(), profile.getShelter().getDescription());
+    assertEquals(shelter.getTel(), profile.getShelter().getTel());
+    assertEquals(shelter.getAddress(), profile.getShelter().getAddress());
+    assertEquals(shelter.getCreatedAt().toLocalDate(), NOW.toLocalDate());
   }
 
   @Test
-  @DisplayName("승인되지 않은 보호소는 사용자 프로필 조회시 null로 반환")
-  void getUserProfile_Shelter_Is_Null_When_Shelter_Is_Not_Verified() {
+  @DisplayName("[사용자 프로필 조회] - 승인되지 않은 보호소는 미포함")
+  void getUserProfile_when_shelterIsNotVerified_then_shelterIsNull() {
     // given
+    Shelter shelter = createMockShelter();
+    User user = createMockUser();
+    given(user.getShelter()).willReturn(shelter);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
     // when
-    UserProfileDto userProfile = userService.getUserProfile(user2.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId());
 
     // then
-    assertNull(userProfile.getShelter());
+    assertEquals(user.getId(), profile.getUserId());
+    assertEquals(user.getEmail(), profile.getEmail());
+    assertEquals(user.getProfileImageUrl(), profile.getProfileImgUrl());
+    assertEquals(user.getNickname(), profile.getNickname());
+    assertEquals(user.getIntroduce(), profile.getIntroduce());
+    assertEquals(user.getCreatedAt().toLocalDate(), NOW.toLocalDate());
+    assertNull(profile.getShelter());
   }
 
   @Test
-  @DisplayName("[회원탈퇴] 사용자가 없을 때 UserNotFoundException 발생")
-  void withdrawUser_Throw_UserNotFoundException_When_User_Not_Exists() {
+  @DisplayName("[사용자 탈퇴] - 사용자를 찾을 수 없으면 UserNotFoundException 발생")
+  void withdrawUser_when_userNotExists_then_throwUserNotFoundException() {
     // given
-    // when
-    // then
+    given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    // when & then
     assertThrows(UserNotFoundException.class,
-        () -> userService.withdrawUser(withdrawUserRequest, 0L));
+        () -> userService.withdrawUser(USER_WITHDRAW_REQUEST, 0L));
   }
 
   @Test
-  @DisplayName("[회원탈퇴] 성공 시 user.isWithdrawn true 반환")
-  void withdrawUser_isWithdrawn_Is_True_When_Success() {
+  @DisplayName("[사용자 탈퇴] - 성공 시 isWithdrawn true 반환")
+  void withdrawUser_when_success_then_isWithdrawnIsTrue() {
     // given
+    User user = createMockUser();
+    given(user.getPassword()).willReturn(USER_WITHDRAW_REQUEST.getPassword());
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
     // when
-    user3.withdraw();
-    userRepository.save(user3);
-    user3 = userRepository.findById(user3.getId()).get();
+    userService.withdrawUser(USER_WITHDRAW_REQUEST, user.getId());
 
     // then
-    assertTrue(user3.isWithdrawn());
+    assertTrue(user.isWithdrawn());
+    verify(user).withdraw();
   }
 
   @Test
-  @DisplayName("[회원탈퇴] 이미 탈퇴한 사용자 UserAlreadyWithdrawnException 발생")
-  void withdrawUser_Throw_UserAlreadyWithdrawnException_When_User_Already_Withdrawn() {
+  @DisplayName("[사용자 탈퇴] - 이미 탈퇴한 사용자는 UserAlreadyWithdrawnException 발생")
+  void withdrawUser_when_userAlreadyWithdrawn_then_throwUserAlreadyWithdrawnException() {
     // given
-    // when
-    user3.withdraw();
-    userRepository.save(user3);
+    User user = createMockUser();
+    given(user.isWithdrawn()).willReturn(true);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
-    // then
+    // when & then
     assertThrows(UserAlreadyWithdrawnException.class,
-        () -> userService.withdrawUser(withdrawUserRequest, user3.getId()));
+        () -> userService.withdrawUser(USER_WITHDRAW_REQUEST, user.getId()));
+    verify(user, never()).withdraw();
   }
 
   @Test
-  @DisplayName("[회원탈퇴] 패스워드가 다를 경우 PasswordUnmatchedException 발생")
-  void withdrawUser_Throw_PasswordUnmatchedException_When_Password_Unmatched() {
+  @DisplayName("[사용자 탈퇴] - 입력한 패스워드가 다를 경우 PasswordUnmatchedException 발생")
+  void withdrawUser_when_passwordUnmatched_then_throwThrowPasswordUnmatchedException() {
     // given
-    WithdrawUserRequest request = new WithdrawUserRequest("1234");
+    User user = createMockUser();
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
-    // when
-    // then
+    // when & then
     assertThrows(CustomException.class,
-        () -> userService.withdrawUser(request, user3.getId()));
+        () -> userService.withdrawUser(USER_WITHDRAW_REQUEST, user.getId()));
   }
 
   @Test
-  @DisplayName("[패스워드 변경] 기존 패스워드와 같은 경우 OriginPasswordEqualsNewPasswordException 발생")
-  void changePassword_Throw_OriginPasswordEqualsNewPasswordException_When_OriginPassword_Equals_NewPassword() {
+  @DisplayName("[사용자 패스워드 변경] - 새로운 패스워드가 기존 패스워드와 같은 경우 OriginPasswordEqualsNewPasswordException 발생")
+  void changePassword_when_originalPasswordEqualsNewPassword_then_throwOriginPasswordEqualsNewPasswordException() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
-        .originPassword(user1.getPassword())
-        .newPassword(user1.getPassword())
-        .confirmPassword(user1.getPassword())
+    User user = createMockUser();
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+    // when & then
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
+        .originPassword(user.getPassword())
+        .newPassword(user.getPassword())
+        .confirmPassword(user.getPassword())
         .build();
 
-    // when
-    // then
     assertThrows(OriginPasswordEqualsNewPasswordException.class,
-        () -> userService.changePassword(request, user1.getId()));
+        () -> userService.changePassword(request, user.getId()));
   }
 
   @Test
-  @DisplayName("[패스워드 변경] 사용자의 패스워드와 입력한 originPassword가 다른 경우 PasswordUnmatchedException 발생")
-  void changePassword_Throw_PasswordUnmatchedException_When_UserPassword_Not_Equals_OriginPassword() {
+  @DisplayName("[사용자 패스워드 변경] - 사용자의 패스워드와 입력한 패스워드가 다른 경우 PasswordUnmatchedException 발생")
+  void changePassword_when_userPasswordNotEqualsUserInputPassword_then_throwPasswordUnmatchedException() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
-        .originPassword(user1.getPassword() + "123")
+    User user = createMockUser();
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+    // when & then
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
+        .originPassword(user.getPassword() + "123")
         .build();
 
-    // when
-    // then
+    // TODO: CustomException -> PasswordUnmatchedException
     assertThrows(CustomException.class,
-        () -> userService.changePassword(request, user1.getId()));
+        () -> userService.changePassword(request, user.getId()));
   }
 
   @Test
-  @DisplayName("[패스워드 변경] 새로운 패스워드와 재입력 패스워드가 다른 경우 ConfirmPasswordUnmatchedException 발생")
-  void changePassword_Throw_ConfirmPasswordUnmatchedException_When_NewPassword_Not_Equals_ConfirmPassword() {
+  @DisplayName("[사용자 패스워드 변경] - 새로운 패스워드와 재입력 패스워드가 다른 경우 ConfirmPasswordUnmatchedException 발생")
+  void changePassword_when_newPasswordNotEqualsConfirmPassword_then_throwConfirmPasswordUnmatchedException() {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
-        .originPassword(user1.getPassword())
-        .newPassword("1q2W#e$R1")
-        .confirmPassword("1q2W#e$R2")
+    User user = createMockUser();
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+    // when & then
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
+        .originPassword(user.getPassword())
+        .newPassword("54321")
+        .confirmPassword("12345")
         .build();
 
-    // when
-    // then
+    // TODO: CustomException -> ConfirmPasswordUnmatchedException
     assertThrows(CustomException.class,
-        () -> userService.changePassword(request, user1.getId()));
+        () -> userService.changePassword(request, user.getId()));
   }
 
   @Test
-  @DisplayName("[패스워드 변경] 성공 시 로그인 성공")
-  void changePassword_Success_SignIn_When_Success() {
+  @DisplayName("[사용자 패스워드 변경] - 성공 검증")
+  void changePassword_when_success_then_verify() {
     // given
-    String newPassword = user1.getPassword() + "123";
+    User user = createMockUser();
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
-        .originPassword(user1.getPassword())
+    // when
+    String newPassword = user.getPassword() + "1234";
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
+        .originPassword(user.getPassword())
         .newPassword(newPassword)
         .confirmPassword(newPassword)
         .build();
+    userService.changePassword(request, user.getId());
 
-    // when
     // then
-    userService.changePassword(request, user1.getId());
-    // TODO 로그인 확인
+    verify(user).changePassword(newPassword);
+    assertEquals(newPassword, user.getPassword());
   }
 
-  @DisplayName("사용자 본인이 팔로우하면 CanNotFollowSelfException 발생")
-  void followUser_Throw_CanNotFollowSelfException_When_Follower_Same_Followee() {
+  @Test
+  @DisplayName("[사용자 팔로우] - 스스로 팔로우하면 CanNotFollowSelfException 발생")
+  void followUser_when_followerEqualsFollowee_then_throwCanNotFollowSelfException() {
     // given
-    // when
-    // then
+    User user = createMockUser();
+
+    // when & then
     assertThrows(CanNotFollowSelfException.class,
-        () -> userService.followUser(user1.getId(), user1.getId()));
+        () -> userService.followUser(user.getId(), user.getId()));
   }
 
   @Test
-  @DisplayName("팔로우하는 사용자가 Shelter 권한이 없으면 CanFollowOnlyShelterUserException 발생")
-  void followUser_Throw_CanFollowOnlyShelterUserException_When_User_Dont_Has_Role_Shelter() {
+  @DisplayName("[사용자 팔로우] - SHELTER 권한이 없는 사용자를 팔로우하면 CanFollowOnlyShelterUserException 발생")
+  void followUser_when_UserDontHaveShelterRole_then_throwCanFollowOnlyShelterUserException() {
     // given
-    // when
-    // then
+    User followee = createMockUser();
+    followee.addRoles(USER);
+    given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
+
+    // when & then
     assertThrows(CanFollowOnlyShelterUserException.class,
-        () -> userService.followUser(user1.getId(), user2.getId()));
+        () -> userService.followUser(followee.getId(), anyLong()));
   }
 
   @Test
-  @DisplayName("사용자 팔로우 성공")
-  void success_FollowUser() {
+  @DisplayName("[사용자 팔로우] - 성공 검증, 팔로우가 처음인 경우")
+  void followUser_when_success_then_verify() {
     // given
+    User followee = createMockUser();
+    followee.addRoles(SHELTER);
+    given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
+
+    User follower = createMockUser();
+    given(follower.getId()).willReturn(2L);
+    given(userRepository.findById(follower.getId())).willReturn(Optional.of(follower));
+
+    given(followRepository.findByFolloweeIdAndFollowerId(followee.getId(),
+        follower.getId())).willReturn(Optional.empty());
+
+    given(followRepository.save(any(Follow.class)))
+        .willReturn(Follow.builder()
+            .followee(followee)
+            .follower(follower)
+            .build());
+
     // when
-    FollowDto follow = userService.followUser(user2.getId(), user1.getId());
+    FollowDto follow = userService.followUser(followee.getId(), follower.getId());
 
     // then
-    assertEquals(user1.getId(), follow.getFollower().getUserId());
-    assertEquals(user1.getNickname(), follow.getFollower().getNickname());
-    assertEquals(user2.getId(), follow.getFollowee().getUserId());
-    assertEquals(user2.getNickname(), follow.getFollowee().getNickname());
+    assertEquals(follower.getId(), follow.getFollower().getUserId());
+    assertEquals(follower.getNickname(), follow.getFollower().getNickname());
+    assertEquals(followee.getId(), follow.getFollowee().getUserId());
+    assertEquals(followee.getNickname(), follow.getFollowee().getNickname());
   }
 
   @Test
-  @DisplayName("[프로필 수정] 파일이 있으면 업로드 호출 검증")
-  void updateUserProfile_Verify_uploadOneFile_1_Times_When_ProfileFile_Is_Not_Null()
-      throws IOException {
+  @DisplayName("[사용자 팔로우] - 성공 검증, 팔로우가 처음인 아닌 경우")
+  void followUser_when_alreadyFollow_then_neverSave() {
     // given
-    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
-        .nickname("nickname")
-        .introduce("introduce")
-        .build();
+    User followee = createMockUser();
+    followee.addRoles(SHELTER);
+    given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
+
+    User follower = createMockUser();
+    given(follower.getId()).willReturn(2L);
+    given(userRepository.findById(follower.getId())).willReturn(Optional.of(follower));
+
+    given(followRepository.findByFolloweeIdAndFollowerId(followee.getId(),
+        follower.getId())).willReturn(Optional.of(Follow.builder()
+        .followee(followee)
+        .follower(follower)
+        .build()));
 
     // when
-    userService.updateUserProfile(request, mockFile, user1.getId());
+    FollowDto follow = userService.followUser(followee.getId(), follower.getId());
 
     // then
-    verify(s3Service, times(1)).uploadOneFile(mockFile, FilePath.PROFILE);
+    verify(followRepository, never()).save(any(Follow.class));
+    assertEquals(follower.getId(), follow.getFollower().getUserId());
+    assertEquals(follower.getNickname(), follow.getFollower().getNickname());
+    assertEquals(followee.getId(), follow.getFollowee().getUserId());
+    assertEquals(followee.getNickname(), follow.getFollowee().getNickname());
   }
 
   @Test
-  @DisplayName("[프로필 수정] 파일이 없으면 업로드 호출 검증")
-  void updateUserProfile_Verify_uploadOneFile_0_Times_When_ProfileFile_Is_Null()
-      throws IOException {
+  @DisplayName("[사용자 프로필 수정] - 파일이 있으면 업로드 호출 검증")
+  void updateUserProfile_when_profileFileIsNotNull_then_verifyUploadOneFile() {
     // given
-    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
-        .nickname("nickname")
-        .introduce("introduce")
-        .build();
+    User user = createMockUser();
+    given(user.getProfileImage()).willReturn(null);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+    given(s3Service.uploadOneFile(any(MultipartFile.class), any(FilePath.class)))
+        .willReturn(FileDto.builder()
+            .url("url")
+            .build());
 
     // when
-    userService.updateUserProfile(request, null, user1.getId());
+    userService.updateUserProfile(USER_PROFILE_UPDATE_REQUEST, MOCK_FILE, user.getId());
 
     // then
-    verify(s3Service, times(0)).uploadOneFile(any(), any());
+    verify(s3Service).uploadOneFile(MOCK_FILE, PROFILE);
   }
 
   @Test
-  @DisplayName("[프로필 수정] 원본 프로필 사진이 없으면 삭제 호출 검증")
-  void updateUserProfile_Verify_deleteFile_Never_When_Origin_ProfileFile_Is_Null()
-      throws IOException {
+  @DisplayName("[사용자 프로필 수정] - 파일이 없으면 업로드 호출 검증")
+  void updateUserProfile_when_profileFileIsNull_then_verifyNeverUploadOneFile() {
     // given
-    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
-        .nickname("nickname")
-        .introduce("introduce")
-        .build();
+    User user = createMockUser();
+    given(user.getProfileImage()).willReturn(null);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    userService.updateUserProfile(request, mockFile, user1.getId());
+    userService.updateUserProfile(USER_PROFILE_UPDATE_REQUEST, null, user.getId());
+
+    // then
+    verify(s3Service, never()).uploadOneFile(any(), any());
+  }
+
+  @Test
+  @DisplayName("[사용자 프로필 수정] - 원본 프로필 사진이 없으면 삭제 호출 검증")
+  void updateUserProfile_when_originProfileIsNull_then_verifyNeverDeleteFile() {
+    // given
+    User user = createMockUser();
+    given(user.getProfileImage()).willReturn(null);
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+    // when
+    userService.updateUserProfile(USER_PROFILE_UPDATE_REQUEST, MOCK_FILE, user.getId());
 
     // then
     verify(s3Service, never()).deleteFile(anyString());
   }
 
   @Test
-  @DisplayName("[프로필 수정] 원본 프로필 사진이 있으면 삭제 호출 검증")
-  void updateUserProfile_Verify_deleteFile_1_Times_When_Origin_ProfileFile_Is_Not_Null() {
+  @DisplayName("[사용자 프로필 수정] - 원본 프로필 사진이 있으면 삭제 호출 검증")
+  void updateUserProfile_when_originProfileIsNotNull_then_verifyDeleteFile() {
     // given
-    UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
-        .nickname("nickname")
-        .introduce("introduce")
-        .build();
+    FileDto file = FileDto.builder().url("url").filename("filename").build();
+
+    User user = createMockUser();
+    given(user.getProfileImage()).willReturn(S3Object.from(file));
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    userService.updateUserProfile(request, null, user2.getId());
+    userService.updateUserProfile(USER_PROFILE_UPDATE_REQUEST, null, user.getId());
 
     // then
-    verify(s3Service, times(1)).deleteFile(any());
+    verify(s3Service).deleteFile(file.getUrl());
+  }
+
+  private static Shelter createMockShelter() {
+    Shelter shelter = spy(Shelter.builder()
+        .name("보호소1")
+        .description("보호소1 설명")
+        .tel("010-1234-5678")
+        .address("서울시 행복구")
+        .user(User.builder().build())
+        .build());
+    lenient().when(shelter.getId()).thenReturn(1L);
+    lenient().when(shelter.getCreatedAt()).thenReturn(NOW);
+    return shelter;
+  }
+
+  private static User createMockUser() {
+    User user = spy(User.builder()
+        .email("email")
+        .password("password")
+        .profileImgUrl("profileImgUrl")
+        .nickname("nickname")
+        .introduce("introduce")
+        .role(new HashSet<>())
+        .build());
+    lenient().when(user.getId()).thenReturn(1L);
+    lenient().when(user.getCreatedAt()).thenReturn(NOW);
+    return user;
   }
 }

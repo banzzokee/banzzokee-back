@@ -4,21 +4,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
-import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
-import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.service.UserService;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
@@ -47,110 +48,128 @@ class UserControllerTest {
   private UserService userService;
 
   @Test
-  @DisplayName("사용자 프로필 조회 성공")
-  void successGetUserProfile() throws Exception {
+  @DisplayName("[사용자 프로필 조회] - 성공 검증")
+  void getUserProfile_when_validInput_then_success() throws Exception {
     // given
-    given(userService.getUserProfile(1L)).willReturn(
-        UserProfileDto.builder()
-            .userId(1L)
-            .email("user1@banzzokee.homes")
-            .profileImgUrl("avatar.png")
-            .nickname("사용자1")
-            .introduce("안녕하세요")
-            .joinedAt(LocalDate.of(2024, 1, 1))
-            .shelter(ShelterDto.builder()
-                .shelterId(1L)
-                .shelterImgUrl("shelter.png")
-                .name("반쪽이 보호소")
-                .description("반쪽이 화이팅")
-                .tel("02-1234-5678")
-                .address("서울시 행복구")
-                .registeredAt(LocalDate.of(2024, 1, 1))
-                .build())
-            .build());
+    ShelterDto shelter = ShelterDto.builder()
+        .shelterId(1L)
+        .shelterImgUrl("shelter.png")
+        .name("반쪽이 보호소")
+        .description("반쪽이 화이팅")
+        .tel("02-1234-5678")
+        .address("서울시 행복구")
+        .registeredAt(LocalDate.of(2024, 1, 1))
+        .build();
+
+    UserProfileDto profile = UserProfileDto.builder()
+        .userId(1L)
+        .email("user1@banzzokee.homes")
+        .profileImgUrl("avatar.png")
+        .nickname("사용자1")
+        .introduce("안녕하세요")
+        .joinedAt(LocalDate.of(2024, 1, 1))
+        .shelter(shelter)
+        .build();
+
+    given(userService.getUserProfile(profile.getUserId()))
+        .willReturn(profile);
 
     // when
     ResultActions resultActions = MockMvcUtil.performGet(mockMvc, "/api/users/1");
 
     // then
+    verify(userService).getUserProfile(profile.getUserId());
+
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"))
-        .andExpect(jsonPath("$.profileImgUrl").value("avatar.png"))
-        .andExpect(jsonPath("$.nickname").value("사용자1"))
-        .andExpect(jsonPath("$.introduce").value("안녕하세요"))
-        .andExpect(jsonPath("$.joinedAt").value("2024-01-01"))
-        .andExpect(jsonPath("$.shelter.shelterId").value(1))
-        .andExpect(jsonPath("$.shelter.shelterImgUrl").value("shelter.png"))
-        .andExpect(jsonPath("$.shelter.name").value("반쪽이 보호소"))
-        .andExpect(jsonPath("$.shelter.description").value("반쪽이 화이팅"))
-        .andExpect(jsonPath("$.shelter.tel").value("02-1234-5678"))
-        .andExpect(jsonPath("$.shelter.address").value("서울시 행복구"))
-        .andExpect(jsonPath("$.shelter.registeredAt").value("2024-01-01"));
+        .andExpect(jsonPath("$.userId").value(profile.getUserId()))
+        .andExpect(jsonPath("$.email").value(profile.getEmail()))
+        .andExpect(jsonPath("$.profileImgUrl").value(profile.getProfileImgUrl()))
+        .andExpect(jsonPath("$.nickname").value(profile.getNickname()))
+        .andExpect(jsonPath("$.introduce").value(profile.getIntroduce()))
+        .andExpect(jsonPath("$.joinedAt").value(profile.getJoinedAt().toString()))
+        .andExpect(jsonPath("$.shelter.shelterId").value(shelter.getShelterId()))
+        .andExpect(jsonPath("$.shelter.shelterImgUrl").value(shelter.getShelterImgUrl()))
+        .andExpect(jsonPath("$.shelter.name").value(shelter.getName()))
+        .andExpect(jsonPath("$.shelter.description").value(shelter.getDescription()))
+        .andExpect(jsonPath("$.shelter.tel").value(shelter.getTel()))
+        .andExpect(jsonPath("$.shelter.address").value(shelter.getAddress()))
+        .andExpect(jsonPath("$.shelter.registeredAt")
+            .value(shelter.getRegisteredAt().toString()));
   }
 
   @Test
-  @DisplayName("사용자 탈퇴 성공")
-  void successWithdrawUser() throws Exception {
+  @DisplayName("[사용자 탈퇴] - 성공 검증")
+  void withdrawUser_when_validInput_then_success() throws Exception {
     // given
-    WithdrawUserRequest request = new WithdrawUserRequest("1q2W#e$R");
+    UserWithdrawRequest request =
+        UserWithdrawRequest.builder()
+            .password("1q2W#e$R")
+            .build();
 
-    given(userService.withdrawUser(any(WithdrawUserRequest.class), anyLong()))
-        .willReturn(WithdrawUserResponse.builder()
-            .userId(1L)
-            .email("user1@banzzokee.homes")
-            .build());
+    UserWithdrawResponse response = UserWithdrawResponse.builder()
+        .userId(1L)
+        .email("user1@banzzokee.homes")
+        .build();
+    given(userService.withdrawUser(any(UserWithdrawRequest.class), anyLong()))
+        .willReturn(response);
 
     // when
     ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
         "/api/users/me/withdraw?userId=1", request);
 
     // then
+    verify(userService).withdrawUser(request, response.getUserId());
+
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
+        .andExpect(jsonPath("$.userId").value(response.getUserId()))
+        .andExpect(jsonPath("$.email").value(response.getEmail()));
   }
 
   @Test
-  @DisplayName("사용자 패스워드 변경 성공")
-  void successChangePassword() throws Exception {
+  @DisplayName("[사용자 패스워드 변경] - 성공 검증")
+  void changePassword_when_validInput_then_success() throws Exception {
     // given
-    ChangePasswordRequest request = ChangePasswordRequest.builder()
+    PasswordChangeRequest request = PasswordChangeRequest.builder()
         .originPassword("1q2W#e$R")
         .newPassword("1q2W#e$R1")
         .confirmPassword("1q2W#e$R1")
         .build();
 
-    given(userService.changePassword(any(ChangePasswordRequest.class), anyLong()))
-        .willReturn(ChangePasswordResponse.builder()
-            .userId(1L)
-            .email("user1@banzzokee.homes")
-            .build());
+    PasswordChangeResponse response = PasswordChangeResponse.builder()
+        .userId(1L)
+        .email("user1@banzzokee.homes")
+        .build();
+    given(userService.changePassword(any(PasswordChangeRequest.class), anyLong()))
+        .willReturn(response);
 
     // when
     ResultActions resultActions = MockMvcUtil.performPatch(mockMvc,
         "/api/users/me/change-password?userId=1", request);
 
     // then
+    verify(userService).changePassword(request, response.getUserId());
+
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.email").value("user1@banzzokee.homes"));
+        .andExpect(jsonPath("$.userId").value(response.getUserId()))
+        .andExpect(jsonPath("$.email").value(response.getEmail()));
   }
 
   @Test
-  @DisplayName("사용자 팔로우 성공")
-  void successFollowUser() throws Exception {
+  @DisplayName("[사용자 팔로우] - 성공 검증")
+  void followUser_when_validInput_then_success() throws Exception {
     // given
-    given(userService.followUser(2L, 1L))
+    FollowUserDto user1 = FollowUserDto.builder()
+        .userId(1L)
+        .nickname("사용자1")
+        .build();
+    FollowUserDto user2 = FollowUserDto.builder()
+        .userId(2L)
+        .nickname("사용자2")
+        .build();
+    given(userService.followUser(user2.getUserId(), user1.getUserId()))
         .willReturn(FollowDto.builder()
-            .follower(FollowUserDto.builder()
-                .userId(1L)
-                .nickname("사용자1")
-                .build())
-            .followee(FollowUserDto.builder()
-                .userId(2L)
-                .nickname("사용자2")
-                .build())
+            .follower(user1)
+            .followee(user2)
             .build());
 
     // when
@@ -158,27 +177,30 @@ class UserControllerTest {
         .performPost(mockMvc, "/api/users/2/follow?followerId=1", null);
 
     // then
+    verify(userService).followUser(user2.getUserId(), user1.getUserId());
+
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.follower.userId").value(1))
-        .andExpect(jsonPath("$.follower.nickname").value("사용자1"))
-        .andExpect(jsonPath("$.followee.userId").value(2))
-        .andExpect(jsonPath("$.followee.nickname").value("사용자2"));
+        .andExpect(jsonPath("$.follower.userId").value(user1.getUserId()))
+        .andExpect(jsonPath("$.follower.nickname").value(user1.getNickname()))
+        .andExpect(jsonPath("$.followee.userId").value(user2.getUserId()))
+        .andExpect(jsonPath("$.followee.nickname").value(user2.getNickname()));
   }
 
   @Test
-  @DisplayName("사용자 언팔로우 성공")
-  void successUnfollowUser() throws Exception {
-    // given
+  @DisplayName("[사용자 언팔로우] - 성공 검증")
+  void unfollowUser_when_validInput_then_success() throws Exception {
     // when
     ResultActions resultActions = MockMvcUtil
         .performPost(mockMvc, "/api/users/2/unfollow?followerId=1", null);
 
     // then
+    verify(userService).unfollowUser(2L, 1L);
     resultActions.andExpect(status().isOk());
   }
 
   @Test
-  void successUpdateUserProfile() throws Exception {
+  @DisplayName("[사용자 프로필 수정] - 성공 검증")
+  void updateUserProfile_when_validInput_then_success() throws Exception {
     // given
     UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
         .nickname("nickname")
@@ -193,24 +215,27 @@ class UserControllerTest {
         .file(mockFile)
         .part(mockPart);
 
+    UserProfileUpdateResponse response = UserProfileUpdateResponse.builder()
+        .userId(1L)
+        .email("email")
+        .profileImgUrl("profileImgUrl")
+        .nickname(request.getNickname())
+        .introduce(request.getIntroduce())
+        .build();
     given(userService.updateUserProfile(eq(request), any(MultipartFile.class), eq(1L)))
-        .willReturn(UserProfileUpdateResponse.builder()
-            .userId(1L)
-            .email("email")
-            .profileImgUrl("profileImgUrl")
-            .nickname(request.getNickname())
-            .introduce(request.getIntroduce())
-            .build());
+        .willReturn(response);
 
     // when
     ResultActions resultActions = mockMvc.perform(patch).andDo(print());
 
     // then
+    verify(userService).updateUserProfile(request, mockFile, 1L);
+
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.email").value("email"))
-        .andExpect(jsonPath("$.profileImgUrl").value("profileImgUrl"))
-        .andExpect(jsonPath("$.nickname").value("nickname"))
-        .andExpect(jsonPath("$.introduce").value("introduce"));
+        .andExpect(jsonPath("$.userId").value(response.getUserId()))
+        .andExpect(jsonPath("$.email").value(response.getEmail()))
+        .andExpect(jsonPath("$.profileImgUrl").value(response.getProfileImgUrl()))
+        .andExpect(jsonPath("$.nickname").value(response.getNickname()))
+        .andExpect(jsonPath("$.introduce").value(response.getIntroduce()));
   }
 }
