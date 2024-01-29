@@ -9,9 +9,8 @@ import lombok.Getter;
 /**
  * 보호소
  */
-@Builder
 @Getter
-@AllArgsConstructor
+@Builder
 public class ShelterDto {
 
   private final Long shelterId;

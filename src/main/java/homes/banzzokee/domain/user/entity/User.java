@@ -137,7 +137,7 @@ public class User extends BaseEntity {
    * 사용자 탈퇴
    */
   public void withdraw() {
-    if (this.deletedAt == null) {
+    if (!isWithdrawn()) {
       this.deletedAt = LocalDateTime.now();
     }
   }
