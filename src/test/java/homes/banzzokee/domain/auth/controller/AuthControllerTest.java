@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homes.banzzokee.domain.auth.dto.EmailDto;
 import homes.banzzokee.domain.auth.dto.EmailVerifyDto;
+import homes.banzzokee.domain.auth.dto.SignupDto;
 import homes.banzzokee.domain.auth.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
 
 
 @ExtendWith(SpringExtension.class)
@@ -125,5 +129,26 @@ class AuthControllerTest {
         .andExpect(content().string("false"));
 
     verify(authService, times(1)).checkNickname("반쪽이");
+  }
+
+  @Test
+  @DisplayName("회원가입 테스트 - 성공 케이스")
+  void successSignup() throws Exception {
+    // given
+    SignupDto signupDto = SignupDto.builder()
+        .email("test@gmail.com")
+        .password("Password123!")
+        .confirmPassword("Password123!")
+        .nickname("test")
+        .build();
+    doNothing().when(authService).signup(any(SignupDto.class));
+
+    // when & then
+    mockMvc.perform(post("/api/auth/sign-up")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(signupDto)))
+        .andExpect(status().isOk());
+
+    verify(authService, times(1)).signup(any(SignupDto.class));
   }
 }
