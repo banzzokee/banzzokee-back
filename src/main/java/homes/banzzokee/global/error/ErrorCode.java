@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
+import static org.springframework.http.HttpStatus.*;
+
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {
@@ -36,6 +38,9 @@ public enum ErrorCode {
   SHELTER_ALREADY_VERIFIED(BAD_REQUEST, "이미 승인된 보호소입니다."),
   NOT_VERIFIED_SHELTER_EXISTS(BAD_REQUEST, "승인되지 않은 보호소가 존재합니다."),
   NO_AUTHORIZED(FORBIDDEN, "권한이 없는 유저입니다."),
+  EMAIL_DUPLICATED(CONFLICT, "중복되는 이메일이 존재합니다."),
+  NICKNAME_DUPLICATED(BAD_REQUEST, "중복되는 닉네임이 존재합니다."),
+
   ;
 
   private final HttpStatus httpStatus;
