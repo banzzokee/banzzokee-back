@@ -207,4 +207,8 @@ public class User extends BaseEntity {
     this.shelter.delete();
     this.role.remove(SHELTER);
   }
+
+  public void addRoles(Role... roles) {
+    this.role.addAll(Arrays.asList(roles));
+  }
 }

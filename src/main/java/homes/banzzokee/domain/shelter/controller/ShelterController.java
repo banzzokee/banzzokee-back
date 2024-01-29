@@ -26,7 +26,7 @@ public class ShelterController {
 
   @PostMapping
   public void registerShelter(@Valid @RequestPart ShelterRegisterRequest request,
-      @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
+                              @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 바꾸기
     shelterService.registerShelter(request, shelterImg, userId);
   }
@@ -40,10 +40,10 @@ public class ShelterController {
 
   @PatchMapping("{shelterId}")
   public ShelterUpdateResponse updateShelter(@PathVariable long shelterId,
-      @Valid @RequestPart ShelterUpdateRequest request,
-      @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
+                                             @Valid @RequestPart ShelterUpdateRequest request,
+                                             @ImageFile MultipartFile shelterImg, @RequestParam long userId) {
     // TODO: userId -> @AuthenticationPrincipal 바꾸기
-    return shelterService.updateShelter(shelterId, request, shelterImg, userId);
+    return shelterService.updateShelter(shelterIdz, request, shelterImg, userId);
   }
 
   @DeleteMapping("{shelterId}")

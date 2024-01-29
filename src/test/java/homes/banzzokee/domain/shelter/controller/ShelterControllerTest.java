@@ -17,7 +17,9 @@ import homes.banzzokee.domain.shelter.dto.ShelterUpdateResponse;
 import homes.banzzokee.domain.shelter.service.ShelterService;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
+
 import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

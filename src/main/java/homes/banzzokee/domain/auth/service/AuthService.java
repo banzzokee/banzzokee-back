@@ -32,7 +32,6 @@ public class AuthService {
   private static final int VERIFICATION_CODE_MAX_VALUE = 1000000;
 
   private final RedisService redisService;
-
   private final JavaMailSender mailSender;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
