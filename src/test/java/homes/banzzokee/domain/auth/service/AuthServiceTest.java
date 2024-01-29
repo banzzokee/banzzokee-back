@@ -1,10 +1,10 @@
 package homes.banzzokee.domain.auth.service;
 
-import homes.banzzokee.domain.auth.dto.EmailVerifyDto;
+import homes.banzzokee.domain.auth.dto.EmailVerifyRequest;
 import homes.banzzokee.domain.auth.exception.EmailCodeInvalidException;
 import homes.banzzokee.domain.auth.exception.EmailCodeUnmatchedException;
 import homes.banzzokee.global.util.redis.RedisService;
-import homes.banzzokee.domain.auth.dto.SignupDto;
+import homes.banzzokee.domain.auth.dto.SignupRequest;
 import homes.banzzokee.domain.auth.exception.EmailDuplicatedException;
 import homes.banzzokee.domain.auth.exception.NicknameDuplicatedException;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -55,7 +55,7 @@ class AuthServiceTest {
     // given
     String email = "test@test.com";
     String code = "123456";
-    EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
+    EmailVerifyRequest emailVerifyRequest = EmailVerifyRequest.builder()
         .email("test@test.com")
         .code("123456")
         .build();
@@ -63,7 +63,7 @@ class AuthServiceTest {
     when(redisService.getData(email)).thenReturn(code);
 
     // when
-    assertDoesNotThrow(() -> authService.verifyEmail(emailVerifyDto));
+    assertDoesNotThrow(() -> authService.verifyEmail(emailVerifyRequest));
 
     // then
     verify(redisService).deleteKey(email);
@@ -75,14 +75,14 @@ class AuthServiceTest {
     // given
     String email = "test@test.com";
     String code = "123456";
-    EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
+    EmailVerifyRequest emailVerifyRequest = EmailVerifyRequest.builder()
         .email(email)
         .code(code)
         .build();
     when(redisService.getData(email)).thenReturn(email);
 
     // when & then
-    assertThrows(EmailCodeInvalidException.class, () -> authService.verifyEmail(emailVerifyDto));
+    assertThrows(EmailCodeInvalidException.class, () -> authService.verifyEmail(emailVerifyRequest));
   }
 
   @Test
@@ -91,21 +91,22 @@ class AuthServiceTest {
     // given
     String email = "test@test.com";
     String code = "123456";
-    EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
+    EmailVerifyRequest emailVerifyRequest = EmailVerifyRequest.builder()
         .email(email)
         .code(code)
         .build();
     when(redisService.getData(email)).thenReturn(null);
 
     // when & then
-    assertThrows(EmailCodeUnmatchedException.class, () -> authService.verifyEmail(emailVerifyDto));
+    assertThrows(EmailCodeUnmatchedException.class, () -> authService.verifyEmail(emailVerifyRequest));
   }
 
+  @Test
   @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
   void successCheckNickname() {
     // given
     String nickname = "반쪽이";
-    when(userRepository.existsByNickname(nickname)).thenReturn(true);
+    when(userRepository.existsByNicknameAndDeletedAtIsNull(nickname)).thenReturn(true);
 
     // when
     boolean result = !authService.checkNickname("반쪽이");
@@ -119,7 +120,7 @@ class AuthServiceTest {
   void failCheckNickname() {
     // given
     String nickname = "반쪽이";
-    when(userRepository.existsByNickname(nickname)).thenReturn(false);
+    when(userRepository.existsByNicknameAndDeletedAtIsNull(nickname)).thenReturn(false);
 
     // when
     boolean result = authService.checkNickname("반쪽이");
@@ -150,19 +151,19 @@ class AuthServiceTest {
   @DisplayName("회원가입 테스트 - 성공 케이스")
   void successSignup() {
     // given
-    SignupDto signupDto = SignupDto.builder()
+    SignupRequest signupRequest = SignupRequest.builder()
         .email("test@gmail.com")
         .password("Password123!")
         .confirmPassword("Password123!")
         .nickname("test")
         .build();
 
-    when(userRepository.existsByEmail(signupDto.getEmail())).thenReturn(false);
-    when(userRepository.existsByNickname(signupDto.getNickname())).thenReturn(false);
-    when(passwordEncoder.encode(signupDto.getPassword())).thenReturn("EncodedPassword123!");
+    when(userRepository.existsByEmailAndDeletedAtIsNull(signupRequest.getEmail())).thenReturn(false);
+    when(userRepository.existsByNicknameAndDeletedAtIsNull(signupRequest.getNickname())).thenReturn(false);
+    when(passwordEncoder.encode(signupRequest.getPassword())).thenReturn("EncodedPassword123!");
 
     // when
-    authService.signup(signupDto);
+    authService.signup(signupRequest);
 
     // then
     verify(userRepository, times(1)).save(any());
@@ -172,33 +173,33 @@ class AuthServiceTest {
   @DisplayName("회원가입 테스트 - 이메일 중복 실패 케이스")
   void failSignupEmailDuplicated() {
     // given
-    SignupDto signupDto = SignupDto.builder()
+    SignupRequest signupRequest = SignupRequest.builder()
         .email("test@gmail.com")
         .password("Password123!")
         .confirmPassword("Password123!")
         .nickname("test")
         .build();
 
-    when(userRepository.existsByEmail(signupDto.getEmail())).thenReturn(true);
+    when(userRepository.existsByEmailAndDeletedAtIsNull(signupRequest.getEmail())).thenReturn(true);
 
     // when & then
-    assertThrows(EmailDuplicatedException.class, () -> authService.signup(signupDto));
+    assertThrows(EmailDuplicatedException.class, () -> authService.signup(signupRequest));
   }
 
   @Test
   @DisplayName("회원가입 테스트 - 닉네임 중복 실패 케이스")
   void failSignupNicknameDuplicated() {
     // given
-    SignupDto signupDto = SignupDto.builder()
+    SignupRequest signupRequest = SignupRequest.builder()
         .email("test@gmail.com")
         .password("Password123!")
         .confirmPassword("Password123!")
         .nickname("test")
         .build();
 
-    when(userRepository.existsByNickname(signupDto.getNickname())).thenReturn(true);
+    when(userRepository.existsByNicknameAndDeletedAtIsNull(signupRequest.getNickname())).thenReturn(true);
 
     // when & then
-    assertThrows(NicknameDuplicatedException.class, () -> authService.signup(signupDto));
+    assertThrows(NicknameDuplicatedException.class, () -> authService.signup(signupRequest));
   }
 }
