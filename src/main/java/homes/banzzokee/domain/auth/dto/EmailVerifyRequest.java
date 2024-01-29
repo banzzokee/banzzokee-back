@@ -10,9 +10,6 @@ import lombok.Getter;
 
 /**
  * 이메일 인증 요청 dto
- *
- * @param email
- * @param code
  */
 @Getter
 @Builder

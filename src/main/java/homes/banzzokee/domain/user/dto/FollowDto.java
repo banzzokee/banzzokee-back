@@ -2,7 +2,6 @@ package homes.banzzokee.domain.user.dto;
 
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
