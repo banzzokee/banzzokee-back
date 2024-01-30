@@ -6,19 +6,18 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * 회원 탈퇴 응답
+ * 패스워드 변경 응답
  */
-@Builder
 @Getter
-@AllArgsConstructor
-public class WithdrawUserResponse {
+@Builder
+public class PasswordChangeResponse {
 
   private final Long userId;
 
   private final String email;
 
-  public static WithdrawUserResponse fromEntity(User user) {
-    return WithdrawUserResponse.builder()
+  public static PasswordChangeResponse fromEntity(User user) {
+    return PasswordChangeResponse.builder()
         .userId(user.getId())
         .email(user.getEmail())
         .build();
