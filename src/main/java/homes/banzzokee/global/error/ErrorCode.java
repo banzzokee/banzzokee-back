@@ -29,7 +29,7 @@ public enum ErrorCode {
   HTTP_MESSAGE_NOT_READABLE(BAD_REQUEST, "HTTP 메시지를 읽을 수 없습니다."),
   INTERNAL_ERROR(INTERNAL_SERVER_ERROR, "처리되지 않은 에러가 발생했습니다."),
   MIME_TYPE_INVALID(INTERNAL_SERVER_ERROR, "MIME TYPE을 찾을 수 없습니다."),
-  EMAIL_CODE_UNMATCHED(BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
+  EMAIL_UNMATCHED(BAD_REQUEST, "이메일이 일치하지 않습니다."),
   EMAIL_CODE_INVALID(BAD_REQUEST, "인증 코드가 유효하지 않습니다."),
   USER_ALREADY_REGISTER_SHELTER(BAD_REQUEST, "이미 보호소를 등록한 사용자입니다."),
   // chat & room
