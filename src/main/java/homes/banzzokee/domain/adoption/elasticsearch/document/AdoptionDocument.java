@@ -75,10 +75,13 @@ public class AdoptionDocument {
         .registeredAt(adoption.getRegisteredAt())
         .images(adoption.getImages())
         .user(UserProfileDto.fromEntity(adoption.getUser()))
-        .assignedUser(UserProfileDto.fromEntity(adoption.getAssignedUser()))
+        .assignedUser(
+            adoption.getAssignedUser() == null ? null
+                : UserProfileDto.fromEntity(adoption.getAssignedUser()))
         .deletedAt(adoption.getDeletedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
         .build();
   }
+
 }
