@@ -1,6 +1,7 @@
 package homes.banzzokee.global.validator.annotation;
 
 import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import jakarta.validation.Constraint;
@@ -9,7 +10,7 @@ import java.lang.annotation.Target;
 
 @ValidFile(whiteList = {"image/jpeg", "image/tiff",
     "image/png", "image/gif", "image/bmp", "image/webp"}, message = "이미지 형식이 아닙니다.")
-@Target({PARAMETER})
+@Target({PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = {})
 public @interface ImageFile {
