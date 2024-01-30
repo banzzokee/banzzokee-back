@@ -16,6 +16,7 @@ import homes.banzzokee.domain.notification.entity.FcmToken;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +39,8 @@ class NotificationServiceTest {
   @Mock
   private UserRepository userRepository;
 
+  private final static String USER_AGENT = "userAgent";
+
   private final static FcmTokenRegisterRequest TOKEN_REGISTER_REQUEST
       = FcmTokenRegisterRequest.builder()
       .token("token")
@@ -52,7 +55,29 @@ class NotificationServiceTest {
     // when & then
     assertThrows(UserNotFoundException.class,
         () -> notificationService.registerFcmToken(TOKEN_REGISTER_REQUEST,
-            "userAgent",
+            USER_AGENT,
+            1L));
+  }
+
+  @Test
+  @DisplayName("[토큰 등록] - 사용자가 토큰을 등록한 사용자가 아니면 NoAuthorizedException 발생")
+  void registerFcmToken_when_userIsNotTokenUser_then_throwNoAuthorizedException() {
+    // given
+    User user1 = mock(User.class);
+    given(user1.getId()).willReturn(1L);
+    given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+
+    User user2 = mock(User.class);
+    given(user2.getId()).willReturn(2L);
+    FcmToken token = mock(FcmToken.class);
+    given(token.getUser()).willReturn(user2);
+
+    given(fcmTokenRepository.findByToken(anyString())).willReturn(Optional.of(token));
+
+    // when & then
+    assertThrows(NoAuthorizedException.class,
+        () -> notificationService.registerFcmToken(TOKEN_REGISTER_REQUEST,
+            USER_AGENT,
             1L));
   }
 
@@ -68,7 +93,7 @@ class NotificationServiceTest {
 
     FcmToken token = spy(FcmToken.builder()
         .token(TOKEN_REGISTER_REQUEST.getToken())
-        .userAgent("userAgent")
+        .userAgent(USER_AGENT)
         .user(user)
         .build());
     given(fcmTokenRepository.findByToken(token.getToken())).willReturn(
@@ -76,7 +101,7 @@ class NotificationServiceTest {
 
     // when
     notificationService.registerFcmToken(TOKEN_REGISTER_REQUEST,
-        "userAgent",
+        USER_AGENT,
         1L);
 
     // then
@@ -97,7 +122,7 @@ class NotificationServiceTest {
 
     // when
     notificationService.registerFcmToken(TOKEN_REGISTER_REQUEST,
-        "userAgent",
+        USER_AGENT,
         1L);
 
     // then
@@ -106,7 +131,7 @@ class NotificationServiceTest {
 
     FcmToken value = tokenCaptor.getValue();
     assertEquals(TOKEN_REGISTER_REQUEST.getToken(), value.getToken());
-    assertEquals("userAgent", value.getUserAgent());
+    assertEquals(USER_AGENT, value.getUserAgent());
     assertEquals(user.getId(), value.getUser().getId());
     assertTrue(value.getLastUsedAt().isAfter(now));
   }
