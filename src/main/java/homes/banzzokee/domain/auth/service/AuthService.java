@@ -78,7 +78,7 @@ public class AuthService {
     String code = emailVerifyRequest.getCode();
     String redisCode = redisService.getData(email);
     if (redisCode == null) {
-      throw new EmailCodeUnmatchedException();
+      throw new EmailUnmatchedException();
     }
     if (!code.equals(redisCode)) {
       throw new EmailCodeInvalidException();
@@ -90,6 +90,7 @@ public class AuthService {
     return !userRepository.existsByNicknameAndDeletedAtIsNull(nickname);
   }
 
+  @Transactional
   public TokenResponse signIn(SignInRequest signInRequest) {
     String email = signInRequest.getEmail();
     String password = signInRequest.getPassword();
