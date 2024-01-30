@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @Builder
 @RequiredArgsConstructor(onConstructor_ = @JsonCreator, access = PRIVATE)
+@EqualsAndHashCode
 public class FcmTokenRegisterRequest {
 
   @NotBlank
