@@ -1,11 +1,13 @@
 package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,7 +60,8 @@ public class AdoptionResponse {
         .assignedUser(UserProfileDto.fromEntity(adoption.getAssignedUser()))
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .imageUrls(Collections.unmodifiableList(adoption.getImages()))
+        .imageUrls(Collections.unmodifiableList(adoption.getImages().stream().map(
+            S3Object::getUrl).collect(Collectors.toList())))
         .breed(adoption.getBreed().getBreed())
         .size(adoption.getSize().getSize())
         .neutering(adoption.isNeutering())
@@ -70,7 +73,7 @@ public class AdoptionResponse {
         .adoptedAt(adoption.getAdoptedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
-//        .review(ReviewDto.fromEntity(adoption.getReview()))
+// Todo:  .review(ReviewDto.fromEntity(adoption.getReview()))
         .build();
   }
 }

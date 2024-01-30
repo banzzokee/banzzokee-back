@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.adoption.elasticsearch.document;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
@@ -45,13 +46,13 @@ public class AdoptionDocument {
 
   private LocalDate registeredAt;
 
-  private List<String> images;
+  private List<S3Object> images;
 
   private UserProfileDto user;
 
   private UserProfileDto assignedUser;
 
-//  private ReviewDto review;
+  // Todo : private ReviewDto review;
 
   private LocalDateTime deletedAt;
 
@@ -59,7 +60,7 @@ public class AdoptionDocument {
 
   private LocalDateTime updatedAt;
 
-  public AdoptionDocument fromEntity(Adoption adoption) {
+  public static AdoptionDocument fromEntity(Adoption adoption) {
     return AdoptionDocument.builder()
         .id(adoption.getId())
         .title(adoption.getTitle())
