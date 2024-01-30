@@ -8,6 +8,7 @@ import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -63,6 +64,7 @@ public class Adoption extends BaseEntity {
   private LocalDate registeredAt;
 
   @Convert(converter = ImagesConvertor.class)
+  @Column(length = 1000)
   private List<S3Object> images;
 
   private LocalDate adoptedAt;
