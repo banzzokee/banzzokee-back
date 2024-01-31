@@ -21,13 +21,17 @@ import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
 import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.service.UserService;
+import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
+
 import java.time.LocalDate;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
@@ -39,6 +43,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(value = UserController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
   @Autowired
@@ -46,6 +51,9 @@ class UserControllerTest {
 
   @MockBean
   private UserService userService;
+
+  @MockBean
+  private JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Test
   @DisplayName("[사용자 프로필 조회] - 성공 검증")
