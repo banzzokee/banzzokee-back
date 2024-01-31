@@ -19,21 +19,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 class UpdateAdoptionRequest {
 
-  @NotBlank @Size(max = 50)
+  @NotBlank
+  @Size(max = 50)
   private String title;
 
-  @NotBlank @Size(max = 500)
+  @NotBlank
+  @Size(max = 500)
   private String content;
 
-  @NotNull @BreedValid
+  @NotNull
+  @BreedValid
   private String breed;
 
-  @NotNull @DogSizeValid
+  @NotNull
+  @DogSizeValid
   private String size;
 
   private boolean neutering;
 
-  @NotNull @DogGenderValid
+  @NotNull
+  @DogGenderValid
   private String gender;
 
   @Max(100)
@@ -41,7 +46,8 @@ class UpdateAdoptionRequest {
 
   private boolean healthChecked;
 
-  @NotNull @DateValid
+  @NotNull
+  @DateValid
   private String registeredAt;
 
 }

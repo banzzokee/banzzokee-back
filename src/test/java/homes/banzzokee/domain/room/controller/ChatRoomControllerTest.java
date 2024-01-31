@@ -10,17 +10,20 @@ import homes.banzzokee.domain.room.dto.ChatShelterDto;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
 import homes.banzzokee.domain.room.dto.CreateRoomResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
+import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockMvcUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(value = ChatRoomController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@AutoConfigureMockMvc(addFilters = false)
 class ChatRoomControllerTest {
 
   @Autowired
@@ -28,6 +31,9 @@ class ChatRoomControllerTest {
 
   @MockBean
   private ChatRoomService chatRoomService;
+
+  @MockBean
+  private JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Test
   @DisplayName("[controller] 채팅방 생성 성공")

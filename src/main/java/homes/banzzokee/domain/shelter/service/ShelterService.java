@@ -20,7 +20,9 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,7 @@ public class ShelterService {
    */
   @Transactional
   public void registerShelter(ShelterRegisterRequest request, MultipartFile shelterImg,
-      long userId) {
+                              long userId) {
     User user = findByUserIdOrThrow(userId);
 
     throwIfUserAlreadyRegisterShelter(user);
@@ -84,7 +86,7 @@ public class ShelterService {
    */
   @Transactional
   public ShelterUpdateResponse updateShelter(long shelterId, ShelterUpdateRequest request,
-      MultipartFile shelterImage, long userId) {
+                                             MultipartFile shelterImage, long userId) {
     User user = findByUserIdOrThrow(userId);
     Shelter shelter = findByShelterIdOrThrow(shelterId);
 
@@ -214,7 +216,7 @@ public class ShelterService {
    * @param shelterImage 보호소 이미지
    */
   private void registerOrRestoreShelter(User user, ShelterRegisterRequest request,
-      S3Object shelterImage) {
+                                        S3Object shelterImage) {
     Shelter shelter = user.getShelter();
     if (shelter == null) {
       shelter = Shelter.builder()
@@ -263,4 +265,3 @@ public class ShelterService {
     }
   }
 }
-
