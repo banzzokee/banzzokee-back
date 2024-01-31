@@ -1,5 +1,6 @@
 package homes.banzzokee.domain.room.entity;
 
+import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Column;
@@ -32,8 +33,9 @@ public class ChatRoom {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-//  @OneToOne(fetch = FetchType.LAZY)
-//  private Adoption;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "adoption_id")
+  private Adoption adoption;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
@@ -50,12 +52,10 @@ public class ChatRoom {
   private LocalDateTime deletedAt;
 
   @Builder
-  public ChatRoom(User user, Shelter shelter
-//      Adoption
-  ) {
+  public ChatRoom(User user, Shelter shelter, Adoption adoption) {
     this.user = user;
     this.shelter = shelter;
-//    this.adoption = adoption;
+    this.adoption = adoption;
   }
 
   public void leaveShelter() {
