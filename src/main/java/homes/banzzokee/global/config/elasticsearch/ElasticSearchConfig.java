@@ -19,6 +19,9 @@ public class ElasticSearchConfig extends ElasticsearchConfiguration {
   @Value("${elasticsearch.hostAndPort}")
   private String hostAndPort;
 
+  @Value("${elasticsearch.fingerprint}")
+  private String fingerprint;
+
   @Value("${elasticsearch.username}")
   private String username;
 
@@ -29,8 +32,11 @@ public class ElasticSearchConfig extends ElasticsearchConfiguration {
   @Override
   public ClientConfiguration clientConfiguration() {
 
+    SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint);
+
     return ClientConfiguration.builder()
         .connectedTo(hostAndPort)
+        .usingSsl(sslContext)
         .withBasicAuth(username, password)
         .build();
   }
