@@ -23,8 +23,9 @@ public class AdoptionController {
 
   @PostMapping
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
-      @Size(max = 8) @FileDuplicateValid List<@ImageFile MultipartFile> multipartFiles // Todo @AuthenticationPrincipal
-      ) {
+      @Size(max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> multipartFiles
+      // Todo @AuthenticationPrincipal
+  ) {
     adoptionService.registerAdoption(request, multipartFiles, 2L); // Todo userId 변경
   }
 
