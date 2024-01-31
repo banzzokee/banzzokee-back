@@ -1,14 +1,17 @@
 package homes.banzzokee.domain.notification.service;
 
 import homes.banzzokee.domain.notification.dao.FcmTokenRepository;
+import homes.banzzokee.domain.notification.dto.FcmTokenDto;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
 import homes.banzzokee.domain.notification.entity.FcmToken;
+import homes.banzzokee.domain.notification.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ public class NotificationService {
 
   private final FcmTokenRepository fcmTokenRepository;
   private final UserRepository userRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * FCM 토큰 등록
@@ -30,18 +34,13 @@ public class NotificationService {
   public void registerFcmToken(FcmTokenRegisterRequest request, String userAgent,
       long userId) {
     User user = findUserByIdOrThrow(userId);
+    FcmToken fcmToken = fcmTokenRepository.findByToken(request.getToken()).orElse(null);
 
-    fcmTokenRepository.findByToken(request.getToken())
-        .ifPresentOrElse(
-            (token) -> {
-              throwIfUserIsNotTokenUser(user, token);
-              token.refresh();
-            },
-            () -> fcmTokenRepository.save(FcmToken.builder()
-                .token(request.getToken())
-                .userAgent(userAgent)
-                .user(user)
-                .build()));
+    if (fcmToken != null) {
+      refreshFcmTokenIfAuthorized(fcmToken, user);
+    } else {
+      saveFcmTokenAndPublishEvent(request, user, userAgent);
+    }
   }
 
   /**
@@ -64,5 +63,36 @@ public class NotificationService {
     if (!Objects.equals(user.getId(), token.getUser().getId())) {
       throw new NoAuthorizedException();
     }
+  }
+
+  /**
+   * 권한이 있는 사용자면 토큰을 갱신한다.
+   *
+   * @param fcmToken FCM 토큰
+   * @param user     권한 확인할 사용자
+   */
+  private void refreshFcmTokenIfAuthorized(FcmToken fcmToken, User user) {
+    throwIfUserIsNotTokenUser(user, fcmToken);
+    fcmToken.refresh();
+  }
+
+  /**
+   * FCM 토큰을 저장하고 이벤트를 발행한다.
+   *
+   * @param request   토큰 등록 요청
+   * @param user      사용자
+   * @param userAgent User-Agent
+   */
+  private void saveFcmTokenAndPublishEvent(FcmTokenRegisterRequest request, User user,
+      String userAgent) {
+    FcmToken fcmToken = fcmTokenRepository.save(FcmToken.builder()
+        .token(request.getToken())
+        .userAgent(userAgent)
+        .user(user)
+        .build());
+
+    eventPublisher.publishEvent(
+        FcmTokenRegisteredEvent.from(FcmTokenDto.fromEntity(fcmToken)))
+    ;
   }
 }
