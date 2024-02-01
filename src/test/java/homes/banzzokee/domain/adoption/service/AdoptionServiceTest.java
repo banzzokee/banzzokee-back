@@ -14,11 +14,15 @@ import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
+import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
+import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -190,6 +194,60 @@ class AdoptionServiceTest {
     //when & then
     assertThrows(NotVerifiedShelterExistsException.class,
         () -> adoptionService.registerAdoption(request, images, 1L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트")
+  void successGetAdoption() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build();
+    LocalDateTime now = LocalDateTime.now();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getCreatedAt()).willReturn(now);
+    //when
+    AdoptionResponse response = adoptionService.getAdoption(2L);
+    //then
+    assertEquals("강아지", response.getTitle());
+    assertEquals("포메라니안", response.getBreed());
+    assertEquals("분양중", response.getStatus());
+    assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+  }
+
+  @Test
+  @DisplayName("분양게시글 존재하지 않을 경우 예외 처리")
+  void getAdoption_shouldThrowAdoptionNotFoundException_whenAdoptionIsNotExist() {
+    //given
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
+    //when & then
+    assertThrows(AdoptionNotFoundException.class,
+        () -> adoptionService.getAdoption(2L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 삭제된 경우 예외 처리")
+  void getAdoption_shouldThrowAdoptionIsDeletedException_whenAdoptionIsDeleted() {
+    //given
+    User user = User.builder().build();
+    Adoption adoption = spy(Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
+    //when & then
+    assertThrows(AdoptionIsDeletedException.class,
+        () -> adoptionService.getAdoption(2L));
   }
 
   private List<MultipartFile> createImageList(int addSize) throws IOException {
