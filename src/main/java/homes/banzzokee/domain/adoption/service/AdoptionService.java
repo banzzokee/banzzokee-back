@@ -2,9 +2,11 @@ package homes.banzzokee.domain.adoption.service;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.shelter.exception.ShelterNotFoundException;
@@ -48,6 +50,16 @@ public class AdoptionService {
 
     Adoption savedAdoption = registerAdoptionToDataBase(request, user, uploadedImages);
     registerAdoptionToElasticSearch(savedAdoption);
+  }
+
+  public AdoptionResponse getAdoption(long adoptionId) {
+    Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    return AdoptionResponse.fromEntity(adoption);
+  }
+
+  private Adoption findByAdoptionIdOrThrow(long adoptionId) {
+    return adoptionRepository.findById(adoptionId)
+        .orElseThrow(AdoptionNotFoundException::new);
   }
 
   private User findByUserIdOrThrow(long userId) {
