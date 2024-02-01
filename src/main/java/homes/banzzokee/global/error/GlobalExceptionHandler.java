@@ -10,7 +10,9 @@ import com.fasterxml.jackson.core.io.JsonEOFException;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
 import homes.banzzokee.global.error.exception.CustomException;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.security.Principal;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +31,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<ErrorResponse> handleCustomException(CustomException e,
-      HttpServletRequest request) {
+                                                             HttpServletRequest request) {
     log.error("[CustomException] {} is occurred. uri:{}", e.getErrorCode(),
         request.getRequestURI());
 

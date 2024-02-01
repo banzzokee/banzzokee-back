@@ -2,22 +2,19 @@ package homes.banzzokee.domain.user.dto;
 
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@Builder
 @Getter
-@AllArgsConstructor
+@Builder
 public class FollowDto {
 
   private final FollowUserDto follower;
 
   private final FollowUserDto followee;
 
-  @Builder
   @Getter
-  @AllArgsConstructor
+  @Builder
   public static class FollowUserDto {
 
     private final Long userId;

@@ -1,10 +1,12 @@
 package homes.banzzokee.global.util;
 
+import static org.springframework.http.HttpHeaders.USER_AGENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,5 +46,15 @@ public class MockMvcUtil {
   public static ResultActions performDelete(MockMvc mockMvc, String url)
       throws Exception {
     return mockMvc.perform(delete(url)).andDo(print());
+  }
+
+  public static ResultActions performPut(MockMvc mockMvc, String url, Object requestBody)
+      throws Exception {
+    return mockMvc.perform(
+            put(url)
+                .header(USER_AGENT, "spring boot unit test")
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestBody)))
+        .andDo(print());
   }
 }

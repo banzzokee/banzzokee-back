@@ -7,14 +7,14 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.ChangePasswordRequest;
-import homes.banzzokee.domain.user.dto.ChangePasswordResponse;
+import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
+import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
 import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
-import homes.banzzokee.domain.user.dto.WithdrawUserRequest;
-import homes.banzzokee.domain.user.dto.WithdrawUserResponse;
+import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
+import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.CanFollowOnlyShelterUserException;
@@ -104,12 +104,12 @@ public class UserService {
   }
 
   @Transactional
-  public WithdrawUserResponse withdrawUser(WithdrawUserRequest request, long userId) {
+  public UserWithdrawResponse withdrawUser(UserWithdrawRequest request, long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getPassword());
     user.withdraw();
-    return WithdrawUserResponse.fromEntity(user);
+    return UserWithdrawResponse.fromEntity(user);
   }
 
   private void throwIfAlreadyWithdrawn(User user) {
@@ -135,15 +135,15 @@ public class UserService {
   }
 
   @Transactional
-  public ChangePasswordResponse changePassword(ChangePasswordRequest request,
-      long userId) {
+  public PasswordChangeResponse changePassword(PasswordChangeRequest request,
+                                               long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
     user.changePassword(request.getNewPassword());
-    return ChangePasswordResponse.fromEntity(user);
+    return PasswordChangeResponse.fromEntity(user);
   }
 
-  private void validateChangePasswordRequest(ChangePasswordRequest request, User user) {
+  private void validateChangePasswordRequest(PasswordChangeRequest request, User user) {
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getOriginPassword());
     throwIfOriginPasswordSameNewPassword(request.getOriginPassword(), request.getNewPassword());
@@ -151,7 +151,7 @@ public class UserService {
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
-      String newPassword) {
+                                                    String newPassword) {
     if (originPassword.equals(newPassword)) {
       throw new OriginPasswordEqualsNewPasswordException();
     }
@@ -160,14 +160,14 @@ public class UserService {
   /**
    * 사용자 프로필 수정
    *
-   * @param request    사용자 프로필 수정 요청
+   * @param request      사용자 프로필 수정 요청
    * @param profileImage 프로필 이미지
-   * @param userId     사용자 아이디
+   * @param userId       사용자 아이디
    * @return 사용자 프로필 수정 응답
    */
   @Transactional
   public UserProfileUpdateResponse updateUserProfile(UserProfileUpdateRequest request,
-      MultipartFile profileImage, long userId) {
+                                                     MultipartFile profileImage, long userId) {
     // TODO: userDetails & userId가 일치하는지 확인
     User user = findByUserIdOrThrow(userId);
     S3Object oldProfileImage = user.getProfileImage();

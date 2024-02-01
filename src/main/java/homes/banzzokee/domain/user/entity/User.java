@@ -21,9 +21,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -105,7 +107,7 @@ public class User extends BaseEntity {
 
   @Builder
   public User(String email, String password, String nickname, String profileImgUrl,
-      String introduce, Set<Role> role, LoginType loginType, Shelter shelter) {
+              String introduce, Set<Role> role, LoginType loginType, Shelter shelter) {
     this.email = email;
     this.password = password;
     this.nickname = nickname;
@@ -137,7 +139,7 @@ public class User extends BaseEntity {
    * 사용자 탈퇴
    */
   public void withdraw() {
-    if (this.deletedAt == null) {
+    if (!isWithdrawn()) {
       this.deletedAt = LocalDateTime.now();
     }
   }
@@ -166,7 +168,7 @@ public class User extends BaseEntity {
    * @param profileImage 프로필 이미지
    */
   public void updateProfile(String nickname, String introduce,
-      S3Object profileImage) {
+                            S3Object profileImage) {
     this.nickname = nickname;
     this.introduce = introduce;
     if (profileImage != null) {
@@ -176,6 +178,7 @@ public class User extends BaseEntity {
 
   /**
    * 보호소 등록
+   *
    * @param shelter 보호소
    */
   public void registerShelter(Shelter shelter) {
@@ -190,6 +193,7 @@ public class User extends BaseEntity {
 
   /**
    * 권한 추가
+   *
    * @param roles 권한 목록
    */
   public void addRoles(Role... roles) {

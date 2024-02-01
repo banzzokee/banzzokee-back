@@ -8,6 +8,7 @@ spring:
       - s3
       - smtp
       - redis
+      - jwt
       - elasticsearch
 
 logging:
