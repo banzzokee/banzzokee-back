@@ -6,6 +6,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
@@ -54,9 +55,16 @@ public class AdoptionService {
 
   public AdoptionResponse getAdoption(long adoptionId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
+
     return AdoptionResponse.fromEntity(adoption);
   }
 
+  private void throwIfAdoptionIsDeleted(Adoption adoption) {
+    if (adoption.getDeletedAt() != null) {
+      throw new AdoptionIsDeletedException();
+    }
+  }
   private Adoption findByAdoptionIdOrThrow(long adoptionId) {
     return adoptionRepository.findById(adoptionId)
         .orElseThrow(AdoptionNotFoundException::new);
