@@ -6,6 +6,8 @@ import homes.banzzokee.domain.room.service.ChatRoomService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,30 +34,26 @@ public class ChatRoomController {
    */
   @PostMapping("/adoptions/{adoptionId}")
   public RoomCreateResponse createChatRoom(
-//      @AuthenticationPrincipal UserDetails,
+      @AuthenticationPrincipal UserDetails userDetails,
       @PathVariable("adoptionId") Long adoptionId) {
 
     log.info("[createChatRoom] 채팅방 생성 요청 - 입양글 id : {}", adoptionId);
 
-    // todo: userId 삭제
-    // todo: "banzzokee" -> userDetails.username()
-    return chatRoomService.createChatRoom("banzzokee", adoptionId, 1L);
+    return chatRoomService.createChatRoom(userDetails.getUsername(), adoptionId);
 
   }
 
   /**
    * 채팅방 목록 조회
    *
-   * @param email
    * @return
    */
   @GetMapping("")
   public List<ChatRoomDto> getChatRooms(
-//      @AuthenticationPrincipal UserDetails,
-      @RequestParam("email") String email) {
+      @AuthenticationPrincipal UserDetails userDetails) {
 
-    log.info("[getChatRooms] 채팅방 목록 조회 요청 - 유저 email : {}", email);
+    log.info("[getChatRooms] 채팅방 목록 조회 요청 - 유저 email : {}", userDetails.getUsername());
 
-    return chatRoomService.getChatRooms(email);
+    return chatRoomService.getChatRooms(userDetails.getUsername());
   }
 }

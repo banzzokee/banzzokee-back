@@ -8,6 +8,7 @@ import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.room.exception.AlreadyExistsChatRoomException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -37,14 +38,12 @@ public class ChatRoomService {
    *
    * @param email
    * @param adoptionId
-   * @param userId
    * @return
    */
-  public RoomCreateResponse createChatRoom(String email, Long adoptionId,
-      Long userId) {
+  public RoomCreateResponse createChatRoom(String email, Long adoptionId) {
 
-    // todo: userRepository 에 findByUidAndDeletedAtNull(String email) 추가
-    User user = userRepository.findById(userId)
+    // 삭제되지 않은 유저
+    User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
     Adoption adoption = adoptionRepository.findById(adoptionId)
@@ -53,7 +52,10 @@ public class ChatRoomService {
     // 게시글 등록한 shelter
     Shelter shelter = adoption.getUser().getShelter();
 
-    // todo: 이미 있는 채팅방 (userId, shelterId, adoptionId) 중복 validation 체크
+    // 이미 만들어진 채팅방
+    if (chatRoomRepository.existsByUserAndAdoption(user, adoption)) {
+      throw new AlreadyExistsChatRoomException();
+    }
 
     return RoomCreateResponse.fromEntity(
         chatRoomRepository.save(ChatRoom.builder()

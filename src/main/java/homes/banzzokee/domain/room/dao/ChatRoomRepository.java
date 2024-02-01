@@ -1,5 +1,6 @@
 package homes.banzzokee.domain.room.dao;
 
+import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.user.entity.User;
 import java.util.List;
@@ -16,6 +17,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long>,
   List<ChatRoom> findAllByShelterId(long shelterId);
 
   List<ChatRoom> findAllByUser(User user);
+
+  boolean existsByUserAndAdoption(User user, Adoption adoption);
 
 
 }
