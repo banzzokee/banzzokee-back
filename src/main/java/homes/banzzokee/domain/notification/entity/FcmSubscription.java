@@ -35,4 +35,9 @@ public class FcmSubscription extends BaseEntity {
    * 구독 토픽
    */
   private final String topic;
+
+  /**
+   * 구독 유효 여부(구독 성공, 실패)
+   */
+  private boolean isValid;
 }

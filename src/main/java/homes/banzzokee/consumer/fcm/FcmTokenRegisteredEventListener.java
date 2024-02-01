@@ -1,6 +1,5 @@
 package homes.banzzokee.consumer.fcm;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.TopicManagementResponse;
 import homes.banzzokee.consumer.error.exception.TokenNotFoundException;
@@ -11,6 +10,7 @@ import homes.banzzokee.domain.notification.entity.FcmSubscription;
 import homes.banzzokee.domain.notification.entity.FcmToken;
 import homes.banzzokee.domain.notification.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.shelter.dao.ShelterRepository;
+import homes.banzzokee.infra.firebase.FcmService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +31,7 @@ public class FcmTokenRegisteredEventListener {
   private final FcmSubscriptionRepository fcmSubscriptionRepository;
   private final FcmTokenRepository fcmTokenRepository;
   private final ShelterRepository shelterRepository;
+  private final FcmService fcmService;
 
   @Transactional
   @RabbitListener(queues = "queue.manage.fcm.token", errorHandler = "customErrorHandler")
@@ -88,24 +89,25 @@ public class FcmTokenRegisteredEventListener {
       return;
     }
 
-    List<String> registrationTokens = Collections.singletonList(token.getToken());
+    List<String> tokens = Collections.singletonList(token.getToken());
     List<FcmSubscription> subscriptions = new ArrayList<>();
 
     topics.forEach(topic -> {
+      boolean subscribeSuccess = false;
+
       try {
-        TopicManagementResponse response = FirebaseMessaging.getInstance()
-            .subscribeToTopic(registrationTokens, topic);
-
-        subscriptions.add(FcmSubscription.builder()
-            .fcmToken(token)
-            .topic(topic)
-            .build());
-
+        TopicManagementResponse response = fcmService.subscribeToTopic(tokens, topic);
         logResponse(response);
-
+        subscribeSuccess = response.getSuccessCount() > 0;
       } catch (FirebaseMessagingException e) {
         log.error("subscribe token failed topic={}, token={}", topic, token, e);
       }
+
+      subscriptions.add(FcmSubscription.builder()
+          .fcmToken(token)
+          .topic(topic)
+          .isValid(subscribeSuccess)
+          .build());
     });
 
     fcmSubscriptionRepository.saveAll(subscriptions);
