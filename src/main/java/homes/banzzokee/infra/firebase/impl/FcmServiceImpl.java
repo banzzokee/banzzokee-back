@@ -10,8 +10,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class FcmServiceImpl implements FcmService {
 
-  public TopicManagementResponse subscribeToTopic(List<String> registrationTokens,
-      String topic) throws FirebaseMessagingException {
-    return FirebaseMessaging.getInstance().subscribeToTopic(registrationTokens, topic);
+  public TopicManagementResponse subscribeToTopic(List<String> tokens, String topic)
+      throws FirebaseMessagingException {
+    return FirebaseMessaging.getInstance().subscribeToTopic(tokens, topic);
+  }
+
+  public TopicManagementResponse unsubscribeFromTopic(List<String> tokens, String topic)
+      throws FirebaseMessagingException {
+    return FirebaseMessaging.getInstance().unsubscribeFromTopic(tokens, topic);
   }
 }

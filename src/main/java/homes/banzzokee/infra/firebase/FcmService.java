@@ -6,6 +6,9 @@ import java.util.List;
 
 public interface FcmService {
 
-  TopicManagementResponse subscribeToTopic(List<String> registrationTokens,
-      String topic) throws FirebaseMessagingException;
+  TopicManagementResponse subscribeToTopic(List<String> tokens, String topic)
+      throws FirebaseMessagingException;
+
+  TopicManagementResponse unsubscribeFromTopic(List<String> tokens, String topic)
+      throws FirebaseMessagingException;
 }
