@@ -1,8 +1,8 @@
-package homes.banzzokee.domain.notification.event.handler;
+package homes.banzzokee.infra.rabbitmq.event.handler;
 
 import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT;
 
-import homes.banzzokee.domain.notification.event.FcmTokenRegisteredEvent;
+import homes.banzzokee.infra.rabbitmq.event.BaseMessage;
 import homes.banzzokee.infra.rabbitmq.service.RabbitMqMessageProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -11,13 +11,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 @RequiredArgsConstructor
-public class FcmTokenRegisteredEventHandler {
+public class MessageHandler {
 
   private final RabbitMqMessageProducer rabbitMqMessageProducer;
 
   @Async
-  @TransactionalEventListener(classes = FcmTokenRegisteredEvent.class, phase = AFTER_COMMIT)
-  public void handle(FcmTokenRegisteredEvent event) {
-    rabbitMqMessageProducer.publish("token.registered", event);
+  @TransactionalEventListener(classes = BaseMessage.class, phase = AFTER_COMMIT)
+  public void handle(BaseMessage<?> message) {
+    rabbitMqMessageProducer.publish(message);
   }
 }

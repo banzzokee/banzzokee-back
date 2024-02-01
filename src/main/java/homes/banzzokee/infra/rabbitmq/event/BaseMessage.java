@@ -12,6 +12,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(force = true, access = PROTECTED)
 public abstract class BaseMessage<T> {
 
+  public abstract String getRoutingKey();
+
   private final LocalDateTime issuedAt = LocalDateTime.now();
 
   private final T payload;
