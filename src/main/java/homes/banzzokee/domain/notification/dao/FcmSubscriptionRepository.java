@@ -1,6 +1,8 @@
 package homes.banzzokee.domain.notification.dao;
 
 import homes.banzzokee.domain.notification.entity.FcmSubscription;
+import homes.banzzokee.domain.notification.entity.FcmToken;
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,4 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface FcmSubscriptionRepository extends
     JpaRepository<FcmSubscription, Long> {
 
+  void deleteByFcmTokenIn(Collection<FcmToken> fcmTokens);
 }

@@ -7,11 +7,11 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
-import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
 import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
@@ -22,10 +22,13 @@ import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.ShelterUserFollowedEvent;
+import homes.banzzokee.event.ShelterUserUnfollowedEvent;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +41,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final FollowRepository followRepository;
   private final FileUploadService s3Service;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
   public UserProfileDto getUserProfile(long userId) {
@@ -50,8 +54,6 @@ public class UserService {
     User followee = findByUserIdOrThrow(followeeId);
     throwIfFolloweeIsNotShelter(followee);
     User follower = findByUserIdOrThrow(followerId);
-
-    // TODO: 팔로우 알림 발생
     return FollowDto.from(followUserIfNotFollowing(followee, follower));
   }
 
@@ -78,6 +80,7 @@ public class UserService {
           .followee(followee)
           .follower(follower)
           .build());
+      eventPublisher.publishEvent(ShelterUserFollowedEvent.fromEntity(follow));
     }
 
     return follow;
@@ -88,6 +91,7 @@ public class UserService {
 
     if (follow != null) {
       followRepository.delete(follow);
+      eventPublisher.publishEvent(ShelterUserUnfollowedEvent.fromEntity(follow));
     }
   }
 
@@ -146,8 +150,10 @@ public class UserService {
   private void validateChangePasswordRequest(PasswordChangeRequest request, User user) {
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getOriginPassword());
-    throwIfOriginPasswordSameNewPassword(request.getOriginPassword(), request.getNewPassword());
-    throwIfConfirmPasswordUnmatched(request.getNewPassword(), request.getConfirmPassword());
+    throwIfOriginPasswordSameNewPassword(request.getOriginPassword(),
+        request.getNewPassword());
+    throwIfConfirmPasswordUnmatched(request.getNewPassword(),
+        request.getConfirmPassword());
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
@@ -160,9 +166,9 @@ public class UserService {
   /**
    * 사용자 프로필 수정
    *
-   * @param request    사용자 프로필 수정 요청
+   * @param request      사용자 프로필 수정 요청
    * @param profileImage 프로필 이미지
-   * @param userId     사용자 아이디
+   * @param userId       사용자 아이디
    * @return 사용자 프로필 수정 응답
    */
   @Transactional
