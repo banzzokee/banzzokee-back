@@ -1,6 +1,7 @@
 package homes.banzzokee.global.config.rabbitmq;
 
 import static homes.banzzokee.global.config.rabbitmq.Queue.MANAGE_FCM_TOKEN;
+import static homes.banzzokee.global.config.rabbitmq.Queue.MANAGE_FCM_TOPIC;
 import static homes.banzzokee.global.config.rabbitmq.Queue.NOTIFY_FCM_ADOPTION;
 import static homes.banzzokee.global.config.rabbitmq.Queue.NOTIFY_FCM_CHAT;
 import static homes.banzzokee.global.config.rabbitmq.Queue.NOTIFY_FCM_REVIEW;
@@ -63,6 +64,11 @@ public class RabbitMqConfig {
   }
 
   @Bean
+  Queue manageFcmTopic() {
+    return queue(MANAGE_FCM_TOPIC);
+  }
+
+  @Bean
   Binding syncEsAdoptionBinding() {
     return BindingBuilder
         .bind(syncEsAdoptionQueue())
@@ -103,11 +109,19 @@ public class RabbitMqConfig {
   }
 
   @Bean
-  Binding notifyFcmTokenBinding() {
+  Binding manageFcmTokenBinding() {
     return BindingBuilder
         .bind(manageFcmToken())
         .to(exchange())
         .with("token.registered");
+  }
+
+  @Bean
+  Binding manageFcmTopicBinding() {
+    return BindingBuilder
+        .bind(manageFcmTopic())
+        .to(exchange())
+        .with("topic.#");
   }
 
   @Bean
