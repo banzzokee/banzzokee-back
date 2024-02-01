@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -35,6 +36,7 @@ public class AdoptionService {
   private final AdoptionRepository adoptionRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
 
+  @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
       List<MultipartFile> images,
       long userId) {
