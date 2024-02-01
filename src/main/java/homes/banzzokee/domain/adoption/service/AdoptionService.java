@@ -17,6 +17,7 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.time.LocalDate;
 import java.util.List;
@@ -53,7 +54,7 @@ public class AdoptionService {
 
   private Shelter throwIfShelterIsDeletedOrNotExist(User user) {
     if (user.getShelter() == null || user.getShelter().isDeleted()) {
-      throw new ShelterNotFoundException(null);
+      throw new NoAuthorizedException();
     }
     return user.getShelter();
   }
