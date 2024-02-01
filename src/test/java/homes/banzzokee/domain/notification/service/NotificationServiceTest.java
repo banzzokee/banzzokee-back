@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import homes.banzzokee.domain.notification.dao.FcmTokenRepository;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
 import homes.banzzokee.domain.notification.entity.FcmToken;
-import homes.banzzokee.domain.notification.event.FcmTokenRegisteredEvent;
+import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
