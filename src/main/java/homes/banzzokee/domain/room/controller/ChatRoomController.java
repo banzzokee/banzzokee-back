@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -56,4 +56,20 @@ public class ChatRoomController {
 
     return chatRoomService.getChatRooms(userDetails.getUsername());
   }
+
+  /**
+   * 채팅방 나가기
+   *
+   * @param userDetails
+   * @param roomId
+   */
+  @DeleteMapping("/{roomId}")
+  public void exitChatRoom(
+      @AuthenticationPrincipal UserDetails userDetails,
+      @PathVariable Long roomId) {
+    log.info("[exitChatRoom] 채팅방 나가기 요청 - 유저 email : {}", userDetails.getUsername());
+
+    chatRoomService.exitChatRoom(userDetails.getUsername(), roomId);
+  }
+
 }
