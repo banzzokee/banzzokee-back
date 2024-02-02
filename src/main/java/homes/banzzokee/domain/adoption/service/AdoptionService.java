@@ -3,6 +3,7 @@ package homes.banzzokee.domain.adoption.service;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
@@ -25,10 +26,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdoptionService {
@@ -59,11 +62,60 @@ public class AdoptionService {
     return AdoptionResponse.fromEntity(adoption);
   }
 
+  @Transactional
+  public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
+      List<MultipartFile> images, long userId) {
+    Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
+
+    List<S3Object> oldImages = adoption.getImages();
+    List<S3Object> newImages = uploadAdoptionImages(images);
+
+    adoption.updateAdoption(
+        request.getTitle(),
+        request.getContent(),
+        BreedType.findByString(request.getBreed()),
+        DogSize.findByString(request.getSize()),
+        request.isNeutering(),
+        DogGender.findByString(request.getGender()),
+        request.getAge(),
+        request.isHealthChecked(),
+        LocalDate.parse(request.getRegisteredAt()),
+        newImages);
+
+    adoptionRepository.save(adoption);
+    deleteOldImages(oldImages);
+  }
+
+  private void deleteOldImages(List<S3Object> oldImages) {
+    if (oldImages == null) {
+      return;
+    }
+    for (S3Object image : oldImages) {
+      if (image == null) {
+        continue;
+      }
+      try {
+        fileUploadService.deleteFile(image.getFileName());
+      } catch (Exception e) {
+        log.error("delete adoption image failed. file={}", image, e);
+      }
+    }
+  }
+
+  private void throwIfRequestUserIsNotMatchedAdoptionWriter(Adoption adoption,
+      long userId) {
+    if (adoption.getUser().getId() != userId) {
+      throw new NoAuthorizedException();
+    }
+  }
+
   private void throwIfAdoptionIsDeleted(Adoption adoption) {
     if (adoption.getDeletedAt() != null) {
       throw new AdoptionIsDeletedException();
     }
   }
+
   private Adoption findByAdoptionIdOrThrow(long adoptionId) {
     return adoptionRepository.findById(adoptionId)
         .orElseThrow(AdoptionNotFoundException::new);
@@ -87,6 +139,9 @@ public class AdoptionService {
   }
 
   private List<S3Object> uploadAdoptionImages(List<MultipartFile> images) {
+    if (images == null) {
+      return null;
+    }
     return fileUploadService.uploadManyFile(images, FilePath.ADOPTION).stream()
         .map(fileDto -> new S3Object(fileDto.getUrl()))
         .collect(Collectors.toList());
