@@ -53,7 +53,7 @@ public class AuthService {
         .email(signupRequest.getEmail())
         .password(passwordEncoder.encode(signupRequest.getPassword()))
         .nickname(signupRequest.getNickname())
-        .role(Set.of(Role.USER))
+        .role(Set.of(Role.ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build());
   }
