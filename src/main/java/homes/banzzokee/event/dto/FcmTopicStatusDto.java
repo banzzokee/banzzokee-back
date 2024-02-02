@@ -1,6 +1,6 @@
 package homes.banzzokee.event.dto;
 
-import homes.banzzokee.event.type.FcmTopic;
+import homes.banzzokee.event.type.FcmTopicCategory;
 import homes.banzzokee.event.type.FcmTopicAction;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class FcmTopicStatusDto {
   /**
    * 토픽
    */
-  private final FcmTopic topic;
+  private final FcmTopicCategory topicCategory;
 
   /**
    * 토픽 객체 아이디
@@ -33,6 +33,6 @@ public class FcmTopicStatusDto {
   private final Long userId;
 
   public String getTopic() {
-    return "topic." + topic.getName() + "." + topicId;
+    return "topic." + topicCategory.getName() + "." + topicId;
   }
 }

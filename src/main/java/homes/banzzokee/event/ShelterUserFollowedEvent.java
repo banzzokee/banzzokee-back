@@ -1,6 +1,6 @@
 package homes.banzzokee.event;
 
-import static homes.banzzokee.event.type.FcmTopic.SHELTER;
+import static homes.banzzokee.event.type.FcmTopicCategory.SHELTER;
 import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
 
 import homes.banzzokee.domain.user.entity.Follow;
@@ -17,9 +17,9 @@ public class ShelterUserFollowedEvent extends FcmTopicSubscribeEvent {
     return ShelterUserFollowedEvent.builder()
         .payload(FcmTopicStatusDto.builder()
             .action(SUBSCRIBE)
-            .topic(SHELTER)
-            .topicId(follow.getFollower().getShelter().getId())
-            .userId(follow.getFollowee().getId())
+            .topicCategory(SHELTER)
+            .topicId(follow.getFollowee().getShelter().getId())
+            .userId(follow.getFollower().getId())
             .build())
         .build();
   }

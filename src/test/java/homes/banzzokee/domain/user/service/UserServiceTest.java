@@ -39,7 +39,7 @@ import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.ShelterUserFollowedEvent;
 import homes.banzzokee.event.ShelterUserUnfollowedEvent;
 import homes.banzzokee.event.dto.FcmTopicStatusDto;
-import homes.banzzokee.event.type.FcmTopic;
+import homes.banzzokee.event.type.FcmTopicCategory;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
@@ -319,13 +319,12 @@ class UserServiceTest {
     // given
     User followee = createMockUser();
     followee.addRoles(SHELTER);
+    Shelter shelter = createMockShelter();
+    given(followee.getShelter()).willReturn(shelter);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();
     given(follower.getId()).willReturn(2L);
-
-    Shelter shelter = createMockShelter();
-    given(follower.getShelter()).willReturn(shelter);
     given(userRepository.findById(follower.getId())).willReturn(Optional.of(follower));
 
     given(followRepository.findByFolloweeIdAndFollowerId(followee.getId(),
@@ -353,9 +352,9 @@ class UserServiceTest {
     FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();
     assertEquals(SUBSCRIBE, eventPayload.getAction());
     assertEquals(shelter.getId(), eventPayload.getTopicId());
-    assertEquals("topic." + FcmTopic.SHELTER.getName() + "." + shelter.getId(),
+    assertEquals("topic." + FcmTopicCategory.SHELTER.getName() + "." + shelter.getId(),
         eventPayload.getTopic());
-    assertEquals(followee.getId(), eventPayload.getUserId());
+    assertEquals(follower.getId(), eventPayload.getUserId());
   }
 
   @Test
@@ -412,7 +411,7 @@ class UserServiceTest {
     given(follower.getId()).willReturn(2L);
 
     Shelter shelter = createMockShelter();
-    given(follower.getShelter()).willReturn(shelter);
+    given(followee.getShelter()).willReturn(shelter);
 
     Follow follow = Follow.builder()
         .followee(followee)
@@ -437,9 +436,11 @@ class UserServiceTest {
     FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();
     assertEquals(UNSUBSCRIBE, eventPayload.getAction());
     assertEquals(shelter.getId(), eventPayload.getTopicId());
-    assertEquals("topic." + FcmTopic.SHELTER.getName() + "." + shelter.getId(),
+    assertEquals(
+        "topic." + eventPayload.getTopicCategory().getName() + "."
+            + eventPayload.getTopicId(),
         eventPayload.getTopic());
-    assertEquals(followee.getId(), eventPayload.getUserId());
+    assertEquals(follower.getId(), eventPayload.getUserId());
   }
 
   @Test

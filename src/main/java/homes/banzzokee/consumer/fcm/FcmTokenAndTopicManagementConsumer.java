@@ -91,7 +91,7 @@ public class FcmTokenAndTopicManagementConsumer {
     return shelterRepository
         .findAllByFollower(userId)
         .stream()
-        .map(shelter -> "topic.shelters." + shelter.getId())
+        .map(shelter -> "topic.shelter." + shelter.getId())
         .toList();
   }
 

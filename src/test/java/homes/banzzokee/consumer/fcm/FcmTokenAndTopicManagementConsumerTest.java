@@ -1,6 +1,6 @@
 package homes.banzzokee.consumer.fcm;
 
-import static homes.banzzokee.event.type.FcmTopic.SHELTER;
+import static homes.banzzokee.event.type.FcmTopicCategory.SHELTER;
 import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
 import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
@@ -122,8 +122,8 @@ class FcmTokenAndTopicManagementConsumerTest {
             FcmSubscription::getTopic,
             FcmSubscription::isValid)
         .containsExactlyInAnyOrder(
-            tuple(fcmToken, "topic.shelters.1", true),
-            tuple(fcmToken, "topic.shelters.2", true)
+            tuple(fcmToken, "topic.shelter.1", true),
+            tuple(fcmToken, "topic.shelter.2", true)
         );
   }
 
@@ -142,7 +142,7 @@ class FcmTokenAndTopicManagementConsumerTest {
     FcmTopicStatusChangeEvent event = FcmTopicStatusChangeEvent.builder()
         .payload(FcmTopicStatusDto.builder()
             .userId(1L)
-            .topic(SHELTER)
+            .topicCategory(SHELTER)
             .topicId(1L)
             .action(SUBSCRIBE)
             .build())
@@ -189,7 +189,7 @@ class FcmTokenAndTopicManagementConsumerTest {
     FcmTopicStatusChangeEvent event = FcmTopicStatusChangeEvent.builder()
         .payload(FcmTopicStatusDto.builder()
             .userId(1L)
-            .topic(SHELTER)
+            .topicCategory(SHELTER)
             .topicId(1L)
             .action(UNSUBSCRIBE)
             .build())

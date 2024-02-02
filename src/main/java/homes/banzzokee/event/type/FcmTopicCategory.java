@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum FcmTopic {
+public enum FcmTopicCategory {
   SHELTER("shelter"),
   ADOPTION("adoption");
 
