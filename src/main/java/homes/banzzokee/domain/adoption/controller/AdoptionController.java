@@ -30,10 +30,9 @@ public class AdoptionController {
 
   @PostMapping
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
-      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> multipartFiles,
+      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    adoptionService.registerAdoption(request, multipartFiles,
-        userDetails.getUser().getId());
+    adoptionService.registerAdoption(request, images, userDetails.getUser().getId());
   }
 
   @GetMapping("/{adoptionId}")
@@ -44,9 +43,9 @@ public class AdoptionController {
   @PutMapping("/{adoptionId}")
   public void updateAdoption(@PathVariable long adoptionId,
       @Valid @RequestPart AdoptionUpdateRequest request,
-      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> multipartFiles,
+      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    adoptionService.updateAdoption(adoptionId, request, multipartFiles,
+    adoptionService.updateAdoption(adoptionId, request, images,
         userDetails.getUser().getId());
   }
 
