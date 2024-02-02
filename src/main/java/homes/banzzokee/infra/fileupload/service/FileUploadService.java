@@ -29,6 +29,9 @@ public class FileUploadService {
    * 1개의 이미지 파일 업로드
    */
   public FileDto uploadOneFile(MultipartFile multipartFile, FilePath path) {
+    if (multipartFile == null || multipartFile.isEmpty()) {
+      return null;
+    }
     try {
       return uploadFile(multipartFile, path);
     } catch (IOException e) {
@@ -42,8 +45,14 @@ public class FileUploadService {
   @Transactional
   public List<FileDto> uploadManyFile(List<MultipartFile> multipartFiles,
       FilePath path) {
+    if (multipartFiles == null) {
+      return null;
+    }
     return multipartFiles.stream()
         .map(multipartFile -> {
+          if (multipartFile == null || multipartFile.isEmpty()) {
+            return null;
+          }
           try {
             return this.uploadFile(multipartFile, path);
           } catch (IOException e) {
