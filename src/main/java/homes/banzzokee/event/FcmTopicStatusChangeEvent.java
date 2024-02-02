@@ -5,6 +5,10 @@ import homes.banzzokee.infra.rabbitmq.event.BaseMessage;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
-public abstract class FcmTopicStatusChangeEvent extends BaseMessage<FcmTopicStatusDto> {
+public class FcmTopicStatusChangeEvent extends BaseMessage<FcmTopicStatusDto> {
 
+  @Override
+  public String getRoutingKey() {
+    return null;
+  }
 }

@@ -146,7 +146,7 @@ public class FcmTokenAndTopicManagementConsumer {
         Map<Integer, String> errors = getErrors(response);
         for (int i = 0; i < fcmTokens.size(); i++) {
           FcmToken token = fcmTokens.get(i);
-          boolean isValid = errors.containsKey(i);
+          boolean isValid = !errors.containsKey(i);
           subscriptions.add(createSubscription(token, topic, isValid));
         }
       } catch (FirebaseMessagingException e) {
