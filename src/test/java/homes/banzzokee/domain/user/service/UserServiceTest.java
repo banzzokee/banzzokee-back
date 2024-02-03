@@ -36,8 +36,7 @@ import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.event.ShelterUserFollowedEvent;
-import homes.banzzokee.event.ShelterUserUnfollowedEvent;
+import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.event.dto.FcmTopicStatusDto;
 import homes.banzzokee.event.type.FcmTopicCategory;
 import homes.banzzokee.global.error.exception.CustomException;
@@ -345,8 +344,8 @@ class UserServiceTest {
     assertEquals(followee.getId(), follow.getFollowee().getUserId());
     assertEquals(followee.getNickname(), follow.getFollowee().getNickname());
 
-    ArgumentCaptor<ShelterUserFollowedEvent> eventCaptor = ArgumentCaptor.forClass(
-        ShelterUserFollowedEvent.class);
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor = ArgumentCaptor.forClass(
+        FcmTopicStatusChangeEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
 
     FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();
@@ -399,7 +398,7 @@ class UserServiceTest {
     userService.unfollowUser(1L, 2L);
 
     verify(followRepository, never()).delete(any(Follow.class));
-    verify(eventPublisher, never()).publishEvent(any(ShelterUserFollowedEvent.class));
+    verify(eventPublisher, never()).publishEvent(any(FcmTopicStatusChangeEvent.class));
   }
 
   @Test
@@ -429,8 +428,8 @@ class UserServiceTest {
     assertEquals(1L, followCaptor.getValue().getFollowee().getId());
     assertEquals(2L, followCaptor.getValue().getFollower().getId());
 
-    ArgumentCaptor<ShelterUserUnfollowedEvent> eventCaptor = ArgumentCaptor.forClass(
-        ShelterUserUnfollowedEvent.class);
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor = ArgumentCaptor.forClass(
+        FcmTopicStatusChangeEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
 
     FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();

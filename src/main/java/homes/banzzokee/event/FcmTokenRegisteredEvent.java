@@ -14,13 +14,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = PROTECTED)
 public class FcmTokenRegisteredEvent extends BaseMessage<FcmTokenDto> {
 
-  @Override
-  public String getRoutingKey() {
-    return "token.registered";
-  }
-
   public static FcmTokenRegisteredEvent from(FcmTokenDto fcmToken) {
     return FcmTokenRegisteredEvent.builder()
+        .routingKey("token.registered")
         .payload(fcmToken)
         .build();
   }

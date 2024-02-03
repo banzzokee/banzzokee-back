@@ -1,7 +1,10 @@
 package homes.banzzokee.event.dto;
 
-import homes.banzzokee.event.type.FcmTopicCategory;
+import static homes.banzzokee.event.type.FcmTopicCategory.SHELTER;
+
+import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.event.type.FcmTopicAction;
+import homes.banzzokee.event.type.FcmTopicCategory;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -34,5 +37,14 @@ public class FcmTopicStatusDto {
 
   public String getTopic() {
     return "topic." + topicCategory.getName() + "." + topicId;
+  }
+
+  public static FcmTopicStatusDto of(FcmTopicAction action, Follow follow) {
+    return FcmTopicStatusDto.builder()
+        .action(action)
+        .topicCategory(SHELTER)
+        .topicId(follow.getFollowee().getShelter().getId())
+        .userId(follow.getFollower().getId())
+        .build();
   }
 }

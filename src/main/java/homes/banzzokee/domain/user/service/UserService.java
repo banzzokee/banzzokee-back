@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.user.service;
 
+import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
+import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
 import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
@@ -22,8 +24,7 @@ import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.event.ShelterUserFollowedEvent;
-import homes.banzzokee.event.ShelterUserUnfollowedEvent;
+import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -80,7 +81,7 @@ public class UserService {
           .followee(followee)
           .follower(follower)
           .build());
-      eventPublisher.publishEvent(ShelterUserFollowedEvent.fromEntity(follow));
+      eventPublisher.publishEvent(FcmTopicStatusChangeEvent.of(SUBSCRIBE, follow));
     }
 
     return follow;
@@ -91,7 +92,7 @@ public class UserService {
 
     if (follow != null) {
       followRepository.delete(follow);
-      eventPublisher.publishEvent(ShelterUserUnfollowedEvent.fromEntity(follow));
+      eventPublisher.publishEvent(FcmTopicStatusChangeEvent.of(UNSUBSCRIBE, follow));
     }
   }
 
