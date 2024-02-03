@@ -1,8 +1,8 @@
 package homes.banzzokee.domain.user.service;
 
 import static homes.banzzokee.domain.type.FilePath.PROFILE;
-import static homes.banzzokee.domain.type.Role.SHELTER;
-import static homes.banzzokee.domain.type.Role.USER;
+import static homes.banzzokee.domain.type.Role.ROLE_SHELTER;
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
 import static homes.banzzokee.global.util.MockDataUtil.createMockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,12 +37,10 @@ import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -296,7 +294,7 @@ class UserServiceTest {
   void followUser_when_UserDontHaveShelterRole_then_throwCanFollowOnlyShelterUserException() {
     // given
     User followee = createMockUser();
-    followee.addRoles(USER);
+    followee.addRoles(ROLE_USER);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     // when & then
@@ -309,7 +307,7 @@ class UserServiceTest {
   void followUser_when_success_then_verify() {
     // given
     User followee = createMockUser();
-    followee.addRoles(SHELTER);
+    followee.addRoles(ROLE_SHELTER);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();
@@ -340,7 +338,7 @@ class UserServiceTest {
   void followUser_when_alreadyFollow_then_neverSave() {
     // given
     User followee = createMockUser();
-    followee.addRoles(SHELTER);
+    followee.addRoles(ROLE_SHELTER);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();

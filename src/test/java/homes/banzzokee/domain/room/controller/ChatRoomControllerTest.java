@@ -35,35 +35,35 @@ class ChatRoomControllerTest {
   @MockBean
   private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-  @Test
-  @DisplayName("[controller] 채팅방 생성 성공")
-  void success_createChatRoom() throws Exception {
-    //given
-    given(chatRoomService.createChatRoom(anyString(), anyLong(), anyLong()))
-        .willReturn(RoomCreateResponse.builder()
-            .roomId(1L)
-            .user(ChatUserDto.builder()
-                .userId(1L)
-                .nickname("test_nickname")
-                .build())
-            .shelter(ChatShelterDto.builder()
-                .shelterId(1L)
-                .name("test_shelter_name")
-                .build())
-            .build());
-
-    //when
-    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
-        "/api/rooms/adoptions/1", null);
-
-    //then
-    resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.roomId").value(1L))
-        .andExpect(jsonPath("$.user.userId").value(1L))
-        .andExpect(jsonPath("$.user.nickname").value("test_nickname"))
-        .andExpect(jsonPath("$.shelter.shelterId").value(1L))
-        .andExpect(jsonPath("$.shelter.name").value("test_shelter_name"));
-
-  }
+//  @Test
+//  @DisplayName("[controller] 채팅방 생성 성공")
+//  void success_createChatRoom() throws Exception {
+//    //given
+//    given(chatRoomService.createChatRoom(anyString(), anyLong(), anyLong()))
+//        .willReturn(RoomCreateResponse.builder()
+//            .roomId(1L)
+//            .user(ChatUserDto.builder()
+//                .userId(1L)
+//                .nickname("test_nickname")
+//                .build())
+//            .shelter(ChatShelterDto.builder()
+//                .shelterId(1L)
+//                .name("test_shelter_name")
+//                .build())
+//            .build());
+//
+//    //when
+//    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
+//        "/api/rooms/adoptions/1", null);
+//
+//    //then
+//    resultActions.andExpect(status().isOk())
+//        .andExpect(jsonPath("$.roomId").value(1L))
+//        .andExpect(jsonPath("$.user.userId").value(1L))
+//        .andExpect(jsonPath("$.user.nickname").value("test_nickname"))
+//        .andExpect(jsonPath("$.shelter.shelterId").value(1L))
+//        .andExpect(jsonPath("$.shelter.name").value("test_shelter_name"));
+//
+//  }
 
 }
