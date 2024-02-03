@@ -1,6 +1,5 @@
 package homes.banzzokee.domain.room.dto;
 
-import homes.banzzokee.domain.chat.dto.LastChatMessageDto;
 import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.type.MessageType;
 import java.time.LocalDateTime;
@@ -47,16 +46,15 @@ public class ChatRoomDto {
   private final LocalDateTime lastMessageCreatedAt;
 
   public static ChatRoomDto fromEntity(
-      ChatRoom chatRoom,
-      LastChatMessageDto lastChatMessage) {
+      ChatRoom chatRoom) {
 
     return ChatRoomDto.builder()
         .roomId(chatRoom.getId())
         .adoption(ChatAdoptionDto.fromEntity(chatRoom.getAdoption()))
         .user(ChatUserDto.fromEntity(chatRoom.getUser()))
-        .lastMessage(lastChatMessage.getLastMessage())
-        .lastMessageType(lastChatMessage.getLastMessageType())
-        .lastMessageCreatedAt(lastChatMessage.getLastMessageCreatedAt())
+        .lastMessage(chatRoom.getLastMessage())
+        .lastMessageType(chatRoom.getLastMessageType())
+        .lastMessageCreatedAt(chatRoom.getLastMessageCreatedAt())
         .build();
   }
 }

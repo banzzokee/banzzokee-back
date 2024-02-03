@@ -3,24 +3,22 @@ package homes.banzzokee.domain.room.service;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
-import homes.banzzokee.domain.chat.dto.LastChatMessageDto;
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.room.exception.AdoptionWriterException;
 import homes.banzzokee.domain.room.exception.AlreadyExistsChatRoomException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,10 +49,12 @@ public class ChatRoomService {
     Adoption adoption = adoptionRepository.findById(adoptionId)
         .orElseThrow(AdoptionNotFoundException::new);
 
-    // 게시글 등록한 shelter
+    if (adoption.getUser().equals(user)) {
+      throw new AdoptionWriterException();
+    }
+
     Shelter shelter = adoption.getUser().getShelter();
 
-    // 이미 만들어진 채팅방
     if (chatRoomRepository.existsByUserAndAdoption(user, adoption)) {
       throw new AlreadyExistsChatRoomException();
     }
@@ -80,14 +80,14 @@ public class ChatRoomService {
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
-    // 채팅방 목록 추출
-    Slice<ChatRoomDto> chatRooms = chatRoomRepository.findAllByUser(user);
+    Slice<ChatRoom> chatRooms = chatRoomRepository
+        .findAllByUserOrderByLastMessageCreatedAtDesc(user, pageable);
 
-
-    // 마지막 채팅이 올라온 시간으로 내림차순 정렬 후 반환
-    return chatRoomDtoList.stream()
-        .sorted(Comparator.comparing(ChatRoomDto::getLastMessageCreatedAt).reversed())
-        .collect(Collectors.toList());
+    return new SliceImpl<>(
+        chatRooms.stream()
+            .map(ChatRoomDto::fromEntity)
+            .collect(Collectors.toList())
+    );
   }
 
 }

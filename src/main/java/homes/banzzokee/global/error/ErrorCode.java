@@ -1,15 +1,15 @@
 package homes.banzzokee.global.error;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-
-import static org.springframework.http.HttpStatus.*;
 
 @Getter
 @RequiredArgsConstructor
@@ -38,6 +38,7 @@ public enum ErrorCode {
   SHELTER_ALREADY_VERIFIED(BAD_REQUEST, "이미 승인된 보호소입니다."),
   NOT_VERIFIED_SHELTER_EXISTS(BAD_REQUEST, "승인되지 않은 보호소가 존재합니다."),
   CHAT_ROOM_ALREADY_EXIST(BAD_REQUEST, "이미 만들어진 채팅방입니다."),
+  ADOPTION_WRITER(BAD_REQUEST, "본인글에는 채팅방을 생성할 수 없습니다."),
   NO_AUTHORIZED(FORBIDDEN, "권한이 없는 유저입니다."),
   EMAIL_DUPLICATED(CONFLICT, "중복되는 이메일이 존재합니다."),
   NICKNAME_DUPLICATED(BAD_REQUEST, "중복되는 닉네임이 존재합니다."),
