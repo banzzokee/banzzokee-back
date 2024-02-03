@@ -1,21 +1,19 @@
 package homes.banzzokee.global.validator.annotation;
 
+import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import homes.banzzokee.global.validator.FileDuplicateValidator;
 import jakarta.validation.Constraint;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-@ValidFile(whiteList = {"image/jpeg", "image/tiff",
-    "image/png", "image/gif", "image/bmp", "image/webp"}, message = "이미지 형식이 아닙니다.")
-@Target({PARAMETER, TYPE_USE})
+@Target({PARAMETER, FIELD})
 @Retention(RUNTIME)
-@Constraint(validatedBy = {})
-public @interface ImageFile {
-
-  String message() default "";
+@Constraint(validatedBy = {FileDuplicateValidator.class})
+public @interface FileDuplicateValid {
+  String message() default "중복 파일이 존재합니다.";
 
   Class[] groups() default {};
 

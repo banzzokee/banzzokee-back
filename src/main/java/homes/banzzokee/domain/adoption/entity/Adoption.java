@@ -1,11 +1,15 @@
 package homes.banzzokee.domain.adoption.entity;
 
+import homes.banzzokee.domain.adoption.entity.convertor.ImagesConvertor;
 import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -22,8 +26,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 /**
  * 분양게시글 entity
@@ -61,8 +63,9 @@ public class Adoption extends BaseEntity {
 
   private LocalDate registeredAt;
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  private List<String> images;
+  @Convert(converter = ImagesConvertor.class)
+  @Column(length = 1000)
+  private List<S3Object> images;
 
   private LocalDate adoptedAt;
 
@@ -74,6 +77,7 @@ public class Adoption extends BaseEntity {
   @JoinColumn(referencedColumnName = "id", name = "assigned_user_id")
   private User assignedUser;
 
+  // Todo : Review Entity 연결
 //  @OneToOne(fetch = FetchType.LAZY)
 //  @JoinColumn(name = "review_id")
 //  private Review review;
@@ -83,7 +87,7 @@ public class Adoption extends BaseEntity {
   @Builder
   public Adoption(User user, String title, String content, BreedType breed, DogSize size,
       boolean neutering, DogGender gender, int age, boolean healthChecked,
-      LocalDate registeredAt, List<String> images, AdoptionStatus status) {
+      LocalDate registeredAt, List<S3Object> images, AdoptionStatus status) {
     this.user = user;
     this.title = title;
     this.content = content;

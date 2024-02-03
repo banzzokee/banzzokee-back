@@ -34,7 +34,12 @@
       "type": "date"
     },
     "images": {
-      "type": "text"
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "keyword"
+        }
+      }
     },
     "user": {
       "properties": {
@@ -45,7 +50,11 @@
           "type": "keyword"
         },
         "profileImgUrl": {
-          "type": "text"
+          "properties": {
+            "url": {
+              "type": "keyword"
+            }
+          }
         },
         "nickname": {
           "type": "keyword"
