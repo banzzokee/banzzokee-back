@@ -12,6 +12,7 @@ import homes.banzzokee.domain.room.exception.SocketUserNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ public class ChatMessageService {
    * @param message
    * @return
    */
+  @Transactional
   public MessageDto sendMessage(Long roomId, ChatSendDto message) {
 
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
@@ -46,6 +48,9 @@ public class ChatMessageService {
     // todo: @AuthenticationPrincipal username -> findByEmail(email) 로 변경
     User user = userRepository.findById(1L)
         .orElseThrow(SocketUserNotFoundException::new);
+
+    chatRoom.updateLastMessage(message.getMessage(), message.getMessageType(),
+        LocalDateTime.now());
 
     return MessageDto.fromEntity(
         chatMessageRepository.save(ChatMessage.builder()

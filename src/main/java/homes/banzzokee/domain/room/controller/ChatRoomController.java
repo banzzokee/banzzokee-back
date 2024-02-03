@@ -6,6 +6,8 @@ import homes.banzzokee.domain.room.service.ChatRoomService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,11 +51,16 @@ public class ChatRoomController {
    * @return
    */
   @GetMapping("")
-  public List<ChatRoomDto> getChatRooms(
-      @AuthenticationPrincipal UserDetails userDetails) {
+  public Slice<ChatRoomDto> getChatRooms(
+      @AuthenticationPrincipal UserDetails userDetails,
+      @RequestParam int page,
+      @RequestParam int size) {
 
     log.info("[getChatRooms] 채팅방 목록 조회 요청 - 유저 email : {}", userDetails.getUsername());
 
-    return chatRoomService.getChatRooms(userDetails.getUsername());
+    return chatRoomService.getChatRooms(
+        userDetails.getUsername(),
+        PageRequest.of(page, size)
+    );
   }
 }

@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.user.entity;
 
-import static homes.banzzokee.domain.type.Role.SHELTER;
+import static homes.banzzokee.domain.type.Role.ROLE_SHELTER;
 import static jakarta.persistence.CascadeType.PERSIST;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
@@ -157,7 +157,7 @@ public class User extends BaseEntity {
    * @return SHELTER 권한 소유 확인
    */
   public boolean hasShelter() {
-    return this.role.contains(SHELTER);
+    return this.role.contains(ROLE_SHELTER);
   }
 
   /**
@@ -205,6 +205,6 @@ public class User extends BaseEntity {
    */
   public void unregisterShelter() {
     this.shelter.delete();
-    this.role.remove(SHELTER);
+    this.role.remove(ROLE_SHELTER);
   }
 }

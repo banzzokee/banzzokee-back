@@ -1,19 +1,17 @@
 package homes.banzzokee.domain.room.dao;
 
 import homes.banzzokee.domain.chat.dto.LastChatMessageDto;
+import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.user.entity.User;
+import java.awt.print.Pageable;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 
 /**
  * CharRoom QueryDSL dao
  */
 public interface ChatRoomQueryRepository {
 
-  /**
-   * 해당 채팅방 마지막 채팅 정보 추출
-   *
-   * @param room
-   * @return
-   */
-  Optional<LastChatMessageDto> findLastChatMessageByRoom(ChatRoom room);
+  Page<ChatRoomDto> findAllByUser(User userChatRoom, Pageable pageable);
 }

@@ -1,13 +1,27 @@
 package homes.banzzokee.domain.auth.service;
 
-import homes.banzzokee.domain.auth.dto.*;
-import homes.banzzokee.domain.auth.exception.*;
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
+
+import homes.banzzokee.domain.auth.dto.EmailRequest;
+import homes.banzzokee.domain.auth.dto.EmailVerifyRequest;
+import homes.banzzokee.domain.auth.dto.SignInRequest;
+import homes.banzzokee.domain.auth.dto.SignupRequest;
+import homes.banzzokee.domain.auth.dto.TokenResponse;
+import homes.banzzokee.domain.auth.exception.ConfirmPasswordUnMatchException;
+import homes.banzzokee.domain.auth.exception.EmailCodeInvalidException;
+import homes.banzzokee.domain.auth.exception.EmailDuplicatedException;
+import homes.banzzokee.domain.auth.exception.EmailNotFoundException;
+import homes.banzzokee.domain.auth.exception.EmailUnmatchedException;
+import homes.banzzokee.domain.auth.exception.NicknameDuplicatedException;
+import homes.banzzokee.domain.auth.exception.PasswordUnmatchedException;
 import homes.banzzokee.domain.type.LoginType;
-import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
+import java.time.Duration;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -15,10 +29,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -53,7 +63,7 @@ public class AuthService {
         .email(signupRequest.getEmail())
         .password(passwordEncoder.encode(signupRequest.getPassword()))
         .nickname(signupRequest.getNickname())
-        .role(Set.of(Role.USER))
+        .role(Set.of(ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build());
   }

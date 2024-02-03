@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 /**
@@ -74,27 +76,13 @@ public class ChatRoomService {
    * @param email
    * @return
    */
-  public List<ChatRoomDto> getChatRooms(String email) {
+  public Slice<ChatRoomDto> getChatRooms(String email, Pageable pageable) {
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
-    // 반환할 채팅방 목록
-    List<ChatRoomDto> chatRoomDtoList = new ArrayList<>();
     // 채팅방 목록 추출
-    List<ChatRoom> chatRooms = chatRoomRepository.findAllByUser(user);
-    LastChatMessageDto lastChatMessage;
+    Slice<ChatRoomDto> chatRooms = chatRoomRepository.findAllByUser(user);
 
-    for (ChatRoom chatRoom : chatRooms) {
-      // 채팅방 별 마지막 채팅 정보 추출
-      lastChatMessage = chatRoomRepository.findLastChatMessageByRoom(chatRoom)
-          .orElse(null);
-
-      // 추출된 채팅이 null 이 아니면
-      if (lastChatMessage != null) {
-        // 반환될 채팅방 목록에 주입
-        chatRoomDtoList.add(ChatRoomDto.fromEntity(chatRoom, lastChatMessage));
-      }
-    }
 
     // 마지막 채팅이 올라온 시간으로 내림차순 정렬 후 반환
     return chatRoomDtoList.stream()

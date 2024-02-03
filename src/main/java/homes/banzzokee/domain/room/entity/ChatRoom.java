@@ -1,11 +1,15 @@
 package homes.banzzokee.domain.room.entity;
 
+import static jakarta.persistence.EnumType.STRING;
+
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.shelter.entity.Shelter;
+import homes.banzzokee.domain.type.MessageType;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -45,6 +49,13 @@ public class ChatRoom {
   @JoinColumn(name = "shelter_id")
   private Shelter shelter;
 
+  private String lastMessage;
+
+  @Enumerated(value = STRING)
+  private MessageType lastMessageType;
+
+  private LocalDateTime lastMessageCreatedAt;
+
   @CreatedDate
   @Column(updatable = false, nullable = false)
   private LocalDateTime createdAt;
@@ -60,5 +71,16 @@ public class ChatRoom {
 
   public void leaveShelter() {
     this.shelter = null;
+  }
+
+  public void updateLastMessage(
+      String lastMessage,
+      MessageType lastMessageType,
+      LocalDateTime lastMessageCreatedAt) {
+
+    this.lastMessage = lastMessage;
+    this.lastMessageType = lastMessageType;
+    this.lastMessageCreatedAt = lastMessageCreatedAt;
+
   }
 }

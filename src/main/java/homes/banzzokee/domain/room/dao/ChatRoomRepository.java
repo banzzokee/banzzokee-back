@@ -16,8 +16,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long>,
 
   List<ChatRoom> findAllByShelterId(long shelterId);
 
-  List<ChatRoom> findAllByUser(User user);
-
   boolean existsByUserAndAdoption(User user, Adoption adoption);
 
 
