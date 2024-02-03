@@ -67,6 +67,8 @@ public class AdoptionService {
       List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
+    Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
+    throwIfShelterIsNotVerified(shelter);
 
     List<S3Object> oldImages = adoption.getImages();
     List<S3Object> newImages = uploadAdoptionImages(images);
