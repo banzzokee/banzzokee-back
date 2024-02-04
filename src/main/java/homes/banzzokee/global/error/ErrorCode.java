@@ -47,6 +47,7 @@ public enum ErrorCode {
   ACCESS_TOKEN_EXPIRED(UNAUTHORIZED, "만료된 토큰입니다. 토큰을 재발급 해주세요."),
   ADOPTION_NOT_FOUND(NOT_FOUND, "분양게시글을 찾을 수 없습니다."),
   ADOPTION_IS_DELETED(NO_CONTENT, "삭제된 분양게시글입니다."),
+  CURRENT_STATUS_IS_SAME_TO_CHANGE(BAD_REQUEST, "현자 상태와 변경하려는 상태가 같습니다.")
   ;
 
   private final HttpStatus httpStatus;

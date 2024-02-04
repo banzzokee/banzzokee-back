@@ -3,12 +3,14 @@ package homes.banzzokee.domain.adoption.service;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
+import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -85,8 +87,34 @@ public class AdoptionService {
         LocalDate.parse(request.getRegisteredAt()),
         newImages);
 
-    adoptionRepository.save(adoption);
+    adoptionRepository.save(adoption)
     deleteOldImages(oldImages);
+  }
+
+  @Transactional
+  public void changeAdoptionStatus(long adoptionId, AdoptionStatusChangeRequest request,
+      long userId) {
+    Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
+    Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
+    throwIfShelterIsNotVerified(shelter);
+
+    // 변경하려는 분양게시글 상태가 현재 상태와 같으면 예외 발생
+    if (adoption.getStatus().getStatus().equals(request.getStatus())) {
+      throw new CurrentStatusIsSameToChangeExcetion();
+    }
+
+    User assignedUser = findByUserIdOrThrow(request.getAssignedUserId());
+
+    // 분양완료로 변경하려는 경우는 상태변경, 입양자 정보 입력, 입양일시 입력
+    if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())) {
+      adoption.updateStatusToFinish(AdoptionStatus.findByString(request.getStatus()),
+          assignedUser, LocalDate.now());
+    } else {  // 분양중, 예약중으로 변경하려는 경우 상태만 변경
+      adoption.updateStatusExceptToFinish(AdoptionStatus.findByString(request.getStatus()));
+    }
+
+    adoptionRepository.save(adoption);
   }
 
   private void deleteOldImages(List<S3Object> oldImages) {

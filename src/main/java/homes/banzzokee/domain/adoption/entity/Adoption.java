@@ -116,4 +116,17 @@ public class Adoption extends BaseEntity {
     this.registeredAt = registeredAt;
     this.images = images;
   }
+
+  public void updateStatusToFinish(AdoptionStatus status, User assignedUser,
+      LocalDate adoptedAt) {
+    this.status = status;
+    this.assignedUser = assignedUser;
+    this.adoptedAt = adoptedAt;
+  }
+
+  public void updateStatusExceptToFinish(AdoptionStatus status) {
+    this.status = status;
+    this.assignedUser = null;
+    this.adoptedAt = null;
+  }
 }
