@@ -17,8 +17,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -93,8 +95,8 @@ public class Shelter extends BaseEntity {
 
   @Builder
   public Shelter(String name, String description, String shelterImgUrl, String tel,
-      String address,
-      Double latitude, Double longitude, boolean verified, User user) {
+                 String address,
+                 Double latitude, Double longitude, boolean verified, User user) {
     this.name = name;
     this.description = description;
     this.tel = tel;
@@ -137,7 +139,7 @@ public class Shelter extends BaseEntity {
    * @param shelterImage 보호소 이미지
    */
   public void updateProfile(String name, String description, String tel, String address,
-      Double latitude, Double longitude, S3Object shelterImage) {
+                            Double latitude, Double longitude, S3Object shelterImage) {
     this.name = name;
     this.description = description;
     this.tel = tel;

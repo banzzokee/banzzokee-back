@@ -4,9 +4,14 @@ import homes.banzzokee.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  boolean existsByNickname(String nickname);
+  boolean existsByEmailAndDeletedAtIsNull(String email);
 
+  boolean existsByNicknameAndDeletedAtIsNull(String nickname);
+
+  Optional<User> findByEmail(String email);
 }

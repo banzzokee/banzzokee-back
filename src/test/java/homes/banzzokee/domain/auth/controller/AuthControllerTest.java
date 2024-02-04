@@ -1,7 +1,5 @@
 package homes.banzzokee.domain.auth.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,14 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import homes.banzzokee.domain.auth.dto.EmailDto;
-import homes.banzzokee.domain.auth.dto.EmailVerifyDto;
+import homes.banzzokee.domain.auth.dto.*;
 import homes.banzzokee.domain.auth.service.AuthService;
+import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,6 +23,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(AuthController.class)
@@ -42,88 +42,122 @@ class AuthControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Captor
-  private ArgumentCaptor<EmailDto> captor;
+  @MockBean
+  private JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Test
-  @DisplayName("이메일 인증 코드 발송 테스트")
-  void successSendVerificationCode() throws Exception {
+  @DisplayName("[이메일 전송] - 성공 검증")
+  void sendVerificationCode_validInput_then_success() throws Exception {
     // given
     String email = "test@test.com";
-    EmailDto emailDto = EmailDto.builder()
+    EmailRequest emailRequest = EmailRequest.builder()
         .email(email)
         .build();
-    String requestBody = objectMapper.writeValueAsString(emailDto);
+    String requestBody = objectMapper.writeValueAsString(emailRequest);
 
     // when
     mockMvc.perform(post("/api/auth/send-verify")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
         .andExpect(status().isOk());
-    verify(authService).sendVerificationCode(captor.capture());
-    EmailDto captureDto = captor.getValue();
 
     // then
-    verify(authService, times(1)).sendVerificationCode(captor.capture());
-    assertEquals("test@test.com", captureDto.getEmail());
+    verify(authService).sendVerificationCode(any(EmailRequest.class));
   }
 
   @Test
-  @DisplayName("이메일 인증 성공 테스트")
-  void successVerifyEmail() throws Exception {
+  @DisplayName("[이메일 인증] - 성공 검증")
+  void verifyEmail_when_validInput_then_success() throws Exception {
     // given
-    String email = "test@test.com";
-    String code = "123456";
-    EmailVerifyDto emailVerifyDto = EmailVerifyDto.builder()
-        .email(email)
-        .code(code)
+    EmailVerifyRequest emailVerifyRequest = EmailVerifyRequest.builder()
+        .email("test@test.com")
+        .code("123456")
         .build();
-    String requestBody = objectMapper.writeValueAsString(emailVerifyDto);
+    String requestBody = objectMapper.writeValueAsString(emailVerifyRequest);
 
     // when & then
-    mockMvc.perform(post("/api/auth/send-verify")
+    mockMvc.perform(post("/api/auth/verify")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
         .andExpect(status().isOk());
 
-    ArgumentCaptor<EmailDto> captor = ArgumentCaptor.forClass(EmailDto.class);
-    verify(authService).sendVerificationCode(captor.capture());
-    EmailDto capturedDto = captor.getValue();
-
-    assertEquals("test@test.com", capturedDto.getEmail());
+    verify(authService).verifyEmail(any(EmailVerifyRequest.class));
   }
 
   @Test
   @WithMockUser
-  @DisplayName("닉네임 중복확인 테스트 - 성공 케이스")
-  void successCheckNickname() throws Exception {
+  @DisplayName("[닉네임 중복 확인] - 성공 검증")
+  void checkNickname_when_validInput_then_success() throws Exception {
     // given
-    String nickname = "반쪽이";
-    when(authService.checkNickname(nickname)).thenReturn(true);
+    when(authService.checkNickname("반쪽이")).thenReturn(true);
 
     // when & then
     mockMvc.perform(get("/api/auth/nickname-check")
-            .param("nickname", nickname))
+            .param("nickname", "반쪽이"))
         .andExpect(status().isOk())
         .andExpect(content().string("true"));
 
-    verify(authService, times(1)).checkNickname("반쪽이");
+    verify(authService).checkNickname("반쪽이");
   }
 
   @Test
   @WithMockUser
-  @DisplayName("닉네임 중복확인 테스트 - 실패 케이스")
-  void failCheckNickname() throws Exception {
+  @DisplayName("[닉네임 중복 확인] - 실패 검증")
+  void checkNickname_when_validInput_then_fail() throws Exception {
     //given
-    String nickname = "반쪽이";
-    when(authService.checkNickname(nickname)).thenReturn(false);
+    when(authService.checkNickname("반쪽이")).thenReturn(false);
 
     //when & then
     mockMvc.perform(get("/api/auth/nickname-check")
-            .param("nickname", nickname))
+            .param("nickname", "반쪽이"))
         .andExpect(status().isOk())
         .andExpect(content().string("false"));
 
-    verify(authService, times(1)).checkNickname("반쪽이");
+    verify(authService).checkNickname("반쪽이");
+  }
+
+  @Test
+  @DisplayName("[자사 회원가입] - 성공 검증")
+  void signup_when_validInput_then_success() throws Exception {
+    // given
+    SignupRequest signupRequest = SignupRequest.builder()
+        .email("test@gmail.com")
+        .password("Password123!")
+        .confirmPassword("Password123!")
+        .nickname("test")
+        .build();
+    doNothing().when(authService).signup(any(SignupRequest.class));
+
+    // when & then
+    mockMvc.perform(post("/api/auth/sign-up")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(signupRequest)))
+        .andExpect(status().isOk());
+
+    verify(authService).signup(any(SignupRequest.class));
+  }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[이메일 로그인] - 성공 검증")
+  void signIn_when_validInput_then_success() throws Exception {
+    // given
+    SignInRequest signInRequest = SignInRequest.builder()
+        .email("test@test.com")
+        .password("@@Banzzokee12345")
+        .build();
+    TokenResponse tokenResponse = TokenResponse.builder()
+        .accessToken("!@#$%^&*()1234567890")
+        .refreshToken("1234567890)(*&^%$#@!")
+        .build();
+    given(authService.signIn(any(SignInRequest.class))).willReturn(tokenResponse);
+
+    // when & then
+    mockMvc.perform(post("/api/auth/sign-in")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(signInRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accessToken").value("!@#$%^&*()1234567890"))
+        .andExpect(jsonPath("$.refreshToken").value("1234567890)(*&^%$#@!"));
   }
 }

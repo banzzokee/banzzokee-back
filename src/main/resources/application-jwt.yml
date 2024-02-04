@@ -1,0 +1,4 @@
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  accessTokenExpire: 1800000  # 30분
+  refreshTokenExpire: 2592000000  # 30일

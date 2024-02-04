@@ -141,7 +141,7 @@ public class UserService {
 
   @Transactional
   public PasswordChangeResponse changePassword(PasswordChangeRequest request,
-      long userId) {
+                                               long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
     user.changePassword(request.getNewPassword());
@@ -158,7 +158,7 @@ public class UserService {
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
-      String newPassword) {
+                                                    String newPassword) {
     if (originPassword.equals(newPassword)) {
       throw new OriginPasswordEqualsNewPasswordException();
     }
@@ -174,7 +174,7 @@ public class UserService {
    */
   @Transactional
   public UserProfileUpdateResponse updateUserProfile(UserProfileUpdateRequest request,
-      MultipartFile profileImage, long userId) {
+                                                     MultipartFile profileImage, long userId) {
     // TODO: userDetails & userId가 일치하는지 확인
     User user = findByUserIdOrThrow(userId);
     S3Object oldProfileImage = user.getProfileImage();

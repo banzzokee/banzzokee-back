@@ -2,7 +2,6 @@ package homes.banzzokee.domain.shelter.dto;
 
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 

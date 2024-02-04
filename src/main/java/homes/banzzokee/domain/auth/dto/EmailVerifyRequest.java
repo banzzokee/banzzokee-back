@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.auth.dto;
 
-import jakarta.validation.constraints.Email;
+import homes.banzzokee.global.validator.annotation.EmailValid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -14,10 +14,9 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class EmailVerifyDto {
+public class EmailVerifyRequest {
 
-  @NotBlank(message = "email 은 필수 입력 항목입니다.")
-  @Email(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", message = "올바른 이메일 형식을 입력해주세요.")
+  @EmailValid
   private final String email;
 
   @NotBlank(message = "인증 코드는 필수 입력 항목입니다.")
