@@ -11,7 +11,7 @@ public class RabbitMqMessageProducer {
 
   private final RabbitTemplate rabbitTemplate;
 
-  public void publish(String routingKey, BaseMessage<?> event) {
-    rabbitTemplate.convertAndSend(routingKey, event);
+  public void publish(BaseMessage<?> event) {
+    rabbitTemplate.convertAndSend(event.getRoutingKey(), event);
   }
 }
