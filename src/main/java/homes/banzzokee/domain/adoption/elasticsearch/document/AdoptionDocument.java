@@ -52,6 +52,9 @@ public class AdoptionDocument {
 
   private List<S3Object> images;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+  private LocalDate adoptedAt;
+
   private UserProfileDto user;
 
   private UserProfileDto assignedUser;
@@ -102,6 +105,20 @@ public class AdoptionDocument {
     this.healthChecked = adoption.isHealthChecked();
     this.registeredAt = adoption.getRegisteredAt();
     this.images = adoption.getImages();
+    this.updatedAt = adoption.getUpdatedAt();
   }
 
+  public void updateStatus(Adoption adoption) {
+    this.status = adoption.getStatus().getStatus();
+    this.assignedUser = getUserProfileDto(adoption);
+    this.adoptedAt = adoption.getAdoptedAt();
+    this.updatedAt = adoption.getUpdatedAt();
+  }
+
+  private UserProfileDto getUserProfileDto(Adoption adoption) {
+    if (adoption.getAssignedUser() == null) {
+      return null;
+    }
+    return UserProfileDto.fromEntity(adoption.getAssignedUser());
+  }
 }
