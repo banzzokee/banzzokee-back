@@ -12,6 +12,7 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.config.jpa.JpaAuditingConfig;
+import homes.banzzokee.global.config.querydsl.QueryDSLConfig;
 import homes.banzzokee.global.error.exception.CustomException;
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class, QueryDSLConfig.class})
 @DataJpaTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ChatRoomServiceTest {
