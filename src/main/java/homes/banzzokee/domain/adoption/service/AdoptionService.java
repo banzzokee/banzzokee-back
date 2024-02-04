@@ -8,6 +8,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
@@ -87,7 +88,13 @@ public class AdoptionService {
         LocalDate.parse(request.getRegisteredAt()),
         newImages);
 
-    adoptionRepository.save(adoption)
+    Adoption savedAdoption = adoptionRepository.save(adoption);
+
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
+        savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
+    adoptionDocument.update(savedAdoption);
+    adoptionSearchRepository.save(adoptionDocument);
+
     deleteOldImages(oldImages);
   }
 
@@ -114,7 +121,12 @@ public class AdoptionService {
       adoption.updateStatusExceptToFinish(AdoptionStatus.findByString(request.getStatus()));
     }
 
-    adoptionRepository.save(adoption);
+    Adoption savedAdoption = adoptionRepository.save(adoption);
+
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
+        savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
+    adoptionDocument.updateStatus(savedAdoption);
+    adoptionSearchRepository.save(adoptionDocument);
   }
 
   private void deleteOldImages(List<S3Object> oldImages) {
