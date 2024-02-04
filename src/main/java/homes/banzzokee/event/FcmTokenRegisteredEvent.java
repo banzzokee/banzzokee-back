@@ -1,4 +1,4 @@
-package homes.banzzokee.domain.notification.event;
+package homes.banzzokee.event;
 
 import static lombok.AccessLevel.PROTECTED;
 
@@ -16,6 +16,7 @@ public class FcmTokenRegisteredEvent extends BaseMessage<FcmTokenDto> {
 
   public static FcmTokenRegisteredEvent from(FcmTokenDto fcmToken) {
     return FcmTokenRegisteredEvent.builder()
+        .routingKey("token.registered")
         .payload(fcmToken)
         .build();
   }
