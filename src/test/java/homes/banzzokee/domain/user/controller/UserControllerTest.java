@@ -27,10 +27,9 @@ import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -44,7 +43,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(value = UserController.class,
-    excludeAutoConfiguration = SecurityAutoConfiguration.class,
     excludeFilters = {
         @ComponentScan.Filter(type = ASSIGNABLE_TYPE,
             classes = {JwtAuthenticationFilter.class})
@@ -52,15 +50,11 @@ import org.springframework.web.multipart.MultipartFile;
 @AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
+  @Autowired
   private MockMvc mockMvc;
 
   @MockBean
   private UserService userService;
-
-  @BeforeEach
-  void setup() {
-    mockMvc = MockMvcUtil.build(new UserController(userService));
-  }
 
   @Test
   @DisplayName("[사용자 프로필 조회] - 성공 검증")

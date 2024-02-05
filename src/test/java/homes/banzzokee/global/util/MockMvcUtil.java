@@ -17,7 +17,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class MockMvcUtil {
 
@@ -70,13 +69,5 @@ public class MockMvcUtil {
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)))
         .andDo(print());
-  }
-
-  public static MockMvc build(Object controller) {
-    return MockMvcBuilders
-        .standaloneSetup(controller)
-        .setCustomArgumentResolvers(authenticationPrincipalArgumentResolver)
-        .setMessageConverters(mappingJackson2HttpMessageConverter)
-        .build();
   }
 }
