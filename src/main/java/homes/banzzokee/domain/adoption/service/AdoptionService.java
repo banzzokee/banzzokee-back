@@ -137,6 +137,25 @@ public class AdoptionService {
     adoptionSearchRepository.save(adoptionDocument);
   }
 
+  @Transactional
+  public void deleteAdoption(long adoptionId, long userId) {
+    Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
+    if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
+      throw new AlreadyFinishedAdoptionException();
+    }
+    throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
+
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
+        adoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
+
+    adoption.delete();
+    adoptionDocument.delete(adoption);
+
+    adoptionRepository.save(adoption);
+    adoptionSearchRepository.save(adoptionDocument);
+  }
+
   private void deleteOldImages(List<S3Object> oldImages) {
     if (oldImages == null) {
       return;

@@ -121,4 +121,8 @@ public class AdoptionDocument {
     }
     return UserProfileDto.fromEntity(adoption.getAssignedUser());
   }
+
+  public void delete(Adoption adoption) {
+    this.deletedAt = adoption.getDeletedAt();
+  }
 }
