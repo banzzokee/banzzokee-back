@@ -1,20 +1,25 @@
 package homes.banzzokee.global.security;
 
 import homes.banzzokee.domain.user.entity.User;
+import java.util.Collection;
+import java.util.List;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-
 @Getter
-@RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
-  private final User user;
+  private final Long userId;
+  private final String username;
   private final List<GrantedAuthority> authorities;
+
+  public UserDetailsImpl(User user, List<GrantedAuthority> authorities) {
+    this.userId = user.getId();
+    this.username = user.getEmail();
+    this.authorities = authorities;
+  }
+
 
   /**
    * 사용자 권한 반환
@@ -29,7 +34,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getPassword() {
-    return user.getPassword();
+    return null;
   }
 
   /**
@@ -37,7 +42,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getUsername() {
-    return user.getEmail();
+    return username;
   }
 
   /**
