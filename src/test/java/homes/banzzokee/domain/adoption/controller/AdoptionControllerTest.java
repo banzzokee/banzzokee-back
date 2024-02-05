@@ -48,7 +48,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(value = AdoptionController.class, excludeFilters = {
@@ -65,7 +64,7 @@ class AdoptionControllerTest {
   @Captor
   private ArgumentCaptor<List<MultipartFile>> imagesCaptor;
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("이쁜 우리 강아지")
