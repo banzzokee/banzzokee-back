@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.adoption.service;
 
 import static homes.banzzokee.domain.type.AdoptionStatus.ADOPTING;
+import static homes.banzzokee.domain.type.AdoptionStatus.FINISHED;
 import static homes.banzzokee.domain.type.AdoptionStatus.RESERVING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,6 +28,7 @@ import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
+import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
@@ -291,6 +293,7 @@ class AdoptionServiceTest {
         .build());
     Adoption adoption = spy(Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
@@ -359,12 +362,32 @@ class AdoptionServiceTest {
   }
 
   @Test
+  @DisplayName("분양게시글 수정 - 분양게시글 상태가 분양완료인 경우")
+  void updateAdoption_shouldThrowAlreadyFinishedAdoption_whenAdoptionStatusIsFinished() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .status(FINISHED)
+        .images(List.of(new S3Object("url")))
+        .build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+
+    //when & then
+    assertThrows(AlreadyFinishedAdoptionException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+
+  }
+
+  @Test
   @DisplayName("분양게시글 수정 - 작성자와 수정 요청자가 다를 경우")
   void updateAdoption_shouldThrowNoAuthorizedException_whenRequestUserIsNotMatchedAdoptionWriter() {
     //given
     User user = spy(User.builder().build());
     Adoption adoption = Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url")))
         .build();
 
@@ -390,6 +413,7 @@ class AdoptionServiceTest {
         .build());
     Adoption adoption = Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build();
 
@@ -410,6 +434,7 @@ class AdoptionServiceTest {
         .build());
     Adoption adoption = Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build();
 
@@ -434,6 +459,7 @@ class AdoptionServiceTest {
         .build());
     Adoption adoption = Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build();
 
@@ -458,6 +484,7 @@ class AdoptionServiceTest {
         .build());
     Adoption adoption = spy(Adoption.builder()
         .user(user)
+        .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
 
