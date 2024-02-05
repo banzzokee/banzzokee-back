@@ -3,8 +3,10 @@ package homes.banzzokee.domain.room.service;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
+import homes.banzzokee.domain.chat.dao.ChatMessageRepository;
 import homes.banzzokee.domain.chat.dto.LastChatMessageDto;
 import homes.banzzokee.domain.chat.dto.MessageDto;
+import homes.banzzokee.domain.chat.entity.ChatMessage;
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatRoomService {
 
+  private final ChatMessageRepository chatMessageRepository;
   private final AdoptionRepository adoptionRepository;
   private final ChatRoomRepository chatRoomRepository;
   private final UserRepository userRepository;
@@ -150,6 +153,14 @@ public class ChatRoomService {
         .messageType(MessageType.EXIT)
         .createdAt(LocalDateTime.now())
         .build();
+
+    chatMessageRepository.save(ChatMessage.builder()
+        .room(chatRoom)
+        .user(user)
+        .message(message.getMessage())
+        .messageType(message.getMessageType())
+        .build()
+    );
 
     // template.convertToSend 로 메세지 보내기 확인
     template.convertAndSend("/queue/chats/rooms/" + roomId, message);
