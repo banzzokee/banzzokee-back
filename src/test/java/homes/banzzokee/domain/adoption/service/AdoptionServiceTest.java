@@ -362,6 +362,26 @@ class AdoptionServiceTest {
   }
 
   @Test
+  @DisplayName("분양게시글 수정 - 삭제된 분양게시글인 경우")
+  void updateAdoption_shouldThrowAdoptionIsDeletedException_whenAdoptionIsDeleted() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .status(FINISHED)
+        .images(List.of(new S3Object("url")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
+
+    //when & then
+    assertThrows(AdoptionIsDeletedException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+
+  }
+
+  @Test
   @DisplayName("분양게시글 수정 - 분양게시글 상태가 분양완료인 경우")
   void updateAdoption_shouldThrowAlreadyFinishedAdoption_whenAdoptionStatusIsFinished() {
     //given
@@ -608,6 +628,28 @@ class AdoptionServiceTest {
     //when & then
     assertThrows(AdoptionNotFoundException.class,
         () -> adoptionService.changeAdoptionStatus(1L, request, 2L));
+
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 - 삭제된 분양 게시글인 경우")
+  void changeAdoptionStatus_shouldThrowAdoptionIsDeleted_whenAdoptionIsDeleted() {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("예약중")
+        .build();
+
+    Adoption adoption = spy(Adoption.builder()
+        .user(mock(User.class))
+        .status(ADOPTING)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
+    //when & then
+    assertThrows(AdoptionIsDeletedException.class,
+        () -> adoptionService.changeAdoptionStatus(1L, request, 1L));
 
   }
 
