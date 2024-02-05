@@ -819,6 +819,120 @@ class AdoptionServiceTest {
         () -> adoptionService.changeAdoptionStatus(1L, request, 1L));
   }
 
+  @Test
+  @DisplayName("분양게시글 삭제 성공 테스트")
+  void deleteAdoption_success() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .status(ADOPTING)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(3L);
+    given(adoption.getId()).willReturn(2L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.of(adoptionDocument));
+
+    //when
+    adoptionService.deleteAdoption(1L, 3L);
+    //then
+    ArgumentCaptor<Adoption> adoptionArgumentCaptor = ArgumentCaptor.forClass(
+        Adoption.class);
+    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
+        ArgumentCaptor.forClass(AdoptionDocument.class);
+
+    verify(adoptionRepository).save(adoptionArgumentCaptor.capture());
+    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
+
+    assertNotNull(adoptionArgumentCaptor.getValue().getDeletedAt());
+    assertNotNull(adoptionDocumentArgumentCaptor.getValue().getDeletedAt());
+
+  }
+
+  @Test
+  @DisplayName("분양 게시글 삭제 - 해당 분양 게시글이 없는 경우")
+  void deleteAdoption_shouldThrowAdoptionNotFound_whenAdoptionIsNotExist() {
+    //given
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
+    //when & then
+    assertThrows(AdoptionNotFoundException.class,
+        () -> adoptionService.deleteAdoption(1L, 2L));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 삭제 - 이미 삭제된 분양 게시글인 경우")
+  void deleteAdoption_shouldThrowAdoptionIsDeleted_whenAdoptionIsDeleted() {
+    //given
+    Adoption adoption = spy(Adoption.builder()
+        .status(ADOPTING)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
+    //when & then
+    assertThrows(AdoptionIsDeletedException.class,
+        () -> adoptionService.deleteAdoption(1L, 2L));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 삭제 - 분양완료된 분양게시글 삭제하는 경우")
+  void deleteAdoption_shouldThrowAlreadyFinishedAdoption_whenAdoptionStatusIsFinished() {
+    //given
+    Adoption adoption = spy(Adoption.builder()
+        .status(FINISHED)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+
+    //when & then
+    assertThrows(AlreadyFinishedAdoptionException.class,
+        () -> adoptionService.deleteAdoption(1L, 2L));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 삭제 - 분양 게시글 작성자와 삭제 요청자가 다를 경우")
+  void deleteAdoption_shouldThrowNoAuthorized_whenRequestUserIsNotAdoptionWriter() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .status(ADOPTING)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(6L);
+    //when & then
+    assertThrows(NoAuthorizedException.class,
+        () -> adoptionService.deleteAdoption(1L, 2L));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 삭제 - ES에 저장된 분양 게시글 정보가 없는 경우")
+  void deleteAdoption_shouldThrowAdoptionDocumentNotFound_whenAdoptionDocumentIsNotExist() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .status(ADOPTING)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(3L);
+    given(adoption.getId()).willReturn(1L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(Optional.empty());
+    //when & then
+    assertThrows(AdoptionDocumentNotFoundException.class,
+        () -> adoptionService.deleteAdoption(1L, 3L));
+  }
+
   private List<MultipartFile> createImageList(int addSize) throws IOException {
     List<MultipartFile> imageList = new ArrayList<>();
     for (int i = 1; i <= addSize; i++) {
