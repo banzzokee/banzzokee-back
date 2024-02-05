@@ -70,6 +70,7 @@ public class AdoptionService {
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
       List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
     if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
       throw new AlreadyFinishedAdoptionException();
     }
@@ -106,6 +107,7 @@ public class AdoptionService {
   public void changeAdoptionStatus(long adoptionId, AdoptionStatusChangeRequest request,
       long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
     throwIfShelterIsNotVerified(shelter);
