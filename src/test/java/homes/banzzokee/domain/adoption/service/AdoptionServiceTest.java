@@ -20,6 +20,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
@@ -282,47 +283,59 @@ class AdoptionServiceTest {
     User user = spy(User.builder()
         .shelter(shelter)
         .build());
-    Adoption adoption = Adoption.builder()
+    Adoption adoption = spy(Adoption.builder()
         .user(user)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
-        .build();
+        .build());
+    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
     List<FileDto> uploadedImages = createFileDtoList(4);
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
     given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
         .willReturn(uploadedImages);
+    given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
+    given(adoption.getId()).willReturn(1L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.of(adoptionDocument));
 
     //when
     adoptionService.updateAdoption(1L, updateRequest, images, 1L);
     //then
-    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(Adoption.class);
+    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor = ArgumentCaptor.forClass(
+        AdoptionDocument.class);
     ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
 
-    verify(adoptionRepository).save(adoptionCaptor.capture());
+    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
     verify(fileUploadService, times(2)).deleteFile(stringCaptor.capture());
 
-    assertEquals(updateRequest.getTitle(), adoptionCaptor.getValue().getTitle());
-    assertEquals(updateRequest.getContent(), adoptionCaptor.getValue().getContent());
+    assertEquals(updateRequest.getTitle(),
+        adoptionDocumentArgumentCaptor.getValue().getTitle());
+    assertEquals(updateRequest.getContent(),
+        adoptionDocumentArgumentCaptor.getValue().getContent());
     assertEquals(updateRequest.getBreed(),
-        adoptionCaptor.getValue().getBreed().getBreed());
-    assertEquals(updateRequest.getSize(), adoptionCaptor.getValue().getSize().getSize());
-    assertEquals(updateRequest.isNeutering(), adoptionCaptor.getValue().isNeutering());
+        adoptionDocumentArgumentCaptor.getValue().getBreed());
+    assertEquals(updateRequest.getSize(),
+        adoptionDocumentArgumentCaptor.getValue().getSize());
+    assertEquals(updateRequest.isNeutering(),
+        adoptionDocumentArgumentCaptor.getValue().isNeutering());
     assertEquals(updateRequest.getGender(),
-        adoptionCaptor.getValue().getGender().getGender());
-    assertEquals(updateRequest.getAge(), adoptionCaptor.getValue().getAge());
+        adoptionDocumentArgumentCaptor.getValue().getGender());
+    assertEquals(updateRequest.getAge(),
+        adoptionDocumentArgumentCaptor.getValue().getAge());
     assertEquals(updateRequest.isHealthChecked(),
-        adoptionCaptor.getValue().isHealthChecked());
+        adoptionDocumentArgumentCaptor.getValue().isHealthChecked());
     assertEquals(LocalDate.parse(updateRequest.getRegisteredAt()),
-        adoptionCaptor.getValue().getRegisteredAt());
-    assertEquals(uploadedImages.size(), adoptionCaptor.getValue().getImages().size());
+        adoptionDocumentArgumentCaptor.getValue().getRegisteredAt());
+    assertEquals(uploadedImages.size(),
+        adoptionDocumentArgumentCaptor.getValue().getImages().size());
     assertEquals(uploadedImages.get(0).getUrl(),
-        adoptionCaptor.getValue().getImages().get(0).getUrl());
+        adoptionDocumentArgumentCaptor.getValue().getImages().get(0).getUrl());
     assertEquals(uploadedImages.get(1).getUrl(),
-        adoptionCaptor.getValue().getImages().get(1).getUrl());
+        adoptionDocumentArgumentCaptor.getValue().getImages().get(1).getUrl());
     assertEquals(uploadedImages.get(2).getUrl(),
-        adoptionCaptor.getValue().getImages().get(2).getUrl());
+        adoptionDocumentArgumentCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(uploadedImages.get(3).getUrl(),
-        adoptionCaptor.getValue().getImages().get(3).getUrl());
+        adoptionDocumentArgumentCaptor.getValue().getImages().get(3).getUrl());
 
     assertEquals("url1", stringCaptor.getAllValues().get(0));
     assertEquals("url2", stringCaptor.getAllValues().get(1));
@@ -330,8 +343,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 수정 - 분양게시글 존재하지 않을 경우 NotFoundAdoptionException")
-  void updateAdoption_shouldThrowNotFoundAdoptionException_whenAdoptionIsNotExist()
-      throws IOException {
+  void updateAdoption_shouldThrowNotFoundAdoptionException_whenAdoptionIsNotExist() {
     //given
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
 
@@ -425,6 +437,39 @@ class AdoptionServiceTest {
     //when
     assertThrows(NotVerifiedShelterExistsException.class,
         () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - ES에 저장된 adoptionDcoument가 없을 경우")
+  void updateAdoption_shouldThrowAdoptionDocumentNotFoundException_whenAdoptionDocumentIsNotExist()
+      throws IOException {
+    //given
+    Shelter shelter = Shelter.builder()
+        .verified(true)
+        .user(mock(User.class))
+        .build();
+    User user = spy(User.builder()
+        .shelter(shelter)
+        .build());
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build());
+
+    List<FileDto> uploadedImages = createFileDtoList(4);
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(1L);
+    given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
+        .willReturn(uploadedImages);
+    given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
+    given(adoption.getId()).willReturn(1L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.empty());
+
+    //when & then
+    assertThrows(AdoptionDocumentNotFoundException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+
   }
 
   private List<MultipartFile> createImageList(int addSize) throws IOException {
