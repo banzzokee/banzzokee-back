@@ -8,10 +8,11 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import org.apache.tika.Tika;
 import org.springframework.web.multipart.MultipartFile;
 
-public class FileValidator implements ConstraintValidator<ValidFile, MultipartFile> {
+public class FileValidator implements ConstraintValidator<ValidFile, Object> {
 
   private final Tika tika = new Tika();
 
@@ -23,7 +24,7 @@ public class FileValidator implements ConstraintValidator<ValidFile, MultipartFi
   }
 
   @Override
-  public boolean isValid(MultipartFile value,
+  public boolean isValid(Object value,
       ConstraintValidatorContext context) {
     context.disableDefaultConstraintViolation();
 
@@ -31,14 +32,39 @@ public class FileValidator implements ConstraintValidator<ValidFile, MultipartFi
       return true;
     }
 
-    String mimeType = getMimeType(value);
-    boolean matched = Arrays.stream(validFile.whiteList())
-        .anyMatch(o -> o.equalsIgnoreCase(mimeType));
-    if (!matched) {
-      addMessage(context, validFile.message());
+    if (value instanceof List<?> filelist) {
+      for (Object file : filelist) {
+        if (!(file instanceof MultipartFile)) {
+          throw new IllegalArgumentException(
+              "유효한 객체 타입이 아닙니다. List<MultipartFile> 또는 MultipartFile만 적용 가능합니다.");
+        }
+        if (!isValidFile((MultipartFile) file)) {
+          addMessage(context, validFile.message());
+          return false;
+        }
+      }
+      return true;
+    } else if (value instanceof MultipartFile) {
+      if (isValidFile((MultipartFile) value)) {
+        return true;
+      } else {
+        addMessage(context, validFile.message());
+        return false;
+      }
     }
 
-    return matched;
+    throw new IllegalArgumentException(
+        "유효한 객체 타입이 아닙니다. List<MultipartFile> 또는 MultipartFile만 적용 가능합니다.");
+
+  }
+
+
+  private boolean isValidFile(MultipartFile file) {
+
+    String mimeType = getMimeType(file);
+
+    return Arrays.stream(validFile.whiteList())
+        .anyMatch(o -> o.equalsIgnoreCase(mimeType));
   }
 
   private String getMimeType(MultipartFile value) {
