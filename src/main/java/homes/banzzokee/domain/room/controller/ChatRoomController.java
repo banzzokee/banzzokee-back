@@ -3,7 +3,6 @@ package homes.banzzokee.domain.room.controller;
 import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

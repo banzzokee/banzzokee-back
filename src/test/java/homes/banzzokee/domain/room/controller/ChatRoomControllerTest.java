@@ -1,28 +1,34 @@
 package homes.banzzokee.domain.room.controller;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static homes.banzzokee.domain.type.MessageType.TEXT;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import homes.banzzokee.domain.room.dto.ChatShelterDto;
+import homes.banzzokee.domain.room.dto.ChatAdoptionDto;
+import homes.banzzokee.domain.room.dto.ChatRoomDto;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
-import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
-import homes.banzzokee.global.util.MockMvcUtil;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-@WebMvcTest(value = ChatRoomController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(ChatRoomController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ChatRoomControllerTest {
 
@@ -65,5 +71,97 @@ class ChatRoomControllerTest {
 //        .andExpect(jsonPath("$.shelter.name").value("test_shelter_name"));
 //
 //  }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[채팅방 목록 조회] - 성공 검증")
+  void getChatRooms_when_validInput_then_success() throws Exception {
+    //given
+    ChatUserDto chatUserDto = ChatUserDto.builder()
+        .userId(1L)
+        .nickname("테스트_유저_1")
+        .build();
+
+    ChatAdoptionDto chatAdoptionDto1 = ChatAdoptionDto.builder()
+        .adoptionId(1L)
+        .title("테스트_입양글_제목_1")
+        .content("테스트_입양글_설명글_1")
+        .firstImgUrl("테스트_입양글_첫번째_사진_1")
+        .build();
+    ChatAdoptionDto chatAdoptionDto2 = ChatAdoptionDto.builder()
+        .adoptionId(2L)
+        .title("테스트_입양글_제목_2")
+        .content("테스트_입양글_설명글_2")
+        .firstImgUrl("테스트_입양글_첫번째_사진_2")
+        .build();
+    ChatAdoptionDto chatAdoptionDto3 = ChatAdoptionDto.builder()
+        .adoptionId(3L)
+        .title("테스트_입양글_제목_3")
+        .content("테스트_입양글_설명글_3")
+        .firstImgUrl("테스트_입양글_첫번째_사진_3")
+        .build();
+    ChatAdoptionDto chatAdoptionDto4 = ChatAdoptionDto.builder()
+        .adoptionId(4L)
+        .title("테스트_입양글_제목_4")
+        .content("테스트_입양글_설명글_4")
+        .firstImgUrl("테스트_입양글_첫번째_사진_4")
+        .build();
+
+    PageRequest pageRequest = PageRequest.of(0, 3);
+    List<ChatRoomDto> chatRoomDtoList = new ArrayList<>();
+
+    ChatRoomDto dto1 = ChatRoomDto.builder()
+        .roomId(1L)
+        .user(chatUserDto)
+        .adoption(chatAdoptionDto1)
+        .lastMessage("1번_채팅방_마지막채팅")
+        .lastMessageType(TEXT)
+        .lastMessageCreatedAt(LocalDateTime.now().minusDays(4L))
+        .build();
+    ChatRoomDto dto2 = ChatRoomDto.builder()
+        .roomId(2L)
+        .user(chatUserDto)
+        .adoption(chatAdoptionDto2)
+        .lastMessage("2번_채팅방_마지막채팅")
+        .lastMessageType(TEXT)
+        .lastMessageCreatedAt(LocalDateTime.now().minusDays(1L))
+        .build();
+    ChatRoomDto dto3 = ChatRoomDto.builder()
+        .roomId(3L)
+        .user(chatUserDto)
+        .adoption(chatAdoptionDto3)
+        .lastMessage("3번_채팅방_마지막채팅")
+        .lastMessageType(TEXT)
+        .lastMessageCreatedAt(LocalDateTime.now().minusDays(2L))
+        .build();
+    ChatRoomDto dto4 = ChatRoomDto.builder()
+        .roomId(4L)
+        .user(chatUserDto)
+        .adoption(chatAdoptionDto4)
+        .lastMessage("4번_채팅방_마지막채팅")
+        .lastMessageType(TEXT)
+        .lastMessageCreatedAt(LocalDateTime.now().minusDays(3L))
+        .build();
+
+    chatRoomDtoList.add(dto1);
+    chatRoomDtoList.add(dto2);
+    chatRoomDtoList.add(dto3);
+    chatRoomDtoList.add(dto4);
+
+    given(chatRoomService.getChatRooms(anyString(), eq(pageRequest)))
+        .willReturn(new SliceImpl<>(chatRoomDtoList));
+
+    //when
+    //then
+    mockMvc.perform(get("/api/rooms?page=0&size=3"))
+
+        .andExpect(status().isOk())
+        .andDo(print())
+        .andExpect(jsonPath("$.content[0].roomId").value(1L))
+        .andExpect(jsonPath("$.content[0].adoption.adoptionId").value(1L))
+        .andExpect(jsonPath("$.content[0].lastMessage").value("1번_채팅방_마지막채팅"))
+    ;
+
+  }
 
 }

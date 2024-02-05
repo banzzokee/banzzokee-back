@@ -31,7 +31,7 @@ public class SecurityConfig {
             .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
             .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER", "ADMIN", "SHELTER")
+            .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER")
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
