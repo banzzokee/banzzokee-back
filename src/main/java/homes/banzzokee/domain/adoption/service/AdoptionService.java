@@ -111,14 +111,16 @@ public class AdoptionService {
       throw new CurrentStatusIsSameToChangeExcetion();
     }
 
-    User assignedUser = findByUserIdOrThrow(request.getAssignedUserId());
+    User assignedUser = request.getAssignedUserId() == null ? null
+        : findByUserIdOrThrow(request.getAssignedUserId());
 
     // 분양완료로 변경하려는 경우는 상태변경, 입양자 정보 입력, 입양일시 입력
     if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())) {
       adoption.updateStatusToFinish(AdoptionStatus.findByString(request.getStatus()),
           assignedUser, LocalDate.now());
     } else {  // 분양중, 예약중으로 변경하려는 경우 상태만 변경
-      adoption.updateStatusExceptToFinish(AdoptionStatus.findByString(request.getStatus()));
+      adoption.updateStatusExceptToFinish(
+          AdoptionStatus.findByString(request.getStatus()));
     }
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
