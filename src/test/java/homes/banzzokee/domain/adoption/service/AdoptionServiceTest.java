@@ -102,7 +102,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 등록 성공 테스트")
-  void registerAdoption_success() throws IOException {
+  void registerAdoption_success() {
     //given
     Shelter shelter = spy(Shelter.builder()
         .description("행복한 보호소")
@@ -280,7 +280,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 수정 성공 테스트")
-  void updateAdoption_success() throws IOException {
+  void updateAdoption_success() {
     //given
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -447,8 +447,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 수정 - ES에 저장된 adoptionDcoument가 없을 경우")
-  void updateAdoption_shouldThrowAdoptionDocumentNotFoundException_whenAdoptionDocumentIsNotExist()
-      throws IOException {
+  void updateAdoption_shouldThrowAdoptionDocumentNotFoundException_whenAdoptionDocumentIsNotExist() {
     //given
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -761,7 +760,7 @@ class AdoptionServiceTest {
     return imageList;
   }
 
-  private List<FileDto> createFileDtoList(int addSize) throws IOException {
+  private List<FileDto> createFileDtoList(int addSize) {
     List<FileDto> fileDtoList = new ArrayList<>();
     for (int i = 1; i <= addSize; i++) {
       FileDto fileDto = new FileDto("url" + i, "filename" + i + ".png");
