@@ -11,6 +11,7 @@ import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
+import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
@@ -69,6 +70,9 @@ public class AdoptionService {
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
       List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
+      throw new AlreadyFinishedAdoptionException();
+    }
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
     throwIfShelterIsNotVerified(shelter);
