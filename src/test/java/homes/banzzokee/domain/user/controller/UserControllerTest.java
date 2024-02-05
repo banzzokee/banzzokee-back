@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,19 +22,19 @@ import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
 import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
 import homes.banzzokee.domain.user.service.UserService;
+import homes.banzzokee.global.security.WithMockCustomUser;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
-
 import java.time.LocalDate;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,18 +43,24 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
-@WebMvcTest(value = UserController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = UserController.class,
+    excludeAutoConfiguration = SecurityAutoConfiguration.class,
+    excludeFilters = {
+        @ComponentScan.Filter(type = ASSIGNABLE_TYPE,
+            classes = {JwtAuthenticationFilter.class})
+    })
 @AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
-  @Autowired
   private MockMvc mockMvc;
 
   @MockBean
   private UserService userService;
 
-  @MockBean
-  private JwtAuthenticationFilter jwtAuthenticationFilter;
+  @BeforeEach
+  void setup() {
+    mockMvc = MockMvcUtil.build(new UserController(userService));
+  }
 
   @Test
   @DisplayName("[사용자 프로필 조회] - 성공 검증")
@@ -107,6 +114,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 탈퇴] - 성공 검증")
+  @WithMockCustomUser
   void withdrawUser_when_validInput_then_success() throws Exception {
     // given
     UserWithdrawRequest request =
@@ -123,7 +131,7 @@ class UserControllerTest {
 
     // when
     ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
-        "/api/users/me/withdraw?userId=1", request);
+        "/api/users/me/withdraw", request);
 
     // then
     verify(userService).withdrawUser(request, response.getUserId());
@@ -135,6 +143,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 패스워드 변경] - 성공 검증")
+  @WithMockCustomUser
   void changePassword_when_validInput_then_success() throws Exception {
     // given
     PasswordChangeRequest request = PasswordChangeRequest.builder()
@@ -152,7 +161,7 @@ class UserControllerTest {
 
     // when
     ResultActions resultActions = MockMvcUtil.performPatch(mockMvc,
-        "/api/users/me/change-password?userId=1", request);
+        "/api/users/me/change-password", request);
 
     // then
     verify(userService).changePassword(request, response.getUserId());
@@ -164,6 +173,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 팔로우] - 성공 검증")
+  @WithMockCustomUser
   void followUser_when_validInput_then_success() throws Exception {
     // given
     FollowUserDto user1 = FollowUserDto.builder()
@@ -182,7 +192,7 @@ class UserControllerTest {
 
     // when
     ResultActions resultActions = MockMvcUtil
-        .performPost(mockMvc, "/api/users/2/follow?followerId=1", null);
+        .performPost(mockMvc, "/api/users/2/follow", null);
 
     // then
     verify(userService).followUser(user2.getUserId(), user1.getUserId());
@@ -196,10 +206,11 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 언팔로우] - 성공 검증")
+  @WithMockCustomUser
   void unfollowUser_when_validInput_then_success() throws Exception {
     // when
     ResultActions resultActions = MockMvcUtil
-        .performPost(mockMvc, "/api/users/2/unfollow?followerId=1", null);
+        .performPost(mockMvc, "/api/users/2/unfollow", null);
 
     // then
     verify(userService).unfollowUser(2L, 1L);
@@ -208,6 +219,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 프로필 수정] - 성공 검증")
+  @WithMockCustomUser
   void updateUserProfile_when_validInput_then_success() throws Exception {
     // given
     UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
@@ -219,7 +231,7 @@ class UserControllerTest {
         "src/test/resources/images/banzzokee.png");
 
     MockMultipartHttpServletRequestBuilder patch = MockMvcRequestBuilders
-        .multipart(PATCH, "/api/users/me?userId=1")
+        .multipart(PATCH, "/api/users/me")
         .file(mockFile)
         .part(mockPart);
 
