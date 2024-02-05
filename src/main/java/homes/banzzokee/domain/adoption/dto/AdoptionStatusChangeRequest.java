@@ -12,7 +12,7 @@ public class AdoptionStatusChangeRequest {
 
   private final Long assignedUserId;
 
-  @Pattern(regexp = "^[분양중|예약중|분양완료]$", message = "유효한 상태값이 아닙니다.")
+  @Pattern(regexp = "^(분양중|예약중|분양완료)$", message = "유효한 상태값이 아닙니다.")
   private final String status;
 
 }
