@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static homes.banzzokee.global.error.ErrorCode.ADOPTION_NOT_FOUND;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
