@@ -4,6 +4,7 @@ import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -12,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -24,10 +26,9 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/auth/**", "/api/adoptions/**").permitAll()
             .requestMatchers("(/api/users/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/shelters/**").hasAnyRole("ADMIN", "SHELTER")
-            .requestMatchers("/api/adoptions/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
             .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "SHELTER")

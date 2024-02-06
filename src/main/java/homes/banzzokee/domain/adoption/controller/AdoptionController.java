@@ -41,6 +41,7 @@ public class AdoptionController {
 
   private final AdoptionService adoptionService;
 
+  @PreAuthorize(value = "hasRole('SHELTER')")
   @PostMapping
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
       @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
@@ -53,6 +54,7 @@ public class AdoptionController {
     return adoptionService.getAdoption(adoptionId);
   }
 
+  @PreAuthorize(value = "hasRole('SHELTER')")
   @PutMapping("/{adoptionId}")
   public void updateAdoption(@PathVariable long adoptionId,
       @Valid @RequestPart AdoptionUpdateRequest request,
@@ -62,6 +64,7 @@ public class AdoptionController {
         userDetails.getUser().getId());
   }
 
+  @PreAuthorize(value = "hasRole('SHELTER')")
   @PatchMapping("/{adoptionId}/status")
   public void changeAdoptionStatus(@PathVariable long adoptionId,
       @StatusRequest @Valid @RequestBody AdoptionStatusChangeRequest request,
@@ -70,6 +73,7 @@ public class AdoptionController {
         userDetails.getUser().getId());
   }
 
+  @PreAuthorize(value = "hasRole('USER')")
   @DeleteMapping("/{adoptionId}")
   public void deleteAdoption(@PathVariable long adoptionId,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
