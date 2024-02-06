@@ -63,7 +63,7 @@ class BookmarkServiceTest {
     User user = User.builder()
         .email("test@gmail.com")
         .nickname("반쪽이")
-        .role(Set.of(Role.USER))
+        .role(Set.of(Role.ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
 
@@ -114,7 +114,7 @@ class BookmarkServiceTest {
     User user = User.builder()
         .email("test@gmail.com")
         .nickname("반쪽이")
-        .role(Set.of(Role.USER))
+        .role(Set.of(Role.ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
 
