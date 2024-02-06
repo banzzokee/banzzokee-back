@@ -3,8 +3,11 @@ package homes.banzzokee.domain.adoption.service;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
+import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
@@ -31,6 +34,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +50,7 @@ public class AdoptionService {
   private final FileUploadService fileUploadService;
   private final AdoptionRepository adoptionRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
+  private final AdoptionSearchQueryRepository queryRepository;
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
@@ -154,6 +161,15 @@ public class AdoptionService {
 
     adoptionRepository.save(adoption);
     adoptionSearchRepository.save(adoptionDocument);
+  }
+
+  public Slice<AdoptionSearchResponse> getAdoptionList(AdoptionSearchRequest request,
+      Pageable pageable) {
+    List<AdoptionSearchResponse> responses = queryRepository.findByAdoptionSearchRequest(
+            request, pageable).stream()
+        .map(AdoptionSearchResponse::fromDocument)
+        .toList();
+    return new SliceImpl<>(responses);
   }
 
   private void deleteOldImages(List<S3Object> oldImages) {
