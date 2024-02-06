@@ -1,12 +1,14 @@
 package homes.banzzokee.domain.adoption.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,6 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
@@ -37,6 +41,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -500,6 +509,82 @@ class AdoptionControllerTest {
   void deleteAdoption_success() throws Exception {
     //given & when & then
     mockMvc.perform(delete("/api/adoptions/1"));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 검색 - request의 필드가 null인 경우 성공 테스트")
+  void getAdoptionList_shouldSuccess_whenAllFieldIsNullInRequest() throws Exception {
+    //given
+    AdoptionSearchRequest request = AdoptionSearchRequest.builder().build();
+    List<AdoptionSearchResponse> responses = List.of(
+        AdoptionSearchResponse.builder().adoptionId(1L).build());
+    SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
+        responses);
+
+    given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
+        any(Pageable.class))).willReturn(searchResponses);
+    //when & then
+    mockMvc.perform(get("/api/adoptions")
+            .param("page", Integer.toString(0))
+            .param("size", Integer.toString(10))
+            .param("direction", "desc")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0:1].adoptionId").value(1));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 검색 - request가 null인 경우 성공 테스트")
+  void getAdoptionList_shouldSuccess_whenRequestIsNull() throws Exception {
+    //given
+    AdoptionSearchRequest request = null;
+    PageRequest pageRequest = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
+    List<AdoptionSearchResponse> responses = List.of(
+        AdoptionSearchResponse.builder().adoptionId(1L).build());
+    SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
+        responses);
+
+    given(adoptionService.getAdoptionList(request, pageRequest)).willReturn(
+        searchResponses);
+    //when & then
+    mockMvc.perform(get("/api/adoptions")
+            .param("page", Integer.toString(0))
+            .param("size", Integer.toString(10))
+            .param("direction", "desc")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0:1].adoptionId").value(1));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 검색 - request 필드 유효한 값이 아닌 경우")
+  void getAdoptionList_shouldThrowValidationError_whenFieldIsInvalidInRequest()
+      throws Exception {
+    //given
+    AdoptionSearchRequest request = AdoptionSearchRequest.builder()
+        .breed(List.of("잘못된 견종"))
+        .size("잘못된 사이즈")
+        .gender("잘못된 성별")
+        .build();
+
+    //when & then
+    mockMvc.perform(get("/api/adoptions")
+            .param("page", Integer.toString(0))
+            .param("size", Integer.toString(10))
+            .param("direction", "desc")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[*][0:1].reason").value("유효한 견종이 아닙니다."))
+        .andExpect(jsonPath("$.errors[*][1:2].reason").value("유효한 크기가 아닙니다."))
+        .andExpect(jsonPath("$.errors[*][2:3].reason").value("유효한 성별이 아닙니다."));
+
   }
 
 }
