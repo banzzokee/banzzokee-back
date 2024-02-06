@@ -1,5 +1,6 @@
 package homes.banzzokee.global.validator;
 
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchRequest;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.global.validator.annotation.DogGenderValid;
 import jakarta.validation.ConstraintValidator;
@@ -9,6 +10,9 @@ public class DogGenderValidator implements ConstraintValidator<DogGenderValid, S
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null) {
+      return true;
+    }
     return DogGender.contains(value);
   }
 }
