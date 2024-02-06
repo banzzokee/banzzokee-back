@@ -7,14 +7,21 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
-  private final User user;
-  private final List<GrantedAuthority> authorities;
+  private final Long userId;
+  private final String username;
+  private final Set<GrantedAuthority> authorities;
+
+  public UserDetailsImpl(User user, Set<GrantedAuthority> authorities) {
+    this.userId = user.getId();
+    this.username = user.getEmail();
+    this.authorities = authorities;
+  }
 
   /**
    * 사용자 권한 반환
@@ -29,7 +36,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getPassword() {
-    return user.getPassword();
+    return null;
   }
 
   /**
@@ -37,7 +44,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getUsername() {
-    return user.getEmail();
+    return username;
   }
 
   /**
