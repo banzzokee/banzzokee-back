@@ -26,12 +26,12 @@ public class SecurityConfig {
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("(/api/users/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/shelters/**").hasAnyRole("ADMIN", "SHELTER")
+            .requestMatchers("/api/shelters/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/adoptions/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
             .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER", "ADMIN", "SHELTER")
+            .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER")
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

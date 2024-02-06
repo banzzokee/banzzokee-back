@@ -35,7 +35,9 @@ public class ChatAdoptionDto {
         .adoptionId(adoption.getId())
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .firstImgUrl(adoption.getImages().get(0).getUrl())
+        .firstImgUrl(adoption.getImages() == null ?
+            null : adoption.getImages().get(0).getUrl()
+        )
         .build();
   }
 
