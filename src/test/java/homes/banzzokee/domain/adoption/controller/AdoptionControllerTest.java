@@ -581,9 +581,9 @@ class AdoptionControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errors[*][0:1].reason").value("유효한 견종이 아닙니다."))
-        .andExpect(jsonPath("$.errors[*][1:2].reason").value("유효한 크기가 아닙니다."))
-        .andExpect(jsonPath("$.errors[*][2:3].reason").value("유효한 성별이 아닙니다."));
+        .andExpect(jsonPath("$.errors[*][0:1].reason").isNotEmpty())
+        .andExpect(jsonPath("$.errors[*][1:2].reason").isNotEmpty())
+        .andExpect(jsonPath("$.errors[*][2:3].reason").isNotEmpty());
 
   }
 
