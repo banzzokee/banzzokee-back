@@ -22,7 +22,7 @@ import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 @Builder
 @AllArgsConstructor
 @Document(indexName = "adoption", writeTypeHint = WriteTypeHint.FALSE)
-@Setting(settingPath = "/elasticsearch/adoption-setting.json")
+@Setting(settingPath = "/elasticsearch/setting.json")
 @Mapping(mappingPath = "/elasticsearch/adoption-mapping.json")
 public class AdoptionDocument {
 
