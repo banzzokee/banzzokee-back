@@ -58,16 +58,16 @@ public class ReviewService {
     Review savedReview = registerReviewToDataBase(request, adoption, user,
         uploadedReviewImages);
 
-    registerReviewInAdoptionDocument(savedReview, request);
+    registerReviewInAdoptionDocument(savedReview, request.getAdoptionId());
 
     reviewDocumentRepository.save(ReviewDocument.fromEntity(savedReview));
 
   }
 
   private void registerReviewInAdoptionDocument(Review savedReview,
-      ReviewRegisterRequest request) {
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
-        request.getAdoptionId()).orElseThrow(AdoptionDocumentNotFoundException::new);
+      long adoptionId) {
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
+        .orElseThrow(AdoptionDocumentNotFoundException::new);
 
     adoptionDocument.updateReview(ReviewDto.fromEntity(savedReview));
 
