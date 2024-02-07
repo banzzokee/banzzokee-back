@@ -101,4 +101,19 @@ public class Adoption extends BaseEntity {
     this.images = images;
     this.status = status;
   }
+
+  public void updateAdoption(String title, String content, BreedType breed, DogSize size,
+      boolean neutering, DogGender gender, int age, boolean healthChecked,
+      LocalDate registeredAt, List<S3Object> images) {
+    this.title = title;
+    this.content = content;
+    this.breed = breed;
+    this.size = size;
+    this.neutering = neutering;
+    this.gender = gender;
+    this.age = age;
+    this.healthChecked = healthChecked;
+    this.registeredAt = registeredAt;
+    this.images = images;
+  }
 }

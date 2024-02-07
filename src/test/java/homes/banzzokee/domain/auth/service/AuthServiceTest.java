@@ -235,7 +235,7 @@ class AuthServiceTest {
         .email("test@test.com")
         .password(passwordEncoder.encode("@@Banzzokee12345"))
         .nickname("test")
-        .role(Set.of(Role.USER))
+        .role(Set.of(Role.ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
 
