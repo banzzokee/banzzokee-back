@@ -49,7 +49,9 @@ public enum ErrorCode {
   ADOPTION_IS_DELETED(NO_CONTENT, "삭제된 분양게시글입니다."),
   CURRENT_STATUS_IS_SAME_TO_CHANGE(BAD_REQUEST, "현자 상태와 변경하려는 상태가 같습니다."),
   ADOPTION_DOCUMENT_NOT_FOUND(NOT_FOUND, "ElasticSearch에 저장된 분양게시글을 찾을 수가 없습니다."),
-  ALREADY_ADOPTION_IS_FINISHED(BAD_REQUEST, "이미 분양완료된 게시글입니다.")
+  ALREADY_ADOPTION_IS_FINISHED(BAD_REQUEST, "이미 분양완료된 게시글입니다."),
+  REVIEW_CAN_BE_WRITE_BY_ASSIGNED_USER(UNAUTHORIZED, "후기 게시글은 입양자만 작성 가능합니다."),
+  ONLY_ONE_REVIEW_ALLOWED_PER_ADOPTION(BAD_REQUEST, "후기 게시글은 분양 게시글 당 하나만 작성 가능합니다.")
   ;
 
   private final HttpStatus httpStatus;
