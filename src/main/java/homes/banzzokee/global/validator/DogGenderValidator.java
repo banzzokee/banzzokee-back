@@ -1,6 +1,5 @@
 package homes.banzzokee.global.validator;
 
-import homes.banzzokee.domain.adoption.dto.AdoptionSearchRequest;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.global.validator.annotation.DogGenderValid;
 import jakarta.validation.ConstraintValidator;
