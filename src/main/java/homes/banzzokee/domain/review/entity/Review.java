@@ -5,6 +5,7 @@ import homes.banzzokee.domain.adoption.entity.convertor.ImagesConvertor;
 import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -31,7 +32,7 @@ public class Review extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @OneToOne(fetch = FetchType.LAZY)
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
   @JoinColumn(name = "adoption_id")
   private Adoption adoption;
 
@@ -56,5 +57,9 @@ public class Review extends BaseEntity {
     this.title = title;
     this.content = content;
     this.images = images;
+  }
+
+  public boolean isDeleted() {
+    return this.deletedAt != null;
   }
 }
