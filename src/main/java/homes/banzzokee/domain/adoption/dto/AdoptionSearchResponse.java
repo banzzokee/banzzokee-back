@@ -74,7 +74,7 @@ public class AdoptionSearchResponse {
         .adoptedAt(document.getAdoptedAt() == null ? null : document.getAdoptedAt())
         .updatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt())
         .createdAt(document.getCreatedAt())
-        // Todo : .reviewId(document.getReview() == null ? null : document.getReview().getId())
+        .reviewId(document.getReview() == null ? null : document.getReview().getReviewId())
         .build();
   }
 
