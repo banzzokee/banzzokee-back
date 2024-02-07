@@ -19,11 +19,17 @@ public class AdoptionDto {
 
   private final Long adoptionId;
 
+  private final Long userId;
+
+  private final String userNickname;
+
   private final String title;
 
   private final String content;
 
   private final List<S3Object> imageUrls;
+
+  private final String status;
 
   private final String breed;
 
@@ -52,9 +58,12 @@ public class AdoptionDto {
   public static AdoptionDto fromEntity(Adoption adoption) {
     return AdoptionDto.builder()
         .adoptionId(adoption.getId())
+        .userId(adoption.getUser().getId())
+        .userNickname(adoption.getUser().getNickname())
         .title(adoption.getTitle())
         .content(adoption.getContent())
         .imageUrls(adoption.getImages())
+        .status(adoption.getStatus() == null ? null : adoption.getStatus().getStatus())
         .breed(adoption.getBreed() == null ? null : adoption.getBreed().getBreed())
         .size(adoption.getSize() == null ? null : adoption.getSize().getSize())
         .neutering(adoption.isNeutering())
