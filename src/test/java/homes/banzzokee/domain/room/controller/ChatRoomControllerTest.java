@@ -54,6 +54,7 @@ class ChatRoomControllerTest {
     //given
     given(chatRoomService.createChatRoom(anyString(), anyLong()))
         .willReturn(RoomCreateResponse.builder()
+            .roomId(1L)
             .user(ChatUserDto.builder()
                 .userId(1L)
                 .profileImgUrl("user_profile_image")
