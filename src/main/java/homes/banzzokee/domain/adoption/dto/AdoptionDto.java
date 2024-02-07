@@ -23,7 +23,7 @@ public class AdoptionDto {
 
   private final String content;
 
-  private final List<String> imageUrls;
+  private final List<S3Object> imageUrls;
 
   private final String breed;
 
@@ -54,7 +54,7 @@ public class AdoptionDto {
         .adoptionId(adoption.getId())
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .imageUrls(getImages(adoption))
+        .imageUrls(adoption.getImages())
         .breed(adoption.getBreed() == null ? null : adoption.getBreed().getBreed())
         .size(adoption.getSize() == null ? null : adoption.getSize().getSize())
         .neutering(adoption.isNeutering())
@@ -66,13 +66,6 @@ public class AdoptionDto {
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
         .build();
-  }
-
-  private static List<String> getImages(Adoption adoption) {
-    if (adoption.getImages() == null) {
-      return null;
-    }
-    return adoption.getImages().stream().map(S3Object::getUrl).toList();
   }
 
 }

@@ -139,6 +139,27 @@
         }
       }
     },
+    "review": {
+      "properties": {
+        "reviewId": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text"
+        },
+        "content": {
+          "type": "text"
+        },
+        "images": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    },
     "deletedAt": {
       "type": "date"
     },
