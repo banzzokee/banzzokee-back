@@ -32,7 +32,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundExcepti
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
-import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
+import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -793,7 +793,7 @@ class AdoptionServiceTest {
     given(user.getId()).willReturn(1L);
     given(shelter.isDeleted()).willReturn(false);
     //when & then
-    assertThrows(CurrentStatusIsSameToChangeExcetion.class,
+    assertThrows(CurrentStatusIsSameToChangeException.class,
         () -> adoptionService.changeAdoptionStatus(1L, request, 1L));
   }
 
