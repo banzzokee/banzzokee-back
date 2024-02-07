@@ -1,9 +1,11 @@
 package homes.banzzokee.domain.room.controller;
 
 import static homes.banzzokee.domain.type.MessageType.TEXT;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,9 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import homes.banzzokee.domain.room.dto.ChatAdoptionDto;
 import homes.banzzokee.domain.room.dto.ChatRoomDto;
+import homes.banzzokee.domain.room.dto.ChatShelterDto;
 import homes.banzzokee.domain.room.dto.ChatUserDto;
+import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.service.ChatRoomService;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
+import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +32,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ChatRoomController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -41,36 +47,38 @@ class ChatRoomControllerTest {
   @MockBean
   private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-//  @Test
-//  @DisplayName("[controller] 채팅방 생성 성공")
-//  void success_createChatRoom() throws Exception {
-//    //given
-//    given(chatRoomService.createChatRoom(anyString(), anyLong(), anyLong()))
-//        .willReturn(RoomCreateResponse.builder()
-//            .roomId(1L)
-//            .user(ChatUserDto.builder()
-//                .userId(1L)
-//                .nickname("test_nickname")
-//                .build())
-//            .shelter(ChatShelterDto.builder()
-//                .shelterId(1L)
-//                .name("test_shelter_name")
-//                .build())
-//            .build());
-//
-//    //when
-//    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
-//        "/api/rooms/adoptions/1", null);
-//
-//    //then
-//    resultActions.andExpect(status().isOk())
-//        .andExpect(jsonPath("$.roomId").value(1L))
-//        .andExpect(jsonPath("$.user.userId").value(1L))
-//        .andExpect(jsonPath("$.user.nickname").value("test_nickname"))
-//        .andExpect(jsonPath("$.shelter.shelterId").value(1L))
-//        .andExpect(jsonPath("$.shelter.name").value("test_shelter_name"));
-//
-//  }
+  @Test
+  @WithMockUser
+  @DisplayName("[채팅방 생성] - 성공 검증")
+  void createChatRoom_when_validInput_then_success() throws Exception {
+    //given
+    given(chatRoomService.createChatRoom(anyString(), anyLong()))
+        .willReturn(RoomCreateResponse.builder()
+            .user(ChatUserDto.builder()
+                .userId(1L)
+                .profileImgUrl("user_profile_image")
+                .nickname("test_nickname")
+                .build())
+            .shelter(ChatShelterDto.builder()
+                .shelterId(1L)
+                .shelterImgUrl("shelter_image")
+                .name("test_shelter_name")
+                .build())
+            .build());
+
+    //when
+    ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
+        "/api/rooms/adoptions/1", null);
+
+    //then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.roomId").value(1L))
+        .andExpect(jsonPath("$.user.userId").value(1L))
+        .andExpect(jsonPath("$.user.nickname").value("test_nickname"))
+        .andExpect(jsonPath("$.shelter.shelterId").value(1L))
+        .andExpect(jsonPath("$.shelter.name").value("test_shelter_name"));
+
+  }
 
   @Test
   @WithMockUser
@@ -164,4 +172,17 @@ class ChatRoomControllerTest {
 
   }
 
+  @Test
+  @WithMockUser
+  @DisplayName("[채팅방 나가기] - 성공 검증")
+  void exitChatRoom_when_validInput_then_success() throws Exception {
+    //given
+    //when
+    ResultActions resultActions = MockMvcUtil.performDelete(mockMvc,
+        "/api/rooms/1");
+
+    //then
+    verify(chatRoomService).exitChatRoom("user", 1L);
+    resultActions.andExpect(status().isOk());
+  }
 }
