@@ -1,6 +1,8 @@
 package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
@@ -9,9 +11,7 @@ import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,7 +55,7 @@ public class AdoptionResponse {
 
   private final LocalDateTime updatedAt;
 
-  //  ReviewDto review
+  private final ReviewDto review;
 
   public static AdoptionResponse fromEntity(Adoption adoption) {
     return AdoptionResponse.builder()
@@ -76,8 +76,15 @@ public class AdoptionResponse {
         .adoptedAt(adoption.getAdoptedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
-// Todo:  .review(ReviewDto.fromEntity(adoption.getReview()))
+        .review(getReview(adoption.getReview()))
         .build();
+  }
+
+  private static ReviewDto getReview(Review review) {
+    if (review == null) {
+      return null;
+    }
+    return ReviewDto.fromEntity(review);
   }
 
   // assignedUser는 null이 가능하여 별도 null 처리
