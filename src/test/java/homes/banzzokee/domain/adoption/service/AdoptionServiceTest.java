@@ -10,11 +10,13 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
@@ -24,6 +26,7 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
+import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
@@ -32,6 +35,7 @@ import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +64,7 @@ class AdoptionServiceTest {
   @InjectMocks
   private AdoptionService adoptionService;
 
-  private final AdoptionRegisterRequest request = AdoptionRegisterRequest.builder()
+  private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
       .breed("포메라니안")
@@ -73,6 +77,18 @@ class AdoptionServiceTest {
       .build();
 
   private final List<MultipartFile> images = createImageList(4);
+
+  private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
+      .title("강아지")
+      .content("귀여운 강아지를 소개합니다.")
+      .breed("포메라니안")
+      .size("중형")
+      .neutering(false)
+      .gender("수컷")
+      .age(10)
+      .healthChecked(true)
+      .registeredAt("2024-01-01")
+      .build();
 
   AdoptionServiceTest() throws IOException {
   }
@@ -100,7 +116,7 @@ class AdoptionServiceTest {
     given(shelter.getCreatedAt()).willReturn(LocalDateTime.now());
 
     //when
-    adoptionService.registerAdoption(request, images, 1L);
+    adoptionService.registerAdoption(registerRequest, images, 1L);
 
     //then
     ArgumentCaptor<AdoptionDocument> adoptionDocumentCaptor = ArgumentCaptor.forClass(
@@ -111,14 +127,19 @@ class AdoptionServiceTest {
     assertEquals(user.getEmail(), adoptionDocumentCaptor.getValue().getUser().getEmail());
     assertEquals(user.getShelter().getDescription(),
         adoptionDocumentCaptor.getValue().getUser().getShelter().getDescription());
-    assertEquals(request.getTitle(), adoptionDocumentCaptor.getValue().getTitle());
-    assertEquals(request.getContent(), adoptionDocumentCaptor.getValue().getContent());
-    assertEquals(request.getBreed(), adoptionDocumentCaptor.getValue().getBreed());
-    assertEquals(request.getSize(), adoptionDocumentCaptor.getValue().getSize());
-    assertEquals(request.isNeutering(), adoptionDocumentCaptor.getValue().isNeutering());
-    assertEquals(request.getGender(), adoptionDocumentCaptor.getValue().getGender());
-    assertEquals(request.getAge(), adoptionDocumentCaptor.getValue().getAge());
-    assertEquals(request.isHealthChecked(),
+    assertEquals(registerRequest.getTitle(),
+        adoptionDocumentCaptor.getValue().getTitle());
+    assertEquals(registerRequest.getContent(),
+        adoptionDocumentCaptor.getValue().getContent());
+    assertEquals(registerRequest.getBreed(),
+        adoptionDocumentCaptor.getValue().getBreed());
+    assertEquals(registerRequest.getSize(), adoptionDocumentCaptor.getValue().getSize());
+    assertEquals(registerRequest.isNeutering(),
+        adoptionDocumentCaptor.getValue().isNeutering());
+    assertEquals(registerRequest.getGender(),
+        adoptionDocumentCaptor.getValue().getGender());
+    assertEquals(registerRequest.getAge(), adoptionDocumentCaptor.getValue().getAge());
+    assertEquals(registerRequest.isHealthChecked(),
         adoptionDocumentCaptor.getValue().isHealthChecked());
     assertEquals(fileDtoList.size(),
         adoptionDocumentCaptor.getValue().getImages().size());
@@ -134,17 +155,17 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("user가 존재하지 않으면 UserNotFoundException 발생")
+  @DisplayName("분양게시글 등록 - user가 존재하지 않으면 UserNotFoundException 발생")
   void registerAdoption_shouldThrowUserNotFoundException_whenUserIsNotExist() {
     //given
     given(userRepository.findById(anyLong())).willReturn(Optional.empty());
     //when & then
     assertThrows(UserNotFoundException.class,
-        () -> adoptionService.registerAdoption(request, images, 1L));
+        () -> adoptionService.registerAdoption(registerRequest, images, 1L));
   }
 
   @Test
-  @DisplayName("user에 등록된 shelter가 없으면 NoAuthorizedException")
+  @DisplayName("분양게시글 등록 - user에 등록된 shelter가 없으면 NoAuthorizedException")
   void registerAdoption_shouldThrowNoAuthorizedException_whenUserIsNotRegisteredShelter() {
     //given
     User user = User.builder()
@@ -155,11 +176,11 @@ class AdoptionServiceTest {
 
     //when & then
     assertThrows(NoAuthorizedException.class,
-        () -> adoptionService.registerAdoption(request, images, 1L));
+        () -> adoptionService.registerAdoption(registerRequest, images, 1L));
   }
 
   @Test
-  @DisplayName("user에 등록된 shelter가 삭제된 경우 NoAuthorizedException")
+  @DisplayName("분양게시글 등록 - user에 등록된 shelter가 삭제된 경우 NoAuthorizedException")
   void registerAdoption_shouldThrowNoAuthorizedException_whenShelterIsDeleted() {
     //given
     Shelter shelter = Shelter.builder()
@@ -174,11 +195,11 @@ class AdoptionServiceTest {
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
     //when & then
     assertThrows(NoAuthorizedException.class,
-        () -> adoptionService.registerAdoption(request, images, 1L));
+        () -> adoptionService.registerAdoption(registerRequest, images, 1L));
   }
 
   @Test
-  @DisplayName("인증된 shelter가 아닌 경우 NotVerifiedShelterExistsException 발생")
+  @DisplayName("분양게시글 등록 - 인증된 shelter가 아닌 경우 NotVerifiedShelterExistsException 발생")
   void regiserAdoption_shouldThrowNotVerifiedShelterExistsException_whenShelterIsNotVerified() {
     //given
     Shelter shelter = Shelter.builder()
@@ -193,7 +214,7 @@ class AdoptionServiceTest {
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
     //when & then
     assertThrows(NotVerifiedShelterExistsException.class,
-        () -> adoptionService.registerAdoption(request, images, 1L));
+        () -> adoptionService.registerAdoption(registerRequest, images, 1L));
   }
 
   @Test
@@ -222,7 +243,7 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 존재하지 않을 경우 예외 처리")
+  @DisplayName("분양게시글 상세정보 조회 - 분양게시글 존재하지 않을 경우 예외 처리")
   void getAdoption_shouldThrowAdoptionNotFoundException_whenAdoptionIsNotExist() {
     //given
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
@@ -232,7 +253,7 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 삭제된 경우 예외 처리")
+  @DisplayName("분양게시글 상세정보 조회 - 분양게시글 삭제된 경우 예외 처리")
   void getAdoption_shouldThrowAdoptionIsDeletedException_whenAdoptionIsDeleted() {
     //given
     User user = User.builder().build();
@@ -248,6 +269,162 @@ class AdoptionServiceTest {
     //when & then
     assertThrows(AdoptionIsDeletedException.class,
         () -> adoptionService.getAdoption(2L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 성공 테스트")
+  void updateAdoption_success() throws IOException {
+    //given
+    Shelter shelter = Shelter.builder()
+        .verified(true)
+        .user(mock(User.class))
+        .build();
+    User user = spy(User.builder()
+        .shelter(shelter)
+        .build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build();
+    List<FileDto> uploadedImages = createFileDtoList(4);
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(1L);
+    given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
+        .willReturn(uploadedImages);
+
+    //when
+    adoptionService.updateAdoption(1L, updateRequest, images, 1L);
+    //then
+    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(Adoption.class);
+    ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
+
+    verify(adoptionRepository).save(adoptionCaptor.capture());
+    verify(fileUploadService, times(2)).deleteFile(stringCaptor.capture());
+
+    assertEquals(updateRequest.getTitle(), adoptionCaptor.getValue().getTitle());
+    assertEquals(updateRequest.getContent(), adoptionCaptor.getValue().getContent());
+    assertEquals(updateRequest.getBreed(),
+        adoptionCaptor.getValue().getBreed().getBreed());
+    assertEquals(updateRequest.getSize(), adoptionCaptor.getValue().getSize().getSize());
+    assertEquals(updateRequest.isNeutering(), adoptionCaptor.getValue().isNeutering());
+    assertEquals(updateRequest.getGender(),
+        adoptionCaptor.getValue().getGender().getGender());
+    assertEquals(updateRequest.getAge(), adoptionCaptor.getValue().getAge());
+    assertEquals(updateRequest.isHealthChecked(),
+        adoptionCaptor.getValue().isHealthChecked());
+    assertEquals(LocalDate.parse(updateRequest.getRegisteredAt()),
+        adoptionCaptor.getValue().getRegisteredAt());
+    assertEquals(uploadedImages.size(), adoptionCaptor.getValue().getImages().size());
+    assertEquals(uploadedImages.get(0).getUrl(),
+        adoptionCaptor.getValue().getImages().get(0).getUrl());
+    assertEquals(uploadedImages.get(1).getUrl(),
+        adoptionCaptor.getValue().getImages().get(1).getUrl());
+    assertEquals(uploadedImages.get(2).getUrl(),
+        adoptionCaptor.getValue().getImages().get(2).getUrl());
+    assertEquals(uploadedImages.get(3).getUrl(),
+        adoptionCaptor.getValue().getImages().get(3).getUrl());
+
+    assertEquals("url1", stringCaptor.getAllValues().get(0));
+    assertEquals("url2", stringCaptor.getAllValues().get(1));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - 분양게시글 존재하지 않을 경우 NotFoundAdoptionException")
+  void updateAdoption_shouldThrowNotFoundAdoptionException_whenAdoptionIsNotExist()
+      throws IOException {
+    //given
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    //when & then
+    assertThrows(AdoptionNotFoundException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - 작성자와 수정 요청자가 다를 경우")
+  void updateAdoption_shouldThrowNoAuthorizedException_whenRequestUserIsNotMatchedAdoptionWriter() {
+    //given
+    User user = spy(User.builder().build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url")))
+        .build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(2L);
+
+    //when & then
+    assertThrows(NoAuthorizedException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - 작성자의 보호소가 삭제된 경우")
+  void updateAdoption_shouldThrowNoAuthorizedException_whenShelterIsDeleted() {
+    //given
+    Shelter shelter = spy(Shelter.builder()
+        .verified(true)
+        .user(mock(User.class))
+        .build());
+    User user = spy(User.builder()
+        .shelter(shelter)
+        .build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(1L);
+    given(shelter.isDeleted()).willReturn(true);
+
+    //when
+    assertThrows(NoAuthorizedException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - 작성자의 보호소가 존재하지 않는 경우")
+  void updateAdoption_shouldThrowNoAuthorizedException_whenShelterIsNotExist() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(1L);
+
+    //when
+    assertThrows(NoAuthorizedException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 수정 - 작성자의 보호소가 인증되지 않은 경우")
+  void updateAdoption_shouldThrowNotVerifiedShelterExistException_whenShelterIsNotVerified() {
+    //given
+    Shelter shelter = spy(Shelter.builder()
+        .verified(false)
+        .user(mock(User.class))
+        .build());
+    User user = spy(User.builder()
+        .shelter(shelter)
+        .build());
+    Adoption adoption = Adoption.builder()
+        .user(user)
+        .images(List.of(new S3Object("url1"), new S3Object("url2")))
+        .build();
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getId()).willReturn(1L);
+
+    //when
+    assertThrows(NotVerifiedShelterExistsException.class,
+        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
   }
 
   private List<MultipartFile> createImageList(int addSize) throws IOException {

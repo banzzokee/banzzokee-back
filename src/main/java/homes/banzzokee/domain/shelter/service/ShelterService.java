@@ -216,6 +216,8 @@ public class ShelterService {
   private void registerOrRestoreShelter(User user, ShelterRegisterRequest request,
                                         S3Object shelterImage) {
     Shelter shelter = user.getShelter();
+    String imageUrl = shelterImage == null ? null : shelterImage.getUrl();
+
     if (shelter == null) {
       shelter = Shelter.builder()
           .name(request.getName())
@@ -224,7 +226,7 @@ public class ShelterService {
           .address(request.getAddress())
           .latitude(request.getLatitude())
           .longitude(request.getLongitude())
-          .shelterImgUrl(shelterImage.getUrl())
+          .shelterImgUrl(imageUrl)
           .verified(false)
           .user(user)
           .build();
