@@ -15,6 +15,7 @@ import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepositor
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
+import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
@@ -157,6 +158,22 @@ class ReviewServiceTest {
 
     //when & then
     assertThrows(AdoptionNotFoundException.class,
+        () -> reviewService.registerReview(registerRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 등록 - 분양게시글이 삭제된 경우")
+  void registerReview_shouldThrowAdoptionNotFoundException_whenAdoptionIsDeleted() {
+    //given
+    User user = mock(User.class);
+    Adoption adoption = spy(Adoption.builder().user(user).build());
+
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
+    given(adoption.isDeleted()).willReturn(true);
+
+    //when & then
+    assertThrows(AdoptionIsDeletedException.class,
         () -> reviewService.registerReview(registerRequest, images, 1L));
   }
 

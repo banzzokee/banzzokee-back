@@ -134,4 +134,9 @@ public class Adoption extends BaseEntity {
   public void delete() {
     this.deletedAt = LocalDateTime.now();
   }
+
+  public boolean isDeleted() {
+    return this.deletedAt != null;
+  }
+
 }

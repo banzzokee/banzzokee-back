@@ -5,6 +5,7 @@ import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepositor
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
+import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
@@ -44,6 +45,10 @@ public class ReviewService {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     Adoption adoption = adoptionRepository.findById(request.getAdoptionId())
         .orElseThrow(AdoptionNotFoundException::new);
+
+    if (adoption.isDeleted()) {
+      throw new AdoptionIsDeletedException();
+    }
 
     if (!adoption.getAssignedUser().equals(user)) {
       throw new ReviewPermissionException();
