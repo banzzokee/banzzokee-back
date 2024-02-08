@@ -1,8 +1,10 @@
 package homes.banzzokee.domain.user.service;
 
 import static homes.banzzokee.domain.type.FilePath.PROFILE;
-import static homes.banzzokee.domain.type.Role.SHELTER;
-import static homes.banzzokee.domain.type.Role.USER;
+import static homes.banzzokee.domain.type.Role.ROLE_SHELTER;
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
+import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
+import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
 import static homes.banzzokee.global.util.MockDataUtil.createMockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -34,21 +36,24 @@ import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.FcmTopicStatusChangeEvent;
+import homes.banzzokee.event.dto.FcmTopicStatusDto;
+import homes.banzzokee.event.type.FcmTopicCategory;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +70,9 @@ class UserServiceTest {
 
   @Mock
   private FollowRepository followRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   private final static MultipartFile MOCK_FILE;
 
@@ -296,7 +304,7 @@ class UserServiceTest {
   void followUser_when_UserDontHaveShelterRole_then_throwCanFollowOnlyShelterUserException() {
     // given
     User followee = createMockUser();
-    followee.addRoles(USER);
+    followee.addRoles(ROLE_USER);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     // when & then
@@ -309,7 +317,9 @@ class UserServiceTest {
   void followUser_when_success_then_verify() {
     // given
     User followee = createMockUser();
-    followee.addRoles(SHELTER);
+    followee.addRoles(ROLE_SHELTER);
+    Shelter shelter = createMockShelter();
+    given(followee.getShelter()).willReturn(shelter);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();
@@ -333,6 +343,17 @@ class UserServiceTest {
     assertEquals(follower.getNickname(), follow.getFollower().getNickname());
     assertEquals(followee.getId(), follow.getFollowee().getUserId());
     assertEquals(followee.getNickname(), follow.getFollowee().getNickname());
+
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor = ArgumentCaptor.forClass(
+        FcmTopicStatusChangeEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();
+    assertEquals(SUBSCRIBE, eventPayload.getAction());
+    assertEquals(shelter.getId(), eventPayload.getTopicId());
+    assertEquals("topic." + FcmTopicCategory.SHELTER.getName() + "." + shelter.getId(),
+        eventPayload.getTopic());
+    assertEquals(follower.getId(), eventPayload.getUserId());
   }
 
   @Test
@@ -340,7 +361,7 @@ class UserServiceTest {
   void followUser_when_alreadyFollow_then_neverSave() {
     // given
     User followee = createMockUser();
-    followee.addRoles(SHELTER);
+    followee.addRoles(ROLE_SHELTER);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();
@@ -362,6 +383,63 @@ class UserServiceTest {
     assertEquals(follower.getNickname(), follow.getFollower().getNickname());
     assertEquals(followee.getId(), follow.getFollowee().getUserId());
     assertEquals(followee.getNickname(), follow.getFollowee().getNickname());
+
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  @DisplayName("[사용자 언팔로우] - 팔로우 정보가 없으면 delete, publishEvent 호출하지 않음")
+  void unfollowUser_when_followNotExists_then_verifyNever_delete_and_publishEvent() {
+    // given
+    given(followRepository.findByFolloweeIdAndFollowerId(anyLong(), anyLong()))
+        .willReturn(Optional.empty());
+
+    // when & then
+    userService.unfollowUser(1L, 2L);
+
+    verify(followRepository, never()).delete(any(Follow.class));
+    verify(eventPublisher, never()).publishEvent(any(FcmTopicStatusChangeEvent.class));
+  }
+
+  @Test
+  @DisplayName("[사용자 언팔로우] - 팔로우 정보가 있으면 delete, publishEvent 호출")
+  void unfollowUser_when_followExists_then_verify_delete_and_publishEvent() {
+    // given
+    User followee = createMockUser();
+    User follower = createMockUser();
+    given(follower.getId()).willReturn(2L);
+
+    Shelter shelter = createMockShelter();
+    given(followee.getShelter()).willReturn(shelter);
+
+    Follow follow = Follow.builder()
+        .followee(followee)
+        .follower(follower)
+        .build();
+
+    given(followRepository.findByFolloweeIdAndFollowerId(followee.getId(),
+        follower.getId())).willReturn(Optional.of(follow));
+
+    // when & then
+    userService.unfollowUser(1L, 2L);
+
+    ArgumentCaptor<Follow> followCaptor = ArgumentCaptor.forClass(Follow.class);
+    verify(followRepository).delete(followCaptor.capture());
+    assertEquals(1L, followCaptor.getValue().getFollowee().getId());
+    assertEquals(2L, followCaptor.getValue().getFollower().getId());
+
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor = ArgumentCaptor.forClass(
+        FcmTopicStatusChangeEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    FcmTopicStatusDto eventPayload = eventCaptor.getValue().getPayload();
+    assertEquals(UNSUBSCRIBE, eventPayload.getAction());
+    assertEquals(shelter.getId(), eventPayload.getTopicId());
+    assertEquals(
+        "topic." + eventPayload.getTopicCategory().getName() + "."
+            + eventPayload.getTopicId(),
+        eventPayload.getTopic());
+    assertEquals(follower.getId(), eventPayload.getUserId());
   }
 
   @Test

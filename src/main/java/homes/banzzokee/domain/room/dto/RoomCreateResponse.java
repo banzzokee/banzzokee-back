@@ -11,7 +11,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class CreateRoomResponse {
+public class RoomCreateResponse {
 
   private final Long roomId;
 
@@ -19,8 +19,8 @@ public class CreateRoomResponse {
 
   private final ChatShelterDto shelter;
 
-  public static CreateRoomResponse fromEntity(ChatRoom chatRoom) {
-    return CreateRoomResponse.builder()
+  public static RoomCreateResponse fromEntity(ChatRoom chatRoom) {
+    return RoomCreateResponse.builder()
         .roomId(chatRoom.getId())
         .user(ChatUserDto.fromEntity(chatRoom.getUser()))
         .shelter(ChatShelterDto.fromEntity(chatRoom.getShelter()))

@@ -1,8 +1,8 @@
 package homes.banzzokee.domain.shelter.service;
 
-import static homes.banzzokee.domain.type.Role.ADMIN;
-import static homes.banzzokee.domain.type.Role.SHELTER;
-import static homes.banzzokee.domain.type.Role.USER;
+import static homes.banzzokee.domain.type.Role.ROLE_ADMIN;
+import static homes.banzzokee.domain.type.Role.ROLE_SHELTER;
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,7 +35,6 @@ import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -235,7 +233,7 @@ class ShelterServiceTest {
   void verifyShelter_when_shelterNotExists_then_throwShelterNotFoundException() {
     // given
     User user = mock(User.class);
-    given(user.getRole()).willReturn(getRoles(ADMIN));
+    given(user.getRole()).willReturn(getRoles(ROLE_ADMIN));
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
     given(shelterRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -249,7 +247,7 @@ class ShelterServiceTest {
   void verifyShelter_when_shelterIsDeleted_then_throwShelterNotFoundException() {
     // given
     User user = mock(User.class);
-    given(user.getRole()).willReturn(getRoles(ADMIN));
+    given(user.getRole()).willReturn(getRoles(ROLE_ADMIN));
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
 
     Shelter shelter = mock(Shelter.class);
@@ -266,7 +264,7 @@ class ShelterServiceTest {
   void verifyShelter_when_shelterVerified_then_throwShelterAlreadyVerifiedException() {
     // given
     User user = mock(User.class);
-    given(user.getRole()).willReturn(getRoles(ADMIN));
+    given(user.getRole()).willReturn(getRoles(ROLE_ADMIN));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     Shelter shelter = mock(Shelter.class);
@@ -283,7 +281,7 @@ class ShelterServiceTest {
   void verifyShelter_success_verify() {
     // given
     User user = spy(User.builder()
-        .role(getRoles(ADMIN))
+        .role(getRoles(ROLE_ADMIN))
         .build());
     given(user.getId()).willReturn(1L);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
@@ -298,7 +296,7 @@ class ShelterServiceTest {
     // then
     verify(shelter).verify();
     assertTrue(shelter.isVerified());
-    assertTrue(user.getRole().contains(SHELTER));
+    assertTrue(user.getRole().contains(ROLE_SHELTER));
   }
 
   @Test
@@ -460,7 +458,7 @@ class ShelterServiceTest {
     given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
 
     User user = spy(User.builder()
-        .role(getRoles(USER, SHELTER))
+        .role(getRoles(ROLE_USER, ROLE_SHELTER))
         .shelter(shelter)
         .build());
     given(user.getId()).willReturn(1L);
@@ -475,7 +473,7 @@ class ShelterServiceTest {
 
     // then
     verify(user).unregisterShelter();
-    assertFalse(user.getRole().contains(SHELTER));
+    assertFalse(user.getRole().contains(ROLE_SHELTER));
 
     verify(shelter).delete();
     assertTrue(shelter.isDeleted());

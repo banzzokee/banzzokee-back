@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.shelter.entity;
 
-import static homes.banzzokee.domain.type.Role.SHELTER;
+import static homes.banzzokee.domain.type.Role.ROLE_SHELTER;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PROTECTED;
@@ -124,7 +124,7 @@ public class Shelter extends BaseEntity {
   public void verify() {
     this.verified = true;
     assert this.user != null;
-    this.user.addRoles(SHELTER);
+    this.user.addRoles(ROLE_SHELTER);
   }
 
   /**
