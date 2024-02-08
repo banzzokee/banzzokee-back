@@ -1,14 +1,21 @@
 package homes.banzzokee.domain.adoption.controller;
 
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
 import homes.banzzokee.global.validator.annotation.ImageFile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,10 +30,23 @@ public class AdoptionController {
 
   @PostMapping
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
-      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> multipartFiles
-      // Todo @AuthenticationPrincipal
-  ) {
-    adoptionService.registerAdoption(request, multipartFiles, 2L); // Todo userId 변경
+      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    adoptionService.registerAdoption(request, images, userDetails.getUser().getId());
+  }
+
+  @GetMapping("/{adoptionId}")
+  public AdoptionResponse getAdoption(@PathVariable long adoptionId) {
+    return adoptionService.getAdoption(adoptionId);
+  }
+
+  @PutMapping("/{adoptionId}")
+  public void updateAdoption(@PathVariable long adoptionId,
+      @Valid @RequestPart AdoptionUpdateRequest request,
+      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    adoptionService.updateAdoption(adoptionId, request, images,
+        userDetails.getUser().getId());
   }
 
 }

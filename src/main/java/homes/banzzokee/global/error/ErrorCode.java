@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import lombok.Getter;
@@ -47,7 +48,7 @@ public enum ErrorCode {
   REFRESH_TOKEN_EXPIRED(UNAUTHORIZED, "다시 로그인 해주세요."),
   INVALID_TOKEN(UNAUTHORIZED, "유효하지 않는 토큰입니다."),
   ACCESS_TOKEN_EXPIRED(UNAUTHORIZED, "만료된 토큰입니다. 토큰을 재발급 해주세요."),
-
+  ADOPTION_IS_DELETED(NO_CONTENT, "삭제된 분양게시글입니다."),
   ;
 
   private final HttpStatus httpStatus;
