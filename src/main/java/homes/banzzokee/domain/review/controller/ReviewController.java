@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.review.controller;
 
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
+import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.service.ReviewService;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
@@ -10,6 +11,8 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -28,5 +31,10 @@ public class ReviewController {
       @FileDuplicateValid @ImageFile @Size(min = 1, max = 8) List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     reviewService.registerReview(request, images, userDetails.getUser().getId());
+  }
+
+  @GetMapping("/{reviewId}")
+  public ReviewResponse getReview(@PathVariable long reviewId) {
+    return reviewService.getReview(reviewId);
   }
 }
