@@ -4,6 +4,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionDto;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +27,10 @@ public class ReviewResponse {
 
   private final List<String> images;
 
+  private final LocalDateTime createdAt;
+
+  private final LocalDateTime updatedAt;
+
   public static ReviewResponse fromEntity(Review review) {
     return ReviewResponse.builder()
         .reviewId(review.getId())
@@ -34,6 +39,8 @@ public class ReviewResponse {
         .title(review.getTitle())
         .content(review.getContent())
         .images(getImages(review))
+        .createdAt(review.getCreatedAt())
+        .updatedAt(review.getUpdatedAt())
         .build();
   }
 
