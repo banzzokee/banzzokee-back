@@ -22,9 +22,11 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,8 +45,8 @@ public class AdoptionService {
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
-      List<MultipartFile> images,
-      long userId) {
+                               List<MultipartFile> images,
+                               long userId) {
     User user = findByUserIdOrThrow(userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(user);
     throwIfShelterIsNotVerified(shelter);
@@ -58,13 +60,12 @@ public class AdoptionService {
   public AdoptionResponse getAdoption(long adoptionId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfAdoptionIsDeleted(adoption);
-
     return AdoptionResponse.fromEntity(adoption);
   }
 
   @Transactional
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
-      List<MultipartFile> images, long userId) {
+                             List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
@@ -106,7 +107,7 @@ public class AdoptionService {
   }
 
   private void throwIfRequestUserIsNotMatchedAdoptionWriter(Adoption adoption,
-      long userId) {
+                                                            long userId) {
     if (adoption.getUser().getId() != userId) {
       throw new NoAuthorizedException();
     }
@@ -150,7 +151,7 @@ public class AdoptionService {
   }
 
   private Adoption registerAdoptionToDataBase(AdoptionRegisterRequest request, User user,
-      List<S3Object> images) {
+                                              List<S3Object> images) {
     return adoptionRepository.save(Adoption.builder()
         .user(user)
         .title(request.getTitle())
