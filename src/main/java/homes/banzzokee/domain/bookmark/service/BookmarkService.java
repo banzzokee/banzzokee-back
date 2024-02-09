@@ -64,6 +64,9 @@ public class BookmarkService {
 
   public Slice<AdoptionDto> findAllBookmark(UserDetailsImpl userDetails, Pageable pageable) {
     Slice<Bookmark> bookmarks = bookmarkRepository.findByUserId(userDetails.getUserId(), pageable);
+    if (!bookmarks.hasContent()) {
+      throw new BookmarkNotFoundException();
+    }
     List<AdoptionDto> adoptionDtos = bookmarks.getContent().stream()
         .map(AdoptionDto::fromEntity)
         .collect(Collectors.toList());
