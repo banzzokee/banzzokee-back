@@ -35,9 +35,8 @@ public class BookmarkController {
 
   @DeleteMapping("/{bookmarkId}")
   public ResponseEntity<Void> deleteBookmark(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                             @PathVariable Long bookmarkId) {
+                                             @PathVariable long bookmarkId) {
     bookmarkService.deleteBookmark(userDetails, bookmarkId);
     return ResponseEntity.ok().build();
   }
-
 }
