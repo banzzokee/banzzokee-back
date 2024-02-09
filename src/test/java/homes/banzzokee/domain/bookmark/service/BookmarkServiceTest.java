@@ -7,6 +7,7 @@ import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
+import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
 import homes.banzzokee.domain.type.*;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -26,7 +27,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.*;
 
 import static homes.banzzokee.domain.type.Role.ROLE_USER;
 import static org.junit.jupiter.api.Assertions.*;
