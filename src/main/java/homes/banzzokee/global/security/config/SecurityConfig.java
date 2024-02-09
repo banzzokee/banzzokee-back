@@ -1,5 +1,6 @@
 package homes.banzzokee.global.security.config;
 
+import homes.banzzokee.global.error.AccessDeniedHandlerImpl;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
 @EnableWebSecurity
@@ -25,16 +28,22 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers("(/api/users/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/shelters/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/adoptions/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
-            .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER")
+            .requestMatchers("/api/users/**").hasAnyRole("USER")
+            .requestMatchers("/api/shelters/{shelterId}/verify").hasAnyRole("ADMIN")
+            .requestMatchers(POST, "/api/shelters").hasAnyRole("USER", "SHELTER")
+            .requestMatchers("/api/shelters/**").hasAnyRole("SHELTER")
+            .requestMatchers("/api/adoptions/**").hasAnyRole("USER")
+            .requestMatchers("/api/reviews/**").hasAnyRole("USER")
+            .requestMatchers("/api/bookmarks/**").hasAnyRole("USER")
+            .requestMatchers("/api/notifications/**")
+            .hasAnyRole("USER", "ADMIN", "SHELTER")
+            .requestMatchers("/api/rooms/**", "/api/chats/**")
+            .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandlerImpl()))
+        .addFilterBefore(jwtAuthenticationFilter,
+            UsernamePasswordAuthenticationFilter.class);
     return httpSecurity.build();
   }
 }
