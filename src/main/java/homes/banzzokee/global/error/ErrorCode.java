@@ -49,6 +49,7 @@ public enum ErrorCode {
   INVALID_TOKEN(UNAUTHORIZED, "유효하지 않는 토큰입니다."),
   ACCESS_TOKEN_EXPIRED(UNAUTHORIZED, "만료된 토큰입니다. 토큰을 재발급 해주세요."),
   ADOPTION_IS_DELETED(NO_CONTENT, "삭제된 분양게시글입니다."),
+  BOOKMARK_ALREADY_EXISTS(BAD_REQUEST, "이미 저장된 북마크 입니다."),
   ;
 
   private final HttpStatus httpStatus;

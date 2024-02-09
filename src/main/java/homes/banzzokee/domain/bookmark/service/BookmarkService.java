@@ -4,13 +4,18 @@ import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
+import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
+import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,11 +26,16 @@ public class BookmarkService {
   private final BookmarkRepository bookmarkRepository;
   private final AdoptionRepository adoptionRepository;
 
-  public void registerBookmark(long userId, long adoptionId) {
-    User user = userRepository.findById(userId)
+  public void registerBookmark(UserDetailsImpl userDetails, BookmarkRegisterRequest bookmarkRegisterRequest) {
+    User user = userRepository.findById(userDetails.getUserId())
         .orElseThrow(UserNotFoundException::new);
-    Adoption adoption = adoptionRepository.findById(adoptionId)
+    Adoption adoption = adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())
         .orElseThrow(AdoptionNotFoundException::new);
+    Optional<Bookmark> existingBookmark = bookmarkRepository.findByUserIdAndAdoptionId(
+        userDetails.getUserId(), bookmarkRegisterRequest.getAdoptionId());
+    if (existingBookmark.isPresent()) {
+      throw new BookmarkAlreadyExistsException();
+    }
     bookmarkRepository.save(Bookmark.builder()
         .user(user)
         .adoption(adoption)
