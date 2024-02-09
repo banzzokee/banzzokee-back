@@ -52,6 +52,7 @@ public enum ErrorCode {
   BOOKMARK_ALREADY_EXISTS(BAD_REQUEST, "이미 저장된 북마크 입니다."),
   BOOKMARK_NOT_FOUND(NOT_FOUND, "북마크를 찾을 수 없습니다."),
   NO_SOCIAL_LOGIN_AUTHORIZED(FORBIDDEN, "잘못된 접근 방법입니다."),
+
   ;
 
   private final HttpStatus httpStatus;
