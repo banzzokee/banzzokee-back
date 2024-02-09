@@ -57,7 +57,6 @@ public class BookmarkController {
       @RequestParam(required = false, defaultValue = PAGE_DEFAULT_VALUE) int page,
       @RequestParam(required = false, defaultValue = SIZE_DEFAULT_VALUE) int size) {
     Pageable pageable = PageRequest.of(page, size);
-    Slice<AdoptionDto> adoptions = bookmarkService.findAllBookmark(userDetails, pageable);
-    return ResponseEntity.ok(adoptions);
+    return ResponseEntity.ok(bookmarkService.findAllBookmark(userDetails, pageable));
   }
 }
