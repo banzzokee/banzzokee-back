@@ -320,6 +320,8 @@ class UserServiceTest {
     // given
     User followee = createMockUser();
     followee.addRoles(ROLE_SHELTER);
+    Shelter shelter = createMockShelter();
+    given(followee.getShelter()).willReturn(shelter);
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
 
     User follower = createMockUser();
