@@ -62,6 +62,7 @@ public enum ErrorCode {
   REVIEW_NOT_FOUND(NOT_FOUND, "후기 게시글이 존재하지 않습니다.")
   ;
 
+
   private final HttpStatus httpStatus;
   private final String message;
 }
