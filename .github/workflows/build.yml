@@ -57,4 +57,4 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: docker Hub push
-      run: docker push banzzokee/demo
+      run: docker push banzzokee/demo:latest
