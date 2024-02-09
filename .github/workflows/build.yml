@@ -28,7 +28,31 @@ jobs:
       with:
         java-version: '17'
         distribution: 'oracle'
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+
+    - name: make environment file
+      run: |
+        cd ./src/main/resources
+        mkdir properties
+        cd properties
+        touch ./env.properties
+        echo "${{ secret.ENV_PROPERTIES }}" > ./env.properties
+
+#    - name: Build with Gradle
+#      uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+#      with:
+#        arguments: build
+
+    - name: Spring Boot Build
+      run: ./gradlew clean build
+
+    - name: docker image build
+      run: docker build -t banzzokee/demo ./docker/app
+
+    - name: docker login
+      uses: docker/login-action@v2
       with:
-        arguments: build
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: docker Hub push
+      run: docker push banzzokee/demo
