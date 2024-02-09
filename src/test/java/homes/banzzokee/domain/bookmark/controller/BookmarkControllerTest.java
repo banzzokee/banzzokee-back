@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.service.BookmarkService;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.security.WithMockCustomUser;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +53,8 @@ class BookmarkControllerTest {
     BookmarkRegisterRequest request = BookmarkRegisterRequest.builder()
         .adoptionId(1L)
         .build();
-    doNothing().when(bookmarkService).registerBookmark(anyLong(), anyLong());
+    doNothing().when(bookmarkService).registerBookmark(
+        any(UserDetailsImpl.class), any(BookmarkRegisterRequest.class));
 
     // when
     ResultActions resultActions = mockMvc.perform(post("/api/bookmarks")
@@ -60,7 +62,8 @@ class BookmarkControllerTest {
         .content(objectMapper.writeValueAsString(request)));
 
     // then
-    verify(bookmarkService).registerBookmark(anyLong(), anyLong());
+    verify(bookmarkService).registerBookmark(
+        any(UserDetailsImpl.class), any(BookmarkRegisterRequest.class));
     resultActions.andExpect(status().isCreated())
         .andExpect(header().string("Location", containsString("/api/bookmarks/" + bookmarkId)));
   }
