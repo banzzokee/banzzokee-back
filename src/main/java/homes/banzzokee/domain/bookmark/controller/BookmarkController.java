@@ -28,7 +28,7 @@ public class BookmarkController {
   @PostMapping
   public ResponseEntity<Void> registerBookmark(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                @Valid @RequestBody BookmarkRegisterRequest bookmarkRegisterRequest) {
-    bookmarkService.registerBookmark(userDetails.getUserId(), bookmarkRegisterRequest.getAdoptionId());
+    bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
         .path("/{bookmarkId}")
         .buildAndExpand(bookmarkRegisterRequest.getAdoptionId()).toUri();
