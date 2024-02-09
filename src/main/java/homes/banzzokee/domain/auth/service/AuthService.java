@@ -19,9 +19,11 @@ import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
+
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -120,6 +122,7 @@ public class AuthService {
 
   /**
    * 로그아웃
+   *
    * @param token
    */
   public void logout(String token) {

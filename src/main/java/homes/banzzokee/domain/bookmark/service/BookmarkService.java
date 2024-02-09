@@ -7,13 +7,16 @@ import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
+import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.security.UserDetailsImpl;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -26,6 +29,7 @@ public class BookmarkService {
   private final BookmarkRepository bookmarkRepository;
   private final AdoptionRepository adoptionRepository;
 
+  @Transactional
   public void registerBookmark(UserDetailsImpl userDetails, BookmarkRegisterRequest bookmarkRegisterRequest) {
     User user = userRepository.findById(userDetails.getUserId())
         .orElseThrow(UserNotFoundException::new);
@@ -40,5 +44,15 @@ public class BookmarkService {
         .user(user)
         .adoption(adoption)
         .build());
+  }
+
+  @Transactional
+  public void deleteBookmark(UserDetailsImpl userDetails, long bookmarkId) {
+    Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+        .orElseThrow(BookmarkNotFoundException::new);
+    if (!userDetails.getUserId().equals(bookmark.getUser().getId())) {
+      throw new NoAuthorizedException();
+    }
+    bookmarkRepository.delete(bookmark);
   }
 }

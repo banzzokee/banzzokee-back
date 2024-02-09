@@ -3,6 +3,7 @@ package homes.banzzokee.domain.bookmark.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +48,7 @@ class BookmarkControllerTest {
   @Test
   @WithMockCustomUser
   @DisplayName("[북마크 등록] - 성공 검증")
-  void sendRegisterBookmark_validInput_then_success() throws Exception {
+  void registerBookmark_validInput_then_success() throws Exception {
     // given
     long bookmarkId = 1L;
     BookmarkRegisterRequest request = BookmarkRegisterRequest.builder()
@@ -66,5 +67,19 @@ class BookmarkControllerTest {
         any(UserDetailsImpl.class), any(BookmarkRegisterRequest.class));
     resultActions.andExpect(status().isCreated())
         .andExpect(header().string("Location", containsString("/api/bookmarks/" + bookmarkId)));
+  }
+
+  @Test
+  @WithMockCustomUser
+  @DisplayName("[북마크 삭제] - 성공 검증")
+  void deleteBookmark_when_valid_then_success() throws Exception {
+    // given
+    long bookmarkId = 1L;
+
+    // when & then
+    ResultActions resultActions = mockMvc.perform(delete("/api/bookmarks/{bookmarkId}", bookmarkId));
+
+    resultActions.andExpect(status().isOk());
+    verify(bookmarkService).deleteBookmark(any(UserDetailsImpl.class), eq(bookmarkId));
   }
 }
