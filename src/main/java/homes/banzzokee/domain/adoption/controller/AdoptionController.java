@@ -32,7 +32,7 @@ public class AdoptionController {
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
       @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    adoptionService.registerAdoption(request, images, userDetails.getUser().getId());
+    adoptionService.registerAdoption(request, images, userDetails.getUserId());
   }
 
   @GetMapping("/{adoptionId}")
@@ -46,7 +46,7 @@ public class AdoptionController {
       @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.updateAdoption(adoptionId, request, images,
-        userDetails.getUser().getId());
+        userDetails.getUserId());
   }
 
 }
