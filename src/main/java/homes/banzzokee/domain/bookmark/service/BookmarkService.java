@@ -62,6 +62,7 @@ public class BookmarkService {
     bookmarkRepository.delete(bookmark);
   }
 
+  @Transactional(readOnly = true)
   public Slice<AdoptionDto> findAllBookmark(UserDetailsImpl userDetails, Pageable pageable) {
     Slice<Bookmark> bookmarks = bookmarkRepository.findByUserId(userDetails.getUserId(), pageable);
     if (!bookmarks.hasContent()) {
