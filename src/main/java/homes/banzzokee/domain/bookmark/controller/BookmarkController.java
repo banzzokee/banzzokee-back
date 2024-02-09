@@ -30,7 +30,7 @@ public class BookmarkController {
                                                @Valid @RequestBody BookmarkRegisterRequest bookmarkRegisterRequest) {
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/{bookmarkId}")
+        .path("/{adoptionId}")
         .buildAndExpand(bookmarkRegisterRequest.getAdoptionId()).toUri();
     return ResponseEntity.status(HttpStatus.CREATED)
         .location(location).build();
