@@ -78,6 +78,6 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./docker/app
+        file: ./docker/app/Dockerfile
         push: true
         tags: banzzokee/demo:latest
