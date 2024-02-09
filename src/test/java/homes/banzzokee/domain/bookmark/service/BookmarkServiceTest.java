@@ -20,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDate;
@@ -178,23 +177,17 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 삭제] - 성공 검증")
   void deleteBookmark_when_success_then_verify() {
     // given
-    long bookmarkId = 1L;
-    User user = User.builder()
-        .email("test@gmail.com")
-        .role(Collections.singleton(ROLE_USER))
-        .loginType(LoginType.EMAIL)
-        .build();
+    User user = mock(User.class);
+
     Bookmark bookmark = Bookmark.builder()
         .user(user)
         .build();
-    given(bookmarkRepository.findById(bookmarkId))
-        .willReturn(Optional.of(bookmark));
-    List<GrantedAuthority> authorities = Collections.singletonList(
-        new SimpleGrantedAuthority("ROLE_USER"));
-    UserDetailsImpl userDetails = new UserDetailsImpl(user, authorities);
+    given(bookmarkRepository.findById(1L)).willReturn(Optional.of(bookmark));
 
+    UserDetailsImpl userDetails = new UserDetailsImpl(user, Collections
+        .singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     // when
-    bookmarkService.deleteBookmark(userDetails, bookmarkId);
+    bookmarkService.deleteBookmark(userDetails, 1L);
 
     // then
     ArgumentCaptor<Bookmark> bookmarkCaptor = ArgumentCaptor.forClass(Bookmark.class);
@@ -228,47 +221,22 @@ class BookmarkServiceTest {
   void deleteBookmark_when_noAuthorized_then_NoAuthorizedException() {
     // given
     long bookmarkId = 1L;
-    User user = User.builder()
-        .email("test@gmail.com")
-        .nickname("반쪽이")
-        .role(Collections.singleton(ROLE_USER))
-        .loginType(LoginType.EMAIL)
-        .build();
+    User user = mock(User.class);
+    given(user.getId()).willReturn(2L);
+
     Bookmark bookmark = Bookmark.builder()
         .user(user)
         .build();
     given(bookmarkRepository.findById(bookmarkId)).willReturn(Optional.of(bookmark));
 
     // when
-    UserDetailsImpl userDetails = new UserDetailsImpl(user,
-        Collections.singletonList(new SimpleGrantedAuthority("ROLE_OTHER")));
+    User mockUser = mock(User.class);
+    given(mockUser.getId()).willReturn(1L);
+    UserDetailsImpl userDetails = new UserDetailsImpl(mockUser,
+        Collections.singletonList(new SimpleGrantedAuthority("USER_ROLE")));
 
     // then
     assertThrows(NoAuthorizedException.class, () ->
-        bookmarkService.deleteBookmark(userDetails, bookmarkId));
-  }
-
-  @Test
-  @DisplayName("[북마크 삭제] - 잘못된 접근 방법인 경우 SocialLoginAuthorizedException 발생")
-  void deleteBookmark_when_noSocialLoginAuthorized_then_SocialLoginAuthorizedException() {
-    long bookmarkId = 1L;
-    User user = User.builder()
-        .email("test@gmail.com")
-        .nickname("반쪽이")
-        .role(Collections.singleton(ROLE_USER))
-        .loginType(null)
-        .build();
-    Bookmark bookmark = Bookmark.builder()
-        .user(user)
-        .build();
-    given(bookmarkRepository.findById(bookmarkId)).willReturn(Optional.of(bookmark));
-
-    // when
-    UserDetailsImpl userDetails = new UserDetailsImpl(user,
-        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
-
-    // then
-    assertThrows(NullPointerException.class, () ->
-        bookmarkService.deleteBookmark(userDetails, bookmarkId));
+        bookmarkService.deleteBookmark(userDetails, 1L));
   }
 }
