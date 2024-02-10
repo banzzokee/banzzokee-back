@@ -76,4 +76,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: banzzokee/demo:latest
+        tags: jnjeaaaat/banzzokee:latest
