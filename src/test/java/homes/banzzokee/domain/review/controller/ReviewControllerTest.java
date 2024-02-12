@@ -1,6 +1,8 @@
 package homes.banzzokee.domain.review.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,11 +11,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
+import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.service.ReviewService;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
+import homes.banzzokee.global.util.MockMvcUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -192,6 +196,22 @@ class ReviewControllerTest {
     //then
     resultActions.andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 상세 조회 성공")
+  void getReview_success() throws Exception {
+    //given
+    ReviewResponse response = ReviewResponse.builder()
+        .reviewId(1L)
+        .title("후기 게시글")
+        .build();
+
+    given(reviewService.getReview(anyLong())).willReturn(response);
+    //when & then
+    MockMvcUtil.performGet(mockMvc, "/api/reviews/1")
+        .andExpect(jsonPath("$.reviewId").value(1))
+        .andExpect(jsonPath("$.title").value("후기 게시글"));
   }
 
   private MockMultipartHttpServletRequestBuilder addImages(

@@ -10,10 +10,12 @@ import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
+import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
+import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
@@ -67,6 +69,12 @@ public class ReviewService {
 
     reviewDocumentRepository.save(ReviewDocument.fromEntity(savedReview));
 
+  }
+
+  public ReviewResponse getReview(long reviewId) {
+    Review review = reviewRepository.findById(reviewId).orElseThrow(
+        ReviewNotFoundException::new);
+    return ReviewResponse.fromEntity(review);
   }
 
   private void registerReviewInAdoptionDocument(Review savedReview,

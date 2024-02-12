@@ -1,7 +1,8 @@
 package homes.banzzokee.domain.review.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static homes.banzzokee.domain.type.AdoptionStatus.FINISHED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -19,12 +20,15 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
+import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
+import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -234,6 +238,54 @@ class ReviewServiceTest {
     //when & then
     assertThrows(AdoptionDocumentNotFoundException.class,
         () -> reviewService.registerReview(registerRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 상세정보 조회 성공 테스트")
+  void getReview_success() {
+    //given
+    User adoptionUser = User.builder()
+        .nickname("분양 게시글 작성자")
+        .build();
+    User assignedUser = spy(User.builder()
+        .nickname("입양자")
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .user(adoptionUser)
+        .breed(BreedType.findByString("포메라니안"))
+        .status(FINISHED)
+        .build();
+    Review review = Review.builder()
+        .title("후기 게시글")
+        .adoption(adoption)
+        .user(assignedUser)
+        .build();
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(assignedUser.getCreatedAt()).willReturn(LocalDate.now().atStartOfDay());
+    //when
+    ReviewResponse response = reviewService.getReview(1L);
+
+    //then
+    assertEquals("분양 게시글 작성자", response.getAdoption().getUserNickname());
+    assertEquals("입양자", response.getUser().getNickname());
+    assertEquals("강아지", response.getAdoption().getTitle());
+    assertEquals("포메라니안", response.getAdoption().getBreed());
+    assertEquals("분양완료", response.getAdoption().getStatus());
+    assertEquals("후기 게시글", response.getTitle());
+
+  }
+
+  @Test
+  @DisplayName("후기 게시글 상세정보 조회 - 후기 게시글 존재하지 않을 경우")
+  void getReview_shouldThrowReviewNotFoundException_whenReviewIsNotExist() {
+    //given
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    //when & then
+    assertThrows(ReviewNotFoundException.class, () -> reviewService.getReview(1L));
+
   }
 
 
