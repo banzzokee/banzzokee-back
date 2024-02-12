@@ -57,7 +57,7 @@ public class AdoptionController {
       @Valid @RequestBody AdoptionStatusChangeRequest request,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.changeAdoptionStatus(adoptionId, request,
-        userDetails.getUser().getId());
+        userDetails.getUserId());
   }
 
 }
