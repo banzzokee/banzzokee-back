@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         getAuthenticate(token);
       } catch (TokenInvalidException | RefreshTokenExpiredException |
                ExpiredJwtException e) {
-        response.sendError(HttpStatus.UNAUTHORIZED.value());
+        throw e;
       }
     }
     filterChain.doFilter(request, response);

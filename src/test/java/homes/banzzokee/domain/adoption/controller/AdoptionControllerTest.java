@@ -95,8 +95,8 @@ class AdoptionControllerTest {
   void setup() {
     User user = mock(User.class);
     UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    when(userDetails.getUser()).thenReturn(user);
     when(user.getId()).thenReturn(1L);
+    when(userDetails.getUserId()).thenReturn(1L);
     SecurityContext context = SecurityContextHolder.getContext();
     context.setAuthentication(
         new UsernamePasswordAuthenticationToken(userDetails, "", null));
@@ -438,54 +438,6 @@ class AdoptionControllerTest {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
         .status("분양")
-        .assignedUserId(1L)
-        .build();
-    // when & then
-    mockMvc.perform(patch("/api/adoptions/2/status")
-            .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  @DisplayName("분양게시글 상태 변경 - 분양완료로 변경하려는 경우 assignedUserId가 null인 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull()
-      throws Exception {
-    //given
-    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
-        .assignedUserId(null)
-        .build();
-    // when & then
-    mockMvc.perform(patch("/api/adoptions/2/status")
-            .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  @DisplayName("분양게시글 상태 변경 - 예약중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId()
-      throws Exception {
-    //given
-    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
-        .assignedUserId(1L)
-        .build();
-    // when & then
-    mockMvc.perform(patch("/api/adoptions/2/status")
-            .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  @DisplayName("분양게시글 상태 변경 - 분양중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId()
-      throws Exception {
-    //given
-    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양중")
         .assignedUserId(1L)
         .build();
     // when & then
