@@ -1,7 +1,7 @@
 package homes.banzzokee.domain.chat.controller;
 
+import homes.banzzokee.domain.chat.dto.ChatSendDto;
 import homes.banzzokee.domain.chat.dto.MessageDto;
-import homes.banzzokee.domain.chat.dto.SendChatDto;
 import homes.banzzokee.domain.chat.service.ChatMessageService;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class MessageController {
   public MessageDto sendMessage(
       Principal principal,
       @DestinationVariable("roomId") Long roomId,
-      @Payload SendChatDto message) {
+      @Payload ChatSendDto message) {
 
     log.info("[sendMessage] room id : {}, user-id: '{}'", roomId,
         principal.getName());
