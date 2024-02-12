@@ -49,4 +49,4 @@ jobs:
           context: .
           file: ./docker/app/Dockerfile
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: ${{ github.sha }}
