@@ -128,4 +128,8 @@ public class Adoption extends BaseEntity {
     this.assignedUser = null;
     this.adoptedAt = null;
   }
+
+  public void delete() {
+    this.deletedAt = LocalDateTime.now();
+  }
 }

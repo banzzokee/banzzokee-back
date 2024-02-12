@@ -73,6 +73,7 @@ public class AdoptionService {
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
                              List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
     if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
       throw new AlreadyFinishedAdoptionException();
     }
@@ -121,6 +122,7 @@ public class AdoptionService {
     }
 
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
     throwIfShelterIsNotVerified(shelter);
@@ -147,6 +149,25 @@ public class AdoptionService {
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
         savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
     adoptionDocument.updateStatus(savedAdoption);
+    adoptionSearchRepository.save(adoptionDocument);
+  }
+
+  @Transactional
+  public void deleteAdoption(long adoptionId, long userId) {
+    Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
+    throwIfAdoptionIsDeleted(adoption);
+    if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
+      throw new AlreadyFinishedAdoptionException();
+    }
+    throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
+
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
+        adoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
+
+    adoption.delete();
+    adoptionDocument.delete(adoption);
+
+    adoptionRepository.save(adoption);
     adoptionSearchRepository.save(adoptionDocument);
   }
 
