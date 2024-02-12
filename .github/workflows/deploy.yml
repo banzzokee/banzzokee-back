@@ -42,7 +42,7 @@ jobs:
         with:
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee
-          tags: |
+          tag-semver: |
             {{version}}
             {{major}}.{{minor}}
 
