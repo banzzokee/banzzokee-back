@@ -4,12 +4,8 @@ name: auto CI CD
 on:
   push:
     branches: [ "main", "develop" ]
-    tags:
-      - 'v*'
   pull_request:
     branches: [ "main", "develop" ]
-    tags:
-      - 'v*'
 
 permissions:
   contents: read
@@ -53,4 +49,4 @@ jobs:
           context: .
           file: ./docker/app/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:${{ steps.meta.outputs.tags }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:${{ github.sha }}
