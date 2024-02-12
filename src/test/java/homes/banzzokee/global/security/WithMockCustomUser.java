@@ -1,6 +1,7 @@
 package homes.banzzokee.global.security;
 
-import static homes.banzzokee.domain.type.Role.USER;
+
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
 
 import homes.banzzokee.domain.type.Role;
 import java.lang.annotation.Retention;
@@ -15,5 +16,5 @@ public @interface WithMockCustomUser {
 
   String username() default "user1";
 
-  Role[] roles() default {USER};
+  Role[] roles() default {ROLE_USER};
 }

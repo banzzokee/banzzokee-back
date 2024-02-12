@@ -1,18 +1,18 @@
 package homes.banzzokee.domain.chat.service;
 
-import static homes.banzzokee.domain.type.MessageType.ENTER;
 import static homes.banzzokee.global.error.ErrorCode.ROOM_NOT_FOUND;
-import static homes.banzzokee.global.error.ErrorCode.USER_NOT_FOUND;
 
 import homes.banzzokee.domain.chat.dao.ChatMessageRepository;
+import homes.banzzokee.domain.chat.dto.ChatSendDto;
 import homes.banzzokee.domain.chat.dto.MessageDto;
-import homes.banzzokee.domain.chat.dto.SendChatDto;
 import homes.banzzokee.domain.chat.entity.ChatMessage;
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.room.exception.SocketUserNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -39,25 +39,24 @@ public class ChatMessageService {
    * @param message
    * @return
    */
-  public MessageDto sendMessage(Long roomId, SendChatDto message) {
+  @Transactional
+  public MessageDto sendMessage(Long roomId, ChatSendDto message) {
 
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
         .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));
 
-    // todo: FAILED -> USER_NOT_FOUND
     // todo: @AuthenticationPrincipal username -> findByEmail(email) 로 변경
     User user = userRepository.findById(1L)
-        .orElseThrow(() -> new SocketException(USER_NOT_FOUND));
+        .orElseThrow(SocketUserNotFoundException::new);
 
-    String realMessage = message.getMessageType().equals(ENTER) ?
-        user.getNickname() + " 님이 입장하였습니다." :
-        message.getMessage();
+    chatRoom.updateLastMessage(message.getMessage(), message.getMessageType(),
+        LocalDateTime.now());
 
     return MessageDto.fromEntity(
         chatMessageRepository.save(ChatMessage.builder()
             .room(chatRoom)
             .user(user)
-            .message(realMessage)
+            .message(message.getMessage())
             .messageType(message.getMessageType())
             .build()
         )

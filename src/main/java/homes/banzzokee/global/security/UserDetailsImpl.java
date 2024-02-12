@@ -20,7 +20,6 @@ public class UserDetailsImpl implements UserDetails {
     this.authorities = authorities;
   }
 
-
   /**
    * 사용자 권한 반환
    */

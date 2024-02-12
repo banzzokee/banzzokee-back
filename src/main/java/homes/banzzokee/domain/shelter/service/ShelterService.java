@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.shelter.service;
 
-import static homes.banzzokee.domain.type.Role.ADMIN;
+import static homes.banzzokee.domain.type.Role.ROLE_ADMIN;
 
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.entity.ChatRoom;
@@ -20,9 +20,7 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -165,7 +163,7 @@ public class ShelterService {
    */
   private void throwIfUserHasNotAdminRole(User user) {
     // TODO: 권한 제어 설정 후 삭제 확인
-    if (!user.getRole().contains(ADMIN)) {
+    if (!user.getRole().contains(ROLE_ADMIN)) {
       throw new NoAuthorizedException();
     }
   }
@@ -218,6 +216,8 @@ public class ShelterService {
   private void registerOrRestoreShelter(User user, ShelterRegisterRequest request,
                                         S3Object shelterImage) {
     Shelter shelter = user.getShelter();
+    String imageUrl = shelterImage == null ? null : shelterImage.getUrl();
+
     if (shelter == null) {
       shelter = Shelter.builder()
           .name(request.getName())
@@ -226,7 +226,7 @@ public class ShelterService {
           .address(request.getAddress())
           .latitude(request.getLatitude())
           .longitude(request.getLongitude())
-          .shelterImgUrl(shelterImage.getUrl())
+          .shelterImgUrl(imageUrl)
           .verified(false)
           .user(user)
           .build();

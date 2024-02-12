@@ -1,6 +1,10 @@
 package homes.banzzokee.global.security.config;
 
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 
 import homes.banzzokee.global.error.AccessDeniedHandlerImpl;
 import homes.banzzokee.global.error.ExceptionHandlerFilter;
@@ -30,22 +34,29 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers("(/api/users/**").hasAnyRole("USER", "ADMIN", "SHELTER")
+            .requestMatchers("/api/users/**").hasAnyRole("USER")
             .requestMatchers("/api/shelters/{shelterId}/verify").hasAnyRole("ADMIN")
             .requestMatchers(POST, "/api/shelters").hasAnyRole("USER", "SHELTER")
             .requestMatchers("/api/shelters/**").hasAnyRole("SHELTER")
-            .requestMatchers("/api/adoptions/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
+            .requestMatchers(GET, "/api/adoptions", "/api/adoptions/{adoptionId}")
+            .permitAll()
+            .requestMatchers(POST, "/api/adoptions").hasRole("SHELTER")
+            .requestMatchers(PUT, "api/adoptions/{adoptionId}").hasRole("SHELTER")
+            .requestMatchers(PATCH, "/api/adoptions/{adoptionId}/status")
+            .hasRole("SHELTER")
+            .requestMatchers(DELETE, "/api/adoptions/{adoptionID}").hasRole("USER")
+            .requestMatchers("/api/reviews/**").hasAnyRole("USER")
+            .requestMatchers("/api/bookmarks/**").hasAnyRole("USER")
             .requestMatchers("/api/notifications/**")
             .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/rooms/**", "/api/chats/**")
             .hasAnyRole("USER", "ADMIN", "SHELTER")
+            .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
-        .exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandlerImpl()))
         .addFilterBefore(jwtAuthenticationFilter,
             UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class);
+        .addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class)
+        .exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandlerImpl()));
     return httpSecurity.build();
   }
 }

@@ -9,6 +9,9 @@ public class DogSizeValidator implements ConstraintValidator<DogSizeValid, Strin
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null) {
+      return true;
+    }
     return DogSize.contains(value);
   }
 }

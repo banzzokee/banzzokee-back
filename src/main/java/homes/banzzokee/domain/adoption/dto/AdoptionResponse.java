@@ -1,13 +1,17 @@
 package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,21 +55,20 @@ public class AdoptionResponse {
 
   private final LocalDateTime updatedAt;
 
-  //  ReviewDto review
+  private final ReviewDto review;
 
   public static AdoptionResponse fromEntity(Adoption adoption) {
     return AdoptionResponse.builder()
         .adoptionId(adoption.getId())
-        .user(UserProfileDto.fromEntity(adoption.getUser()))
-        .assignedUser(UserProfileDto.fromEntity(adoption.getAssignedUser()))
+        .user(getUser(adoption.getUser()))
+        .assignedUser(getUser(adoption.getAssignedUser()))
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .imageUrls(Collections.unmodifiableList(adoption.getImages().stream().map(
-            S3Object::getUrl).collect(Collectors.toList())))
-        .breed(adoption.getBreed().getBreed())
-        .size(adoption.getSize().getSize())
+        .imageUrls(getImages(adoption.getImages()))
+        .breed(getBreed(adoption.getBreed()))
+        .size(getSize(adoption.getSize()))
         .neutering(adoption.isNeutering())
-        .gender(adoption.getGender().getGender())
+        .gender(getGender(adoption.getGender()))
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
@@ -73,7 +76,52 @@ public class AdoptionResponse {
         .adoptedAt(adoption.getAdoptedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
-// Todo:  .review(ReviewDto.fromEntity(adoption.getReview()))
+        .review(getReview(adoption.getReview()))
         .build();
+  }
+
+  private static ReviewDto getReview(Review review) {
+    if (review == null) {
+      return null;
+    }
+    return ReviewDto.fromEntity(review);
+  }
+
+  // assignedUser는 null이 가능하여 별도 null 처리
+  private static UserProfileDto getUser(User user) {
+    if (user == null) {
+      return null;
+    }
+    return UserProfileDto.fromEntity(user);
+  }
+
+  // 아래 사항들은 현재 null 값을 인정하지 않지만, 향후 운영정책 변경 시 null 처리 가능하게 하도록 작성함
+  // (status는 null이면 안 된다고 판단하여 작성하지 않음)
+  private static List<String> getImages(List<S3Object> images) {
+    if (images == null) {
+      return null;
+    }
+    return images.stream().map(S3Object::getUrl).toList();
+  }
+
+  private static String getBreed(BreedType breedType) {
+    if (breedType == null) {
+      return null;
+    }
+    return breedType.getBreed();
+  }
+
+  private static String getSize(DogSize size) {
+    if (size == null) {
+      return null;
+    }
+    return size.getSize();
+  }
+
+  private static String getGender(DogGender gender) {
+    if (gender == null) {
+      return null;
+    }
+    return gender.getGender();
   }
 }

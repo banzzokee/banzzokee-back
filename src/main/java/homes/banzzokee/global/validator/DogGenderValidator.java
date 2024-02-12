@@ -9,6 +9,9 @@ public class DogGenderValidator implements ConstraintValidator<DogGenderValid, S
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null) {
+      return true;
+    }
     return DogGender.contains(value);
   }
 }
