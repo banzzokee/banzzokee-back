@@ -10,7 +10,6 @@ import homes.banzzokee.domain.adoption.service.AdoptionService;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
 import homes.banzzokee.global.validator.annotation.ImageFile;
-import homes.banzzokee.global.validator.annotation.StatusRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -45,7 +44,7 @@ public class AdoptionController {
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
       @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    adoptionService.registerAdoption(request, images, userDetails.getUser().getId());
+    adoptionService.registerAdoption(request, images, userDetails.getUserId());
   }
 
   @GetMapping("/{adoptionId}")
@@ -59,21 +58,21 @@ public class AdoptionController {
       @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.updateAdoption(adoptionId, request, images,
-        userDetails.getUser().getId());
+        userDetails.getUserId());
   }
 
   @PatchMapping("/{adoptionId}/status")
   public void changeAdoptionStatus(@PathVariable long adoptionId,
-      @StatusRequest @Valid @RequestBody AdoptionStatusChangeRequest request,
+      @Valid @RequestBody AdoptionStatusChangeRequest request,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.changeAdoptionStatus(adoptionId, request,
-        userDetails.getUser().getId());
+        userDetails.getUserId());
   }
 
   @DeleteMapping("/{adoptionId}")
   public void deleteAdoption(@PathVariable long adoptionId,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    adoptionService.deleteAdoption(adoptionId, userDetails.getUser().getId());
+    adoptionService.deleteAdoption(adoptionId, userDetails.getUserId());
   }
 
   @GetMapping

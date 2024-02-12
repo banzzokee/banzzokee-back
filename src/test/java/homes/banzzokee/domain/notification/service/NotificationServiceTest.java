@@ -3,6 +3,7 @@ package homes.banzzokee.domain.notification.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import homes.banzzokee.domain.notification.dao.FcmTokenRepository;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
 import homes.banzzokee.domain.notification.entity.FcmToken;
+import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
@@ -26,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -38,6 +41,9 @@ class NotificationServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   private final static String USER_AGENT = "userAgent";
 
@@ -120,6 +126,13 @@ class NotificationServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(fcmTokenRepository.findByToken(anyString())).willReturn(Optional.empty());
 
+    FcmToken token = spy(FcmToken.builder()
+        .token(TOKEN_REGISTER_REQUEST.getToken())
+        .userAgent(USER_AGENT)
+        .user(user)
+        .build());
+    given(fcmTokenRepository.save(any(FcmToken.class))).willReturn(token);
+
     // when
     notificationService.registerFcmToken(TOKEN_REGISTER_REQUEST,
         USER_AGENT,
@@ -134,5 +147,13 @@ class NotificationServiceTest {
     assertEquals(USER_AGENT, value.getUserAgent());
     assertEquals(user.getId(), value.getUser().getId());
     assertTrue(value.getLastUsedAt().isAfter(now));
+
+    ArgumentCaptor<FcmTokenRegisteredEvent> eventCaptor
+        = ArgumentCaptor.forClass(FcmTokenRegisteredEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    FcmTokenRegisteredEvent event = eventCaptor.getValue();
+    assertEquals(TOKEN_REGISTER_REQUEST.getToken(), event.getPayload().getToken());
+    assertEquals(user.getId(), event.getPayload().getUserId());
   }
 }

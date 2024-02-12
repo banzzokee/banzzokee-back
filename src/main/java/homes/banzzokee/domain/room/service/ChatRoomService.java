@@ -1,17 +1,24 @@
 package homes.banzzokee.domain.room.service;
 
-import static homes.banzzokee.global.error.ErrorCode.FAILED;
-
+import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
-import homes.banzzokee.domain.room.dto.CreateRoomResponse;
+import homes.banzzokee.domain.room.dto.ChatRoomDto;
+import homes.banzzokee.domain.room.dto.RoomCreateResponse;
 import homes.banzzokee.domain.room.entity.ChatRoom;
-import homes.banzzokee.domain.shelter.dao.ShelterRepository;
+import homes.banzzokee.domain.room.exception.AdoptionWriterException;
+import homes.banzzokee.domain.room.exception.AlreadyExistsChatRoomException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
-import homes.banzzokee.global.error.exception.CustomException;
+import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,31 +29,65 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatRoomService {
 
+  private final AdoptionRepository adoptionRepository;
   private final ChatRoomRepository chatRoomRepository;
   private final UserRepository userRepository;
-  private final ShelterRepository shelterRepository;
-//  private final AdoptionRepository;
 
-  public CreateRoomResponse createChatRoom(String email, Long adoptionId,
-      Long userId) {
+  /**
+   * 채팅방 생성
+   *
+   * @param email
+   * @param adoptionId
+   * @return
+   */
+  public RoomCreateResponse createChatRoom(String email, Long adoptionId) {
 
-    // todo: userRepository 에 findByUidAndDeletedAtNull(String email) 추가
-    // todo: FAILED -> USER_NOT_FOUND
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new CustomException(FAILED));
+    // 삭제되지 않은 유저
+    User user = userRepository.findByEmailAndDeletedAtNull(email)
+        .orElseThrow(UserNotFoundException::new);
 
-    // todo: 아래 코드 지우고 Adoption 에서 받아온 shelter 로 저장
-    Shelter shelter = shelterRepository.findById(1L)
-        .orElseThrow(() -> new CustomException(FAILED));
+    Adoption adoption = adoptionRepository.findById(adoptionId)
+        .orElseThrow(AdoptionNotFoundException::new);
 
-    return CreateRoomResponse.fromEntity(
+    if (adoption.getUser().equals(user)) {
+      throw new AdoptionWriterException();
+    }
+
+    Shelter shelter = adoption.getUser().getShelter();
+
+    if (chatRoomRepository.existsByUserAndAdoption(user, adoption)) {
+      throw new AlreadyExistsChatRoomException();
+    }
+
+    return RoomCreateResponse.fromEntity(
         chatRoomRepository.save(ChatRoom.builder()
             .user(user)
             .shelter(shelter)
+            .adoption(adoption)
             .build()
         )
     );
 
+  }
+
+  /**
+   * 채팅방 목록 조회
+   *
+   * @param email
+   * @return
+   */
+  public Slice<ChatRoomDto> getChatRooms(String email, Pageable pageable) {
+    User user = userRepository.findByEmailAndDeletedAtNull(email)
+        .orElseThrow(UserNotFoundException::new);
+
+    Slice<ChatRoom> chatRooms = chatRoomRepository
+        .findAllByUserOrderByLastMessageCreatedAtDesc(user, pageable);
+
+    return new SliceImpl<>(
+        chatRooms.stream()
+            .map(ChatRoomDto::fromEntity)
+            .collect(Collectors.toList())
+    );
   }
 
 }
