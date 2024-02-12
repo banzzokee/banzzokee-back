@@ -49,7 +49,9 @@ public enum ErrorCode {
   ADOPTION_IS_DELETED(NO_CONTENT, "삭제된 분양게시글입니다."),
   CURRENT_STATUS_IS_SAME_TO_CHANGE(BAD_REQUEST, "현재 상태와 변경하려는 상태가 같습니다."),
   ADOPTION_DOCUMENT_NOT_FOUND(NOT_FOUND, "ElasticSearch에 저장된 분양게시글을 찾을 수가 없습니다."),
-  ALREADY_ADOPTION_IS_FINISHED(BAD_REQUEST, "이미 분양완료된 게시글입니다.")
+  ALREADY_ADOPTION_IS_FINISHED(BAD_REQUEST, "이미 분양완료된 게시글입니다."),
+  NEED_TO_ASSIGNED_USER_INFO(BAD_REQUEST, "분양완료로 상태변경하기 위해서는 입양자 정보가 필요합니다."),
+  ASSIGNED_USER_MUST_BE_NULL(BAD_REQUEST,"분양중 또는 예약중으로 상태변경하기 위해서는 입양자 정보가 필요없습니다.")
   ;
 
   private final HttpStatus httpStatus;

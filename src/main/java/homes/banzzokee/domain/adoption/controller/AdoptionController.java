@@ -8,7 +8,6 @@ import homes.banzzokee.domain.adoption.service.AdoptionService;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
 import homes.banzzokee.global.validator.annotation.ImageFile;
-import homes.banzzokee.global.validator.annotation.StatusRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -55,7 +54,7 @@ public class AdoptionController {
 
   @PatchMapping("/{adoptionId}/status")
   public void changeAdoptionStatus(@PathVariable long adoptionId,
-      @StatusRequest @Valid @RequestBody AdoptionStatusChangeRequest request,
+      @Valid @RequestBody AdoptionStatusChangeRequest request,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.changeAdoptionStatus(adoptionId, request,
         userDetails.getUser().getId());

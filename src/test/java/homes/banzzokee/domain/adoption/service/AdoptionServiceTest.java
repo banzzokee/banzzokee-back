@@ -29,7 +29,9 @@ import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundExcepti
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
+import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
+import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -594,6 +596,48 @@ class AdoptionServiceTest {
         adoptionDocumentArgumentCaptor.getValue().getStatus());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUser());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 - 분양완료로 변경하려는 경우 assignedUserId가 null인 경우")
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull()
+      throws Exception {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("분양완료")
+        .assignedUserId(null)
+        .build();
+    // when & then
+    assertThrows(MustInputAssignedUserInfoException.class,
+        () -> adoptionService.changeAdoptionStatus(1L, request, 2L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 - 예약중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId()
+      throws Exception {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("예약중")
+        .assignedUserId(1L)
+        .build();
+    // when & then
+    assertThrows(AssignedUserMustBeNullException.class,
+        () -> adoptionService.changeAdoptionStatus(1L, request, 2L));
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 - 분양중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId()
+      throws Exception {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("분양중")
+        .assignedUserId(1L)
+        .build();
+    // when & then
+    assertThrows(AssignedUserMustBeNullException.class,
+        () -> adoptionService.changeAdoptionStatus(1L, request, 2L));
   }
 
   @Test

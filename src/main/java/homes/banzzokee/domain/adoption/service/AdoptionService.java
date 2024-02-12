@@ -12,7 +12,9 @@ import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundExcepti
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
+import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
+import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -105,6 +107,18 @@ public class AdoptionService {
   @Transactional
   public void changeAdoptionStatus(long adoptionId, AdoptionStatusChangeRequest request,
       long userId) {
+    if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())
+        && request.getAssignedUserId() == null) {
+      throw new MustInputAssignedUserInfoException();
+    }
+
+    if (request.getStatus().equals(AdoptionStatus.RESERVING.getStatus())
+        || request.getStatus().equals(AdoptionStatus.ADOPTING.getStatus())) {
+      if (request.getAssignedUserId() != null) {
+        throw new AssignedUserMustBeNullException();
+      }
+    }
+
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(adoption.getUser());
@@ -121,7 +135,7 @@ public class AdoptionService {
     // 분양완료로 변경하려는 경우는 상태변경, 입양자 정보 입력, 입양일시 입력
     if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())) {
       adoption.updateStatusToFinish(AdoptionStatus.findByString(request.getStatus()),
-          assignedUser, LocalDate.now());
+          assignedUser);
     } else {  // 분양중, 예약중으로 변경하려는 경우 상태만 변경
       adoption.updateStatusExceptToFinish(
           AdoptionStatus.findByString(request.getStatus()));
