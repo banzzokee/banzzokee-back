@@ -169,7 +169,7 @@ class ReviewServiceTest {
     Adoption adoption = spy(Adoption.builder().user(user).build());
 
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-    given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(adoption.isDeleted()).willReturn(true);
 
     //when & then
