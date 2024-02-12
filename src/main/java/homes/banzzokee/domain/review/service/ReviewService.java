@@ -155,7 +155,7 @@ public class ReviewService {
       try {
         fileUploadService.deleteFile(image.getFileName());
       } catch (Exception e) {
-        log.error("delete adoption image failed. file={}", image, e);
+        log.error("delete review image failed. file={}", image, e);
       }
     }
   }
