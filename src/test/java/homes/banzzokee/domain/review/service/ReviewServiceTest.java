@@ -83,7 +83,7 @@ class ReviewServiceTest {
     User user = mock(User.class);
     Adoption adoption = Adoption.builder().user(user).build();
     LocalDate now = LocalDate.now();
-    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user, now);
+    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user);
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
 
     List<FileDto> fileDtoList = createFileDtoList(4);
@@ -184,8 +184,7 @@ class ReviewServiceTest {
     User requestUser = mock(User.class);
     User assignedUser = mock(User.class);
     Adoption adoption = Adoption.builder().user(requestUser).build();
-    LocalDate now = LocalDate.now();
-    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, assignedUser, now);
+    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, assignedUser);
 
     given(userRepository.findById(anyLong())).willReturn(Optional.of(requestUser));
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
@@ -202,8 +201,7 @@ class ReviewServiceTest {
     User user = mock(User.class);
     Review review = mock(Review.class);
     Adoption adoption = spy(Adoption.builder().user(user).build());
-    LocalDate now = LocalDate.now();
-    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user, now);
+    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user);
 
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
@@ -221,8 +219,7 @@ class ReviewServiceTest {
     //given
     User user = mock(User.class);
     Adoption adoption = Adoption.builder().user(user).build();
-    LocalDate now = LocalDate.now();
-    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user, now);
+    adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user);
 
     List<FileDto> fileDtoList = createFileDtoList(4);
 
