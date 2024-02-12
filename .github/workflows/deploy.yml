@@ -49,4 +49,4 @@ jobs:
           context: .
           file: ./docker/app/Dockerfile
           push: true
-          tags: ${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:sha-${{ github.sha }}
