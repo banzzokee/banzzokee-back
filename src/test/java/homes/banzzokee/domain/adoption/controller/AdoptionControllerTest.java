@@ -94,8 +94,8 @@ class AdoptionControllerTest {
   void setup() {
     User user = mock(User.class);
     UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    when(userDetails.getUser()).thenReturn(user);
     when(user.getId()).thenReturn(1L);
+    when(userDetails.getUserId()).thenReturn(1L);
     SecurityContext context = SecurityContextHolder.getContext();
     context.setAuthentication(
         new UsernamePasswordAuthenticationToken(userDetails, "", null));
