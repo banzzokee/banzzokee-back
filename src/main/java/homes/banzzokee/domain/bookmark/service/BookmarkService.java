@@ -69,7 +69,7 @@ public class BookmarkService {
       throw new BookmarkNotFoundException();
     }
     List<AdoptionDto> adoptionDtos = bookmarks.getContent().stream()
-        .map(AdoptionDto::fromEntity)
+        .map(bookmark -> AdoptionDto.fromEntity(bookmark.getAdoption()))
         .collect(Collectors.toList());
     return new SliceImpl<>(adoptionDtos, bookmarks.getPageable(), bookmarks.hasNext());
   }
