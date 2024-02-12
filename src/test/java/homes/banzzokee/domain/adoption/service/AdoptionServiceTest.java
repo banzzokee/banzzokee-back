@@ -20,8 +20,11 @@ import static org.mockito.Mockito.verify;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchRequest;
+import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
+import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
@@ -39,6 +42,7 @@ import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
@@ -58,6 +62,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,6 +81,8 @@ class AdoptionServiceTest {
   private AdoptionRepository adoptionRepository;
   @Mock
   private AdoptionSearchRepository adoptionSearchRepository;
+  @Mock
+  private AdoptionSearchQueryRepository queryRepository;
   @InjectMocks
   private AdoptionService adoptionService;
 
@@ -975,6 +986,38 @@ class AdoptionServiceTest {
     //when & then
     assertThrows(AdoptionDocumentNotFoundException.class,
         () -> adoptionService.deleteAdoption(1L, 3L));
+  }
+
+  @Test
+  @DisplayName("분양 게시글 목록 조회 성공 테스트")
+  void getAdoptionList_success() {
+    //given
+    AdoptionSearchRequest request = null;
+    PageRequest pageRequest = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
+
+    given(queryRepository.findByAdoptionSearchRequest(request, pageRequest))
+        .willReturn(createAdoptionDocumentList(4));
+    //when
+    Slice<AdoptionSearchResponse> responses = adoptionService.getAdoptionList(request,
+        pageRequest);
+    //then
+    assertEquals(4, responses.getSize());
+    assertEquals(1, responses.getContent().get(0).getAdoptionId());
+    assertEquals(2, responses.getContent().get(1).getAdoptionId());
+    assertEquals(3, responses.getContent().get(2).getAdoptionId());
+    assertEquals(4, responses.getContent().get(3).getAdoptionId());
+  }
+
+  private List<AdoptionDocument> createAdoptionDocumentList(int addNum) {
+    List<AdoptionDocument> responses = new ArrayList<>();
+    for (int i = 1; i <= addNum; i++) {
+      responses.add(AdoptionDocument.builder()
+          .id(Integer.toUnsignedLong(i))
+          .user(mock(UserProfileDto.class))
+          .build());
+    }
+    return responses;
   }
 
   private List<MultipartFile> createImageList(int addSize) throws IOException {
