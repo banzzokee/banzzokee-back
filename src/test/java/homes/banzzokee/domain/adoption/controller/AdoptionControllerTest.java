@@ -6,12 +6,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
+import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
 import homes.banzzokee.domain.user.entity.User;
@@ -35,6 +37,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,6 +48,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(value = AdoptionController.class, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthenticationFilter.class)})
@@ -60,6 +64,8 @@ class AdoptionControllerTest {
   @Captor
   private ArgumentCaptor<List<MultipartFile>> imagesCaptor;
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("이쁜 우리 강아지")
       .content("우리 강아지를 소개합니다.")
@@ -73,16 +79,16 @@ class AdoptionControllerTest {
       .build();
 
   private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
-          .title("이쁜 우리 강아지")
-          .content("우리 강아지를 소개합니다.")
-          .breed("포메라니안")
-          .size("중형")
-          .neutering(false)
-          .gender("수컷")
-          .age(5)
-          .healthChecked(true)
-          .registeredAt("2024-01-01")
-          .build();
+      .title("이쁜 우리 강아지")
+      .content("우리 강아지를 소개합니다.")
+      .breed("포메라니안")
+      .size("중형")
+      .neutering(false)
+      .gender("수컷")
+      .age(5)
+      .healthChecked(true)
+      .registeredAt("2024-01-01")
+      .build();
 
   @BeforeEach
   void setup() {
@@ -395,6 +401,49 @@ class AdoptionControllerTest {
     //then
     resultActions.andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 성공 테스트")
+  void changeAdoptionStatus_success()
+      throws Exception {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("분양완료")
+        .assignedUserId(1L)
+        .build();
+    // when & then
+    mockMvc.perform(patch("/api/adoptions/2/status")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<Long> longArgumentCaptor = ArgumentCaptor.forClass(Long.class);
+    ArgumentCaptor<AdoptionStatusChangeRequest> requestArgumentCaptor =
+        ArgumentCaptor.forClass(AdoptionStatusChangeRequest.class);
+
+    verify(adoptionService).changeAdoptionStatus(longArgumentCaptor.capture(),
+        requestArgumentCaptor.capture(), longArgumentCaptor.capture());
+
+    assertEquals(2L, longArgumentCaptor.getAllValues().get(0));
+    assertEquals(1L, longArgumentCaptor.getAllValues().get(1));
+    assertEquals(request, requestArgumentCaptor.getValue());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상태 변경 - 유효한 상태값이 아닌 경우(유효한 상태값 : 분양중, 예약중, 분양완료)")
+  void changeAdoptionStatus_shouldThrowValidationError_whenInputInvalidRequest()
+      throws Exception {
+    //given
+    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
+        .status("분양")
+        .assignedUserId(1L)
+        .build();
+    // when & then
+    mockMvc.perform(patch("/api/adoptions/2/status")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
   }
 
 }
