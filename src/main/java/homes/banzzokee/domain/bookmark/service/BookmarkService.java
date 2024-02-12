@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.bookmark.service;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.dto.AdoptionDto;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
@@ -15,10 +16,15 @@ import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,5 +60,13 @@ public class BookmarkService {
       throw new NoAuthorizedException();
     }
     bookmarkRepository.delete(bookmark);
+  }
+
+  public Slice<AdoptionDto> findAllBookmark(UserDetailsImpl userDetails, Pageable pageable) {
+    Slice<Bookmark> bookmarks = bookmarkRepository.findByUserId(userDetails.getUserId(), pageable);
+    List<AdoptionDto> adoptionDtos = bookmarks.getContent().stream()
+        .map(AdoptionDto::fromEntity)
+        .collect(Collectors.toList());
+    return new SliceImpl<>(adoptionDtos, bookmarks.getPageable(), bookmarks.hasNext());
   }
 }
