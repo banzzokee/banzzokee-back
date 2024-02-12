@@ -30,7 +30,7 @@ public class ReviewController {
   public void registerReview(@Valid @RequestPart ReviewRegisterRequest request,
       @FileDuplicateValid @ImageFile @Size(min = 1, max = 8) List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    reviewService.registerReview(request, images, userDetails.getUser().getId());
+    reviewService.registerReview(request, images, userDetails.getUserId());
   }
 
   @GetMapping("/{reviewId}")

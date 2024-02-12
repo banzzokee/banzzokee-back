@@ -13,8 +13,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
-  private final User user;
+  private final Long userId;
+  private final String username;
   private final List<GrantedAuthority> authorities;
+
+  public UserDetailsImpl(User user, List<GrantedAuthority> authorities) {
+    this.userId = user.getId();
+    this.username = user.getEmail();
+    this.authorities = authorities;
+  }
 
   /**
    * 사용자 권한 반환
@@ -29,7 +36,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getPassword() {
-    return user.getPassword();
+    return null;
   }
 
   /**
@@ -37,7 +44,7 @@ public class UserDetailsImpl implements UserDetails {
    */
   @Override
   public String getUsername() {
-    return user.getEmail();
+    return username;
   }
 
   /**

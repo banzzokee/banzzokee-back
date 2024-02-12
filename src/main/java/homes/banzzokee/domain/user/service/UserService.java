@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.user.service;
 
+import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
+import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
 import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
 import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
@@ -7,11 +9,11 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.FollowDto;
 import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
-import homes.banzzokee.domain.user.dto.FollowDto;
-import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateResponse;
 import homes.banzzokee.domain.user.dto.UserWithdrawRequest;
 import homes.banzzokee.domain.user.dto.UserWithdrawResponse;
@@ -22,10 +24,12 @@ import homes.banzzokee.domain.user.exception.CanNotFollowSelfException;
 import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordException;
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +42,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final FollowRepository followRepository;
   private final FileUploadService s3Service;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
   public UserProfileDto getUserProfile(long userId) {
@@ -50,8 +55,6 @@ public class UserService {
     User followee = findByUserIdOrThrow(followeeId);
     throwIfFolloweeIsNotShelter(followee);
     User follower = findByUserIdOrThrow(followerId);
-
-    // TODO: 팔로우 알림 발생
     return FollowDto.from(followUserIfNotFollowing(followee, follower));
   }
 
@@ -78,6 +81,7 @@ public class UserService {
           .followee(followee)
           .follower(follower)
           .build());
+      eventPublisher.publishEvent(FcmTopicStatusChangeEvent.of(SUBSCRIBE, follow));
     }
 
     return follow;
@@ -88,6 +92,7 @@ public class UserService {
 
     if (follow != null) {
       followRepository.delete(follow);
+      eventPublisher.publishEvent(FcmTopicStatusChangeEvent.of(UNSUBSCRIBE, follow));
     }
   }
 
@@ -146,8 +151,10 @@ public class UserService {
   private void validateChangePasswordRequest(PasswordChangeRequest request, User user) {
     throwIfAlreadyWithdrawn(user);
     throwIfPasswordUnmatched(user, request.getOriginPassword());
-    throwIfOriginPasswordSameNewPassword(request.getOriginPassword(), request.getNewPassword());
-    throwIfConfirmPasswordUnmatched(request.getNewPassword(), request.getConfirmPassword());
+    throwIfOriginPasswordSameNewPassword(request.getOriginPassword(),
+        request.getNewPassword());
+    throwIfConfirmPasswordUnmatched(request.getNewPassword(),
+        request.getConfirmPassword());
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
