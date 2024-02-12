@@ -4,6 +4,7 @@ import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,7 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -26,7 +26,12 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-            .requestMatchers("/api/auth/**", "/api/adoptions/**").permitAll()
+            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/adoptions", "/api/adoptions/{adoptionId}").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/adoptions").hasRole("SHELTER")
+            .requestMatchers(HttpMethod.PUT, "api/adoptions/{adoptionId}").hasRole("SHELTER")
+            .requestMatchers(HttpMethod.PATCH, "/api/adoptions/{adoptionId}/status").hasRole("SHELTER")
+            .requestMatchers(HttpMethod.DELETE, "/api/adoptions/{adoptionID}").hasRole("USER")
             .requestMatchers("(/api/users/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/shelters/**").hasAnyRole("ADMIN", "SHELTER")
             .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN", "SHELTER")
