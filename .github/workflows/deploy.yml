@@ -6,6 +6,8 @@ on:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
+    tags:
+      - 'v*'
 
 permissions:
   contents: read
@@ -34,6 +36,16 @@ jobs:
       - name: Spring Boot Build
         run: ./gradlew bootJar
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee
+          tags: |
+            {{version}}
+            {{major}}.{{minor}}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -48,5 +60,6 @@ jobs:
         with:
           context: .
           file: ./docker/app/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:sha-${{ github.sha }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
