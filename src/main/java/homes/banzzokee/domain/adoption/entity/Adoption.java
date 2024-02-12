@@ -1,7 +1,5 @@
 package homes.banzzokee.domain.adoption.entity;
 
-import static jakarta.persistence.CascadeType.PERSIST;
-
 import homes.banzzokee.domain.adoption.entity.convertor.ImagesConvertor;
 import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.review.entity.Review;
@@ -81,7 +79,7 @@ public class Adoption extends BaseEntity {
   @JoinColumn(referencedColumnName = "id", name = "assigned_user_id")
   private User assignedUser;
 
-  @OneToOne(fetch = FetchType.LAZY, cascade = PERSIST)
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "review_id")
   private Review review;
 
@@ -135,4 +133,9 @@ public class Adoption extends BaseEntity {
   public void delete() {
     this.deletedAt = LocalDateTime.now();
   }
+
+  public boolean isDeleted() {
+    return this.deletedAt != null;
+  }
+
 }

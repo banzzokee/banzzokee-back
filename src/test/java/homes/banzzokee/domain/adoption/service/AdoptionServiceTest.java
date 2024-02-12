@@ -33,7 +33,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
 import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
-import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
+import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
@@ -837,7 +837,7 @@ class AdoptionServiceTest {
     given(user.getId()).willReturn(1L);
     given(shelter.isDeleted()).willReturn(false);
     //when & then
-    assertThrows(CurrentStatusIsSameToChangeExcetion.class,
+    assertThrows(CurrentStatusIsSameToChangeException.class,
         () -> adoptionService.changeAdoptionStatus(1L, request, 1L));
   }
 

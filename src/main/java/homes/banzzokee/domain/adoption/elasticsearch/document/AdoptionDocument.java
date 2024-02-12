@@ -116,6 +116,10 @@ public class AdoptionDocument {
     this.updatedAt = adoption.getUpdatedAt();
   }
 
+  public void updateReview(ReviewDto review) {
+    this.review = review;
+  }
+
   private static UserProfileDto getUserProfileDto(User user) {
     if (user == null) {
       return null;

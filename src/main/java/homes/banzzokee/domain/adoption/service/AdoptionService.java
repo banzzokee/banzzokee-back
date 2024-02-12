@@ -16,7 +16,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
 import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
-import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeExcetion;
+import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
@@ -136,7 +136,7 @@ public class AdoptionService {
 
     // 변경하려는 분양게시글 상태가 현재 상태와 같으면 예외 발생
     if (adoption.getStatus().getStatus().equals(request.getStatus())) {
-      throw new CurrentStatusIsSameToChangeExcetion();
+      throw new CurrentStatusIsSameToChangeException();
     }
 
     User assignedUser = request.getAssignedUserId() == null ? null

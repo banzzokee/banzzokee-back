@@ -57,7 +57,8 @@ public enum ErrorCode {
   BOOKMARK_ALREADY_EXISTS(BAD_REQUEST, "이미 저장된 북마크 입니다."),
   BOOKMARK_NOT_FOUND(NOT_FOUND, "북마크를 찾을 수 없습니다."),
   NO_SOCIAL_LOGIN_AUTHORIZED(FORBIDDEN, "잘못된 접근 방법입니다."),
-
+  REVIEW_CAN_BE_WRITE_BY_ASSIGNED_USER(UNAUTHORIZED, "후기 게시글은 입양자만 작성 가능합니다."),
+  ONLY_ONE_REVIEW_ALLOWED_PER_ADOPTION(BAD_REQUEST, "후기 게시글은 분양 게시글 당 하나만 작성 가능합니다.")
   ;
 
   private final HttpStatus httpStatus;
