@@ -27,6 +27,7 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -119,6 +120,48 @@ public class ReviewService {
 
     deleteOldImages(oldImages);
     return ReviewResponse.fromEntity(savedReview);
+  }
+
+  @Transactional
+  public void deleteReview(long reviewId, long userId) {
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(ReviewNotFoundException::new);
+    User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
+
+    if (!review.getUser().equals(user)) {
+      throw new NoAuthorizedException();
+    }
+
+    deleteReviewInAdoption(review.getAdoption());
+    deleteReviewInAdoptionDocument(review.getAdoption().getId());
+
+    LocalDateTime now = LocalDateTime.now();
+    deleteReviewInReviewDocument(reviewId, now);
+    review.delete(now);
+    reviewRepository.save(review);
+  }
+현
+  private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
+    ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
+        .orElseThrow(ReviewDocumentNotFoundException::new);
+    reviewDocument.delete(deletedAt);
+    reviewDocumentRepository.save(reviewDocument);
+  }
+
+  private void deleteReviewInAdoption(Adoption adoption) {
+    adoption.deleteReview();
+    adoptionRepository.save(adoption);
+  }
+
+  private void deleteReviewInAdoptionDocument(long adoptionId) {
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
+        .orElseThrow(AdoptionDocumentNotFoundException::new);
+    adoptionDocument.deleteReview();
+    adoptionSearchRepository.save(adoptionDocument);
   }
 
   private void registerReviewInAdoptionDocument(Review savedReview,

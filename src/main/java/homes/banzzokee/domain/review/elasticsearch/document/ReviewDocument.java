@@ -67,4 +67,8 @@ public class ReviewDocument {
     this.content = content;
     this.images = images;
   }
+
+  public void delete(LocalDateTime deletedAt) {
+    this.deletedAt = deletedAt;
+  }
 }
