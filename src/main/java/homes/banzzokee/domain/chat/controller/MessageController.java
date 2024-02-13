@@ -37,10 +37,10 @@ public class MessageController {
       @DestinationVariable("roomId") Long roomId,
       @Payload ChatSendDto message) {
 
-    log.info("[sendMessage] room id : {}, user-id: '{}'", roomId,
+    log.info("[sendMessage] room id : {}, user-id: {}", roomId,
         principal.getName());
 
-    return chatMessageService.sendMessage(roomId, message);
+    return chatMessageService.sendMessage(principal.getName(), roomId, message);
   }
 
 }

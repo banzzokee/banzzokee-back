@@ -63,6 +63,7 @@ public enum ErrorCode {
   REVIEW_DOCUMENT_NOT_FOUND(NOT_FOUND, "ElasticSearch에 저장된 후기게시글을 찾을 수가 없습니다.")
   ;
 
+
   private final HttpStatus httpStatus;
   private final String message;
 }
