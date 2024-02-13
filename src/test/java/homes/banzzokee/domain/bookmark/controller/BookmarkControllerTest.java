@@ -103,7 +103,6 @@ class BookmarkControllerTest {
     S3Object s3Object1 = new S3Object("url1");
     Pageable pageable = PageRequest.of(0, 10);
     AdoptionDto adoptionDto1 = AdoptionDto.builder()
-        .bookmarkId(1L).userId(1L)
         .userNickname("반쪽이").adoptionId(1L)
         .title("반쪽이입니다.").content("분양합니다.")
         .imageUrls(List.of(s3Object1)).breed("POODLE")
@@ -127,7 +126,6 @@ class BookmarkControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(adoptionDtoList.size()))
-        .andExpect(jsonPath("$.content[0].bookmarkId").value(adoptionDto1.getBookmarkId()))
         .andExpect(jsonPath("$.content[0].userId").value(adoptionDto1.getUserId()))
         .andExpect(jsonPath("$.content[0].userNickname").value(adoptionDto1.getUserNickname()))
         .andExpect(jsonPath("$.content[0].adoptionId").value(adoptionDto1.getAdoptionId()))

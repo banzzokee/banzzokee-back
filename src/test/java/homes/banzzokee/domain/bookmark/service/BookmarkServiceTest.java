@@ -245,33 +245,24 @@ class BookmarkServiceTest {
   }
 
   @Test
-  @WithMockCustomUser
   @DisplayName("[북마크 전체 조회] - 성공 검증")
   void findAllBookmark_when_verify_then_success() {
-    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    given(userDetails.getUserId()).willReturn(1L);
+    // given
     Pageable pageable = PageRequest.of(0, 10);
-
     User user = mock(User.class);
     given(user.getId()).willReturn(1L);
-    given(user.getNickname()).willReturn("반쪽이");
 
     Adoption adoption = mock(Adoption.class);
-    given(adoption.getId()).willReturn(1L);
-    given(adoption.getBreed()).willReturn(BreedType.GREYHOUND);
-    given(adoption.getSize()).willReturn(DogSize.LARGE);
-    given(adoption.getStatus()).willReturn(AdoptionStatus.ADOPTING);
-    given(adoption.getGender()).willReturn(DogGender.MALE);
+    given(adoption.getUser()).willReturn(user);
 
     Bookmark bookmark1 = mock(Bookmark.class);
-    given(bookmark1.getUser()).willReturn(user);
     given(bookmark1.getAdoption()).willReturn(adoption);
-    given(bookmark1.getId()).willReturn(1L);
 
     Bookmark bookmark2 = mock(Bookmark.class);
-    given(bookmark2.getUser()).willReturn(user);
     given(bookmark2.getAdoption()).willReturn(adoption);
-    given(bookmark2.getId()).willReturn(1L);
+
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
 
     List<Bookmark> bookmarksList = Arrays.asList(bookmark1, bookmark2);
     Slice<Bookmark> bookmarksSlice = new SliceImpl<>(bookmarksList, pageable, true);
