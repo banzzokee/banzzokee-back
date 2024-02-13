@@ -79,7 +79,8 @@ class BookmarkServiceTest {
     when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(adoption));
     when(bookmarkRepository.findByUserIdAndAdoptionId(1L, bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.empty());
 
-    UserDetailsImpl userDetails = new UserDetailsImpl(1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
 
     // when
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
@@ -93,8 +94,8 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 등록] - 회원 정보가 없는 경우 UserNotFoundException 발생")
   void registerBookmark_when_verifyUser_then_UserNotFoundException() {
     // given
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
@@ -118,8 +119,9 @@ class BookmarkServiceTest {
         .role(Set.of(ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
+
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
@@ -158,8 +160,8 @@ class BookmarkServiceTest {
         .registeredAt(LocalDate.parse("2024-02-06"))
         .build();
 
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
     BookmarkRegisterRequest bookmarkRegisterRequest = new BookmarkRegisterRequest(1L);
 
     when(userRepository.findById(userDetails.getUserId())).thenReturn(Optional.of(user));
