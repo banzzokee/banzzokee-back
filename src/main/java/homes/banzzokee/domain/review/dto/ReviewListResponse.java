@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.review.dto;
 
-import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.type.S3Object;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,16 +27,16 @@ public class ReviewListResponse {
 
   private final LocalDateTime updatedAt;
 
-  public static ReviewListResponse fromEntity(Review review) {
+  public static ReviewListResponse fromDocument(ReviewDocument reviewDocument) {
     return ReviewListResponse.builder()
-        .reviewId(review.getId())
-        .userId(review.getUser().getId())
-        .userNickname(review.getUser().getNickname())
-        .title(review.getTitle())
-        .content(review.getContent())
-        .imageUrls(getImageUrls(review.getImages()))
-        .createdAt(review.getCreatedAt())
-        .updatedAt(review.getUpdatedAt())
+        .reviewId(reviewDocument.getId())
+        .userId(reviewDocument.getUser().getUserId())
+        .userNickname(reviewDocument.getUser().getNickname())
+        .title(reviewDocument.getTitle())
+        .content(reviewDocument.getContent())
+        .imageUrls(getImageUrls(reviewDocument.getImages()))
+        .createdAt(reviewDocument.getCreatedAt())
+        .updatedAt(reviewDocument.getUpdatedAt())
         .build();
   }
 
