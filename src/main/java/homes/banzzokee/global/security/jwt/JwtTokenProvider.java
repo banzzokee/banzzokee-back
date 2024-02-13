@@ -6,16 +6,22 @@ import homes.banzzokee.global.security.exception.AccessTokenExpiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
 import homes.banzzokee.global.security.exception.TokenInvalidException;
 import homes.banzzokee.global.util.redis.RedisService;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import javax.crypto.SecretKey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 @Getter
 @Component
@@ -79,5 +85,20 @@ public class JwtTokenProvider {
 
   private boolean isRefreshToken(String token) {
     return redisService.isRefreshTokenExist(getUserEmailFromToken(token), token);
+  }
+
+  /**
+   * 토큰 인증 정보 조회
+   */
+  public Authentication getAuthentication(String token) {
+    UserDetails userDetails =
+        userDetailsService.loadUserByUsername(
+            // claim 의 subject 에 저장되어있는 email
+            getUserEmailFromToken(token)
+        );
+
+    return new UsernamePasswordAuthenticationToken(
+        userDetails, "", userDetails.getAuthorities()
+    );
   }
 }
