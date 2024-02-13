@@ -7,6 +7,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
 import homes.banzzokee.global.error.AccessDeniedHandlerImpl;
+import homes.banzzokee.global.error.ExceptionHandlerFilter;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final ExceptionHandlerFilter exceptionHandlerFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -36,10 +38,12 @@ public class SecurityConfig {
             .requestMatchers("/api/shelters/{shelterId}/verify").hasAnyRole("ADMIN")
             .requestMatchers(POST, "/api/shelters").hasAnyRole("USER", "SHELTER")
             .requestMatchers("/api/shelters/**").hasAnyRole("SHELTER")
-            .requestMatchers(GET, "/api/adoptions", "/api/adoptions/{adoptionId}").permitAll()
+            .requestMatchers(GET, "/api/adoptions", "/api/adoptions/{adoptionId}")
+            .permitAll()
             .requestMatchers(POST, "/api/adoptions").hasRole("SHELTER")
             .requestMatchers(PUT, "api/adoptions/{adoptionId}").hasRole("SHELTER")
-            .requestMatchers(PATCH, "/api/adoptions/{adoptionId}/status").hasRole("SHELTER")
+            .requestMatchers(PATCH, "/api/adoptions/{adoptionId}/status")
+            .hasRole("SHELTER")
             .requestMatchers(DELETE, "/api/adoptions/{adoptionID}").hasRole("USER")
             .requestMatchers("/api/reviews/**").hasAnyRole("USER")
             .requestMatchers("/api/bookmarks/**").hasAnyRole("USER")
@@ -49,9 +53,10 @@ public class SecurityConfig {
             .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
-        .exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandlerImpl()))
         .addFilterBefore(jwtAuthenticationFilter,
-            UsernamePasswordAuthenticationFilter.class);
+            UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class)
+        .exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandlerImpl()));
     return httpSecurity.build();
   }
 }
