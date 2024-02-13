@@ -28,14 +28,11 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -152,7 +149,8 @@ public class ReviewService {
   }
 
   public Slice<ReviewListResponse> getReviewList(Pageable pageable) {
-    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(pageable);
+    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(
+        pageable);
     return new SliceImpl<>(
         reviewList.stream().map(ReviewListResponse::fromDocument).toList());
   }
