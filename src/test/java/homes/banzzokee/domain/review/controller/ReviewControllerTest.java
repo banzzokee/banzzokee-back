@@ -1,6 +1,8 @@
 package homes.banzzokee.domain.review.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -12,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
+import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.service.ReviewService;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.UserDetailsImpl;
@@ -63,6 +66,11 @@ class ReviewControllerTest {
       .adoptionId(1L)
       .title("강아지 입양")
       .content("너무 귀여워요")
+      .build();
+
+  private final ReviewUpdateRequest updateRequest = ReviewUpdateRequest.builder()
+      .title("커여운 강아지")
+      .content("게시글 변경했어요")
       .build();
 
   @BeforeEach
@@ -212,6 +220,121 @@ class ReviewControllerTest {
     MockMvcUtil.performGet(mockMvc, "/api/reviews/1")
         .andExpect(jsonPath("$.reviewId").value(1))
         .andExpect(jsonPath("$.title").value("후기 게시글"));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 성공 테스트")
+  void updateReview_success() throws Exception {
+    //given
+    ReviewResponse response = ReviewResponse.builder()
+        .reviewId(1L)
+        .title("후기 게시글")
+        .build();
+    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+
+    given(reviewService.updateReview(anyLong(), any(ReviewUpdateRequest.class), anyList(),
+        anyLong())).willReturn(response);
+
+    //when
+    MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
+        .multipart(HttpMethod.PUT, "/api/reviews/1")
+        .part(mockPart);
+    MockMultipartHttpServletRequestBuilder post = addImages(postWithoutImage, 4);
+    ResultActions resultActions = mockMvc.perform(post).andDo(print());
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.reviewId").value(1))
+        .andExpect(jsonPath("$.title").value("후기 게시글"));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 - 같은 파일명인 여러 파일을 업로드 할 경우")
+  void updateReview_shouldThrowValidationError_whenFileHasDuplicateFilename()
+      throws Exception {
+    //given
+    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+
+    //when
+    MockMultipartFile image = MockDataUtil.createMockMultipartFile("images",
+        "src/test/resources/images/banzzokee.png");
+    MockMultipartHttpServletRequestBuilder post = MockMvcRequestBuilders
+        .multipart(HttpMethod.PUT, "/api/reviews/1")
+        .part(mockPart)
+        .file(image)
+        .file(image);
+
+    ResultActions resultActions = mockMvc.perform(post).andDo(print());
+
+    //then
+    resultActions.andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 - 이미지 파일 8장 초과일 경우")
+  void updateReview_shouldThrowValidationError_whenNumberOfFilesOver8()
+      throws Exception {
+    //given
+    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+
+    //when
+    MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
+        .multipart(HttpMethod.PUT, "/api/reviews/1")
+        .part(mockPart);
+    MockMultipartHttpServletRequestBuilder post = addImages(postWithoutImage, 9);
+    ResultActions resultActions = mockMvc.perform(post).andDo(print());
+
+    //then
+    resultActions.andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 - 이미지 파일이 아닐 경우 예외 처")
+  void updateReview_shouldThrowValidationError_whenFileIsNotImage()
+      throws Exception {
+    //given
+    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+
+    //when
+    MockMultipartFile textFile = createMockTextFile();
+    MockMultipartHttpServletRequestBuilder post = MockMvcRequestBuilders
+        .multipart(HttpMethod.PUT, "/api/reviews/1")
+        .part(mockPart)
+        .file(textFile);
+
+    ResultActions resultActions = mockMvc.perform(post).andDo(print());
+
+    //then
+    resultActions.andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 - request 필드 유효성 검사 실패")
+  void updateReview_shouldThrowValidationError_whenInputInvalidRequest()
+      throws Exception {
+    String over50 = "over".repeat(50);
+    String over500 = "over".repeat(500);
+    ReviewUpdateRequest request = ReviewUpdateRequest.builder()
+        .title(over50)  // 50자 이상
+        .content(over500)  // 500자 이상
+        .build();
+    MockPart mockPart = MockDataUtil.createMockPart("request", request);
+
+    //when
+    MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
+        .multipart(HttpMethod.PUT, "/api/reviews/1")
+        .part(mockPart);
+    MockMultipartHttpServletRequestBuilder post = addImages(postWithoutImage, 2);
+    ResultActions resultActions = mockMvc.perform(post).andDo(print());
+
+    //then
+    resultActions.andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
   }
 
   private MockMultipartHttpServletRequestBuilder addImages(
