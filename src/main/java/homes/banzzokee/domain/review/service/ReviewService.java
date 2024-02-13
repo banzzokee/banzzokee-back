@@ -9,6 +9,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.review.dto.ReviewListResponse;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
@@ -27,11 +28,17 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -142,6 +149,12 @@ public class ReviewService {
     deleteReviewInReviewDocument(reviewId, now);
     review.delete(now);
     reviewRepository.save(review);
+  }
+
+  public Slice<ReviewListResponse> getReviewList(Pageable pageable) {
+    List<Review> reviewList = reviewRepository.findAllByDeletedAtIsNull(pageable);
+    return new SliceImpl<>(
+        reviewList.stream().map(ReviewListResponse::fromEntity).toList());
   }
 
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
