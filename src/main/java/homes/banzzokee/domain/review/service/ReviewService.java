@@ -69,7 +69,7 @@ public class ReviewService {
 
     List<S3Object> uploadedReviewImages = uploadReviewImages(images);
 
-    Review savedReview = registerReviewToDataBase(request, adoption, user,
+    Review savedReview = registerOrRestoreReviewToDataBase(request, adoption, user,
         uploadedReviewImages);
 
     registerReviewInAdoptionDocument(savedReview, request.getAdoptionId());
@@ -136,7 +136,6 @@ public class ReviewService {
       throw new NoAuthorizedException();
     }
 
-    deleteReviewInAdoption(review.getAdoption());
     deleteReviewInAdoptionDocument(review.getAdoption().getId());
 
     LocalDateTime now = LocalDateTime.now();
@@ -150,11 +149,6 @@ public class ReviewService {
         .orElseThrow(ReviewDocumentNotFoundException::new);
     reviewDocument.delete(deletedAt);
     reviewDocumentRepository.save(reviewDocument);
-  }
-
-  private void deleteReviewInAdoption(Adoption adoption) {
-    adoption.deleteReview();
-    adoptionRepository.save(adoption);
   }
 
   private void deleteReviewInAdoptionDocument(long adoptionId) {
@@ -184,16 +178,27 @@ public class ReviewService {
         .collect(Collectors.toList());
   }
 
-  private Review registerReviewToDataBase(ReviewRegisterRequest request,
+  private Review registerOrRestoreReviewToDataBase(ReviewRegisterRequest request,
       Adoption adoption,
       User user, List<S3Object> images) {
-    return reviewRepository.save(Review.builder()
-        .adoption(adoption)
-        .user(user)
-        .title(request.getTitle())
-        .content(request.getContent())
-        .images(images)
-        .build());
+    Review review = adoption.getReview();
+    if (review == null) {
+      review = Review.builder()
+          .adoption(adoption)
+          .user(user)
+          .title(request.getTitle())
+          .content(request.getContent())
+          .images(images)
+          .build();
+      adoption.updateReview(review);
+      adoptionRepository.save(adoption);
+    }
+
+    if (review.isDeleted()) {
+      review.restore();
+    }
+
+    return reviewRepository.save(review);
   }
 
   private void deleteOldImages(List<S3Object> oldImages) {

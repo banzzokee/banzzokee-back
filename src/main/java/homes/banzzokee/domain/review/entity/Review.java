@@ -72,4 +72,8 @@ public class Review extends BaseEntity {
   public void delete(LocalDateTime deletedAt) {
     this.deletedAt = deletedAt;
   }
+
+  public void restore() {
+    this.deletedAt = null;
+  }
 }
