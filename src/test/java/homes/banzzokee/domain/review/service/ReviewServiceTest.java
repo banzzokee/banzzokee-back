@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -500,6 +501,7 @@ class ReviewServiceTest {
         .user(assignedUser)
         .adoption(adoption)
         .build());
+    adoption.updateReview(review);
     AdoptionDocument adoptionDocument = AdoptionDocument.builder()
         .review(mock(ReviewDto.class))
         .build();
@@ -517,23 +519,20 @@ class ReviewServiceTest {
     reviewService.deleteReview(1L, 1L);
 
     // then
-    ArgumentCaptor<Adoption> adoptionArgumentCaptor = ArgumentCaptor.forClass(
-        Adoption.class);
     ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
         ArgumentCaptor.forClass(AdoptionDocument.class);
     ArgumentCaptor<Review> reviewArgumentCaptor = ArgumentCaptor.forClass(Review.class);
     ArgumentCaptor<ReviewDocument> reviewDocumentArgumentCaptor =
         ArgumentCaptor.forClass(ReviewDocument.class);
 
-    verify(adoptionRepository).save(adoptionArgumentCaptor.capture());
     verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
     verify(reviewDocumentRepository).save(reviewDocumentArgumentCaptor.capture());
     verify(reviewRepository).save(reviewArgumentCaptor.capture());
 
-    assertNull(adoptionArgumentCaptor.getValue().getReview());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getReview());
     assertNotNull(reviewDocumentArgumentCaptor.getValue().getDeletedAt());
     assertNotNull(reviewArgumentCaptor.getValue().getDeletedAt());
+    assertTrue(reviewArgumentCaptor.getValue().getAdoption().getReview().isDeleted());
   }
 
   @Test
