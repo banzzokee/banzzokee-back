@@ -61,3 +61,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            docker stop banzzokee-demo
+            docker rm banzzokee-demo
+            docker run -it -d -p 8080:8080 --name banzzokee-demo ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
