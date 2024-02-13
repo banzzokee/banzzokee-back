@@ -152,9 +152,9 @@ public class ReviewService {
   }
 
   public Slice<ReviewListResponse> getReviewList(Pageable pageable) {
-    List<Review> reviewList = reviewRepository.findAllByDeletedAtIsNull(pageable);
+    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(pageable);
     return new SliceImpl<>(
-        reviewList.stream().map(ReviewListResponse::fromEntity).toList());
+        reviewList.stream().map(ReviewListResponse::fromDocument).toList());
   }
 
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
