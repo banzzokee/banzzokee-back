@@ -25,6 +25,7 @@ import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.review.exception.DeletedReviewException;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
 import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
@@ -298,6 +299,22 @@ class ReviewServiceTest {
   }
 
   @Test
+  @DisplayName("후기 게시글 상세정보 조회 - 후기 게시글 삭제된 않을 경우")
+  void getReview_shouldThrowDeletedReviewException_whenReviewIsDeleted() {
+    //given
+    Review review = spy(Review.builder()
+        .title("후기 게시글")
+        .build());
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(review.isDeleted()).willReturn(true);
+
+    //when & then
+    assertThrows(DeletedReviewException.class, () -> reviewService.getReview(1L));
+
+  }
+
+  @Test
   @DisplayName("후기 게시글 수정 성공 테스트")
   void updateReview_success() {
     //given
@@ -363,6 +380,25 @@ class ReviewServiceTest {
 
     //when & then
     assertThrows(UserNotFoundException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - 수정하려는 후기 게시글이 이미 삭제된 경우")
+  void updateReview_shouldThrowDeletedReviewException_whenReviewIsDeleted() {
+    //given
+    User assignedUser = spy(User.builder().build());
+    User user = mock(User.class);
+    Review review = spy(Review.builder()
+        .user(assignedUser)
+        .build());
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+    given(review.isDeleted()).willReturn(true);
+
+    //when & then
+    assertThrows(DeletedReviewException.class,
         () -> reviewService.updateReview(1L, updateRequest, images, 1L));
   }
 
