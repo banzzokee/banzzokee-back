@@ -21,10 +21,12 @@ import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
+import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
+import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -33,11 +35,13 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +77,11 @@ class ReviewServiceTest {
       .adoptionId(1L)
       .title("강아지 입양")
       .content("너무 귀여워요")
+      .build();
+
+  private final ReviewUpdateRequest updateRequest = ReviewUpdateRequest.builder()
+      .title("강아지 커여워")
+      .content("후기 게시글 내용 수정")
       .build();
 
   private final List<MultipartFile> images = createImageList(4);
@@ -285,6 +294,157 @@ class ReviewServiceTest {
 
     //when & then
     assertThrows(ReviewNotFoundException.class, () -> reviewService.getReview(1L));
+
+  }
+
+  @Test
+  @DisplayName("후기 게시글 수정 성공 테스트")
+  void updateReview_success() {
+    //given
+    User assignedUser = spy(User.builder().build());
+    User user = mock(User.class);
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .build());
+    Review review = spy(Review.builder()
+        .user(assignedUser)
+        .adoption(adoption)
+        .build());
+    List<FileDto> fileDtoList = createFileDtoList(4);
+    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
+    ReviewDocument reviewDocument = ReviewDocument.builder().build();
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
+    given(fileUploadService.uploadManyFile(images, FilePath.REVIEW)).willReturn(
+        fileDtoList);
+    given(reviewRepository.save(any(Review.class))).will(returnsFirstArg());
+    given(adoption.getId()).willReturn(1L);
+    given(user.getId()).willReturn(1L);
+    given(assignedUser.getCreatedAt()).willReturn(LocalDateTime.now());
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.of(adoptionDocument));
+    given(reviewDocumentRepository.findById(anyLong())).willReturn(
+        Optional.of(reviewDocument));
+
+    //when
+    ReviewResponse response = reviewService.updateReview(1L, updateRequest, images, 1L);
+
+    //then
+    assertEquals(updateRequest.getTitle(), response.getTitle());
+    assertEquals(updateRequest.getContent(), response.getContent());
+    assertEquals(4, response.getImages().size());
+    assertEquals("url1", response.getImages().get(0));
+    assertEquals("url2", response.getImages().get(1));
+    assertEquals("url3", response.getImages().get(2));
+    assertEquals("url4", response.getImages().get(3));
+
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - 수정하려는 후기 게시글이 존재하지 않을 경우")
+  void updateReview_shouldThrowReviewNotFoundException_whenReviewIsNotExist() {
+    //given
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    //when & then
+    assertThrows(ReviewNotFoundException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - 수정하려는 사용자가 db에 존재하지 않을 경우")
+  void updateReview_shouldThrowUserNotFoundException_whenUserIsNotExist() {
+    //given
+    Review review = mock(Review.class);
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+    //when & then
+    assertThrows(UserNotFoundException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - 후기 게시글 작성자와 수정 요청자가 다른 경우")
+  void updateReview_shouldThrowNoAuthorizedException_whenUserIsNotReviewWriter() {
+    //given
+    User assignedUser = spy(User.builder().build());
+    User user = mock(User.class);
+    Review review = spy(Review.builder()
+        .user(assignedUser)
+        .build());
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+
+    //when & then
+    assertThrows(NoAuthorizedException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
+
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - ES에 저장된 분양 게시글 정보가 존재하지 않을 경")
+  void updateReview_shouldThrowAdoptionDocumentNotFoundException_whenAdoptionDocumentIsNotExist() {
+    //given
+    User assignedUser = spy(User.builder().build());
+    User user = mock(User.class);
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .build());
+    Review review = spy(Review.builder()
+        .user(assignedUser)
+        .adoption(adoption)
+        .build());
+    List<FileDto> fileDtoList = createFileDtoList(4);
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
+    given(fileUploadService.uploadManyFile(images, FilePath.REVIEW)).willReturn(
+        fileDtoList);
+    given(reviewRepository.save(any(Review.class))).will(returnsFirstArg());
+    given(adoption.getId()).willReturn(1L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.empty());
+
+    //when & then
+    assertThrows(AdoptionDocumentNotFoundException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
+
+  }
+
+  @Test
+  @DisplayName("후기게시글 수정 - ES에 저장된 후기 게시글 정보가 존재하지 않을 경")
+  void updateReview_shouldThrowReviewDocumentNotFoundException_whenReviewDocumentIsNotExist() {
+    //given
+    User assignedUser = spy(User.builder().build());
+    User user = mock(User.class);
+    Adoption adoption = spy(Adoption.builder()
+        .user(user)
+        .build());
+    Review review = spy(Review.builder()
+        .user(assignedUser)
+        .adoption(adoption)
+        .build());
+    List<FileDto> fileDtoList = createFileDtoList(4);
+    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
+
+    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
+    given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
+    given(fileUploadService.uploadManyFile(images, FilePath.REVIEW)).willReturn(
+        fileDtoList);
+    given(reviewRepository.save(any(Review.class))).will(returnsFirstArg());
+    given(adoption.getId()).willReturn(1L);
+    given(adoptionSearchRepository.findById(anyLong())).willReturn(
+        Optional.of(adoptionDocument));
+    given(reviewDocumentRepository.findById(anyLong())).willReturn(
+        Optional.empty());
+
+    //when & then
+    assertThrows(ReviewDocumentNotFoundException.class,
+        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
 
   }
 
