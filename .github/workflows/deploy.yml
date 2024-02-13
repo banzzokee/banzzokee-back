@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
-            docker stop banzzokee-demo
-            docker rm banzzokee-demo
-            docker run -it -d -p 8080:8080 --name banzzokee-demo ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            sudo docker stop banzzokee-demo
+            sudo docker rm banzzokee-demo
+            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 --network bridge -v /home/ubuntu/config/fcm:/deploy/config ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest

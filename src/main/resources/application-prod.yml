@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://${RDS_ENDPOINT}:${RDS_PORT}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: ${DB_URL}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${RDS_USER}
     password: ${RDS_PASSWORD}
@@ -14,6 +14,12 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+  rabbitmq:
+    host: ${PROD_RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
   servlet:
     multipart:
