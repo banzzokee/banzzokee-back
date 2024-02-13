@@ -12,7 +12,9 @@ import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
 import homes.banzzokee.global.validator.annotation.ImageFile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -42,8 +44,8 @@ public class AdoptionController {
 
   @PostMapping
   public void registerAdoption(@Valid @RequestPart AdoptionRegisterRequest request,
-      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
-      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                               @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
+                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.registerAdoption(request, images, userDetails.getUserId());
   }
 
@@ -54,9 +56,9 @@ public class AdoptionController {
 
   @PutMapping("/{adoptionId}")
   public void updateAdoption(@PathVariable long adoptionId,
-      @Valid @RequestPart AdoptionUpdateRequest request,
-      @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
-      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                             @Valid @RequestPart AdoptionUpdateRequest request,
+                             @Size(min = 1, max = 8) @FileDuplicateValid @ImageFile List<MultipartFile> images,
+                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
     adoptionService.updateAdoption(adoptionId, request, images,
         userDetails.getUserId());
   }

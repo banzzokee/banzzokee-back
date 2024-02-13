@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.bookmark.service;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.dto.AdoptionDto;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
@@ -14,6 +15,7 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
+import homes.banzzokee.global.security.WithMockCustomUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,14 +23,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static homes.banzzokee.domain.type.Role.ROLE_USER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -240,5 +242,38 @@ class BookmarkServiceTest {
     // then
     assertThrows(NoAuthorizedException.class, () ->
         bookmarkService.deleteBookmark(userDetails, 1L));
+  }
+
+  @Test
+  @DisplayName("[북마크 전체 조회] - 성공 검증")
+  void findAllBookmark_when_verify_then_success() {
+    // given
+    Pageable pageable = PageRequest.of(0, 10);
+    User user = mock(User.class);
+    given(user.getId()).willReturn(1L);
+
+    Adoption adoption = mock(Adoption.class);
+    given(adoption.getUser()).willReturn(user);
+
+    Bookmark bookmark1 = mock(Bookmark.class);
+    given(bookmark1.getAdoption()).willReturn(adoption);
+
+    Bookmark bookmark2 = mock(Bookmark.class);
+    given(bookmark2.getAdoption()).willReturn(adoption);
+
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
+
+    List<Bookmark> bookmarksList = Arrays.asList(bookmark1, bookmark2);
+    Slice<Bookmark> bookmarksSlice = new SliceImpl<>(bookmarksList, pageable, true);
+    given(bookmarkRepository.findByUserId(userDetails.getUserId(), pageable)).willReturn(bookmarksSlice);
+
+    // when
+    Slice<AdoptionDto> result = bookmarkService.findAllBookmark(userDetails, pageable);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.hasNext()).isTrue();
   }
 }
