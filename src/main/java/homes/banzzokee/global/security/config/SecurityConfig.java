@@ -32,6 +32,7 @@ public class SecurityConfig {
             .requestMatchers("/api/bookmarks/**").hasAnyRole("USER", "ADMIN")
             .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/rooms/**", "/api/chats/**").hasAnyRole("USER")
+            .requestMatchers("/api/tests/**").permitAll()
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
