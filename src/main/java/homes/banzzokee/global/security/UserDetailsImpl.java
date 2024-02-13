@@ -1,16 +1,13 @@
 package homes.banzzokee.global.security;
 
 import homes.banzzokee.domain.user.entity.User;
+import java.util.Collection;
+import java.util.List;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-
 @Getter
-@RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
   private final Long userId;

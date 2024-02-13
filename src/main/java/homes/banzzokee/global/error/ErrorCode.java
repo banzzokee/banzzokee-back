@@ -64,6 +64,7 @@ public enum ErrorCode {
   REVIEW_IS_DELETED(NO_CONTENT, "삭제된 후기 게시글입니다.")
   ;
 
+
   private final HttpStatus httpStatus;
   private final String message;
 }
