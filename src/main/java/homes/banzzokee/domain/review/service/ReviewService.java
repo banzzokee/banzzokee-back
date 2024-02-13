@@ -144,7 +144,7 @@ public class ReviewService {
     review.delete(now);
     reviewRepository.save(review);
   }
-현
+
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
     ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
         .orElseThrow(ReviewDocumentNotFoundException::new);
