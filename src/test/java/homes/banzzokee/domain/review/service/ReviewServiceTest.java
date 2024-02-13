@@ -23,6 +23,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.review.dto.ReviewListResponse;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
@@ -38,6 +39,7 @@ import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
@@ -57,6 +59,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -647,6 +653,40 @@ class ReviewServiceTest {
     //when & then
     assertThrows(ReviewDocumentNotFoundException.class,
         () -> reviewService.deleteReview(1L, 1L));
+  }
+
+  @Test
+  @DisplayName("후기게시글 목록 조회 성공 테스트")
+  void getReviewList_success() {
+    //given
+    UserProfileDto user = UserProfileDto.builder()
+        .userId(2L)
+        .nickname("하하하하")
+        .build();
+    ReviewDocument reviewDocument1 = ReviewDocument.builder()
+        .id(1L)
+        .user(user)
+        .title("후기게시글")
+        .build();
+    ReviewDocument reviewDocument2 = ReviewDocument.builder()
+        .id(2L)
+        .user(user)
+        .title("후기게시글")
+        .build();
+    List<ReviewDocument> reviewDocuments = List.of(reviewDocument1, reviewDocument2);
+    PageRequest pageRequest = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
+
+    given(reviewDocumentRepository.findAllByDeletedAtIsNull(pageRequest)).willReturn(
+        reviewDocuments);
+
+    //when
+    Slice<ReviewListResponse> reviewList = reviewService.getReviewList(pageRequest);
+
+    //then
+    assertEquals(2, reviewList.getSize());
+    assertEquals(1, reviewList.getContent().get(0).getReviewId());
+    assertEquals(2, reviewList.getContent().get(1).getReviewId());
   }
 
   private List<MultipartFile> createImageList(int addSize) throws IOException {
