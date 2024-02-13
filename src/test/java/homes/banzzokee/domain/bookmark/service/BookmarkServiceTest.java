@@ -81,7 +81,8 @@ class BookmarkServiceTest {
     when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(adoption));
     when(bookmarkRepository.findByUserIdAndAdoptionId(1L, bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.empty());
 
-    UserDetailsImpl userDetails = new UserDetailsImpl(1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
 
     // when
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
@@ -95,8 +96,8 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 등록] - 회원 정보가 없는 경우 UserNotFoundException 발생")
   void registerBookmark_when_verifyUser_then_UserNotFoundException() {
     // given
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
@@ -120,8 +121,9 @@ class BookmarkServiceTest {
         .role(Set.of(ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
+
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
@@ -160,8 +162,8 @@ class BookmarkServiceTest {
         .registeredAt(LocalDate.parse("2024-02-06"))
         .build();
 
-    UserDetailsImpl userDetails = new UserDetailsImpl(
-        1L, "test@gmail.com", Collections.emptyList());
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
     BookmarkRegisterRequest bookmarkRegisterRequest = new BookmarkRegisterRequest(1L);
 
     when(userRepository.findById(userDetails.getUserId())).thenReturn(Optional.of(user));
@@ -243,33 +245,24 @@ class BookmarkServiceTest {
   }
 
   @Test
-  @WithMockCustomUser
   @DisplayName("[북마크 전체 조회] - 성공 검증")
   void findAllBookmark_when_verify_then_success() {
-    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    given(userDetails.getUserId()).willReturn(1L);
+    // given
     Pageable pageable = PageRequest.of(0, 10);
-
     User user = mock(User.class);
     given(user.getId()).willReturn(1L);
-    given(user.getNickname()).willReturn("반쪽이");
 
     Adoption adoption = mock(Adoption.class);
-    given(adoption.getId()).willReturn(1L);
-    given(adoption.getBreed()).willReturn(BreedType.GREYHOUND);
-    given(adoption.getSize()).willReturn(DogSize.LARGE);
-    given(adoption.getStatus()).willReturn(AdoptionStatus.ADOPTING);
-    given(adoption.getGender()).willReturn(DogGender.MALE);
+    given(adoption.getUser()).willReturn(user);
 
     Bookmark bookmark1 = mock(Bookmark.class);
-    given(bookmark1.getUser()).willReturn(user);
     given(bookmark1.getAdoption()).willReturn(adoption);
-    given(bookmark1.getId()).willReturn(1L);
 
     Bookmark bookmark2 = mock(Bookmark.class);
-    given(bookmark2.getUser()).willReturn(user);
     given(bookmark2.getAdoption()).willReturn(adoption);
-    given(bookmark2.getId()).willReturn(1L);
+
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
 
     List<Bookmark> bookmarksList = Arrays.asList(bookmark1, bookmark2);
     Slice<Bookmark> bookmarksSlice = new SliceImpl<>(bookmarksList, pageable, true);
