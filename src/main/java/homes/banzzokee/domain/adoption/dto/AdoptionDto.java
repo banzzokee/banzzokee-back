@@ -2,9 +2,11 @@ package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.type.S3Object;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,5 +78,4 @@ public class AdoptionDto {
         .updatedAt(adoption.getUpdatedAt())
         .build();
   }
-
 }

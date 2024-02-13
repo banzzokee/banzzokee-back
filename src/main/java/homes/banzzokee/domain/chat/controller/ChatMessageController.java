@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/chats")
 public class ChatMessageController {
 
   private final ChatMessageService chatMessageService;
@@ -33,7 +33,7 @@ public class ChatMessageController {
    * @param roomId
    * @return
    */
-  @GetMapping("/chats/rooms/{roomId}")
+  @GetMapping("/rooms/{roomId}")
   public Slice<MessageDto> getChatList(
       @RequestParam("page") int page,
       @RequestParam("size") int size,
