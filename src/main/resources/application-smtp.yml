@@ -2,8 +2,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${GOOGLE_EMAIL}
-    password: ${GOOGLE_EMAIL_PASSWORD}
+    username: ${GOOGLE_SMTP_EMAIL}
+    password: ${GOOGLE_SMTP_PASSWORD}
     properties:
       mail:
         smtp:

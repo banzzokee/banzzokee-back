@@ -2,4 +2,4 @@ elasticsearch:
   hostAndPort: localhost:9200
   username: banzzokee
   password: funnycode
-  fingerprint: ce991e57c0afa4d50e449b4289dad7f54b7c21cb467f9fe41be0e2dceca3f6e0
+  fingerprint: ${ES_FINGERPRINT}

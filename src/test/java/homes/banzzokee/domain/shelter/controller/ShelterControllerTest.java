@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -15,20 +16,19 @@ import homes.banzzokee.domain.shelter.dto.ShelterRegisterRequest;
 import homes.banzzokee.domain.shelter.dto.ShelterUpdateRequest;
 import homes.banzzokee.domain.shelter.dto.ShelterUpdateResponse;
 import homes.banzzokee.domain.shelter.service.ShelterService;
+import homes.banzzokee.global.security.WithMockCustomUser;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
-
 import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,7 +37,11 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
-@WebMvcTest(value = ShelterController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = ShelterController.class,
+    excludeFilters = {
+        @ComponentScan.Filter(type = ASSIGNABLE_TYPE,
+            classes = {JwtAuthenticationFilter.class})
+    })
 @AutoConfigureMockMvc(addFilters = false)
 class ShelterControllerTest {
 
@@ -47,11 +51,9 @@ class ShelterControllerTest {
   @MockBean
   private ShelterService shelterService;
 
-  @MockBean
-  private JwtAuthenticationFilter jwtAuthenticationFilter;
-
   @Test
   @DisplayName("[보호소 등록] - 성공 검증")
+  @WithMockCustomUser
   void registerShelter_when_validInput_then_success() throws Exception {
     // given
     ShelterRegisterRequest request = ShelterRegisterRequest.builder()
@@ -68,7 +70,7 @@ class ShelterControllerTest {
 
     // when
     MockMultipartHttpServletRequestBuilder post = MockMvcRequestBuilders
-        .multipart(POST, "/api/shelters?userId=1")
+        .multipart(POST, "/api/shelters")
         .file("shelterImg", mockFile.getBytes())
         .part(mockPart);
     ResultActions resultActions = mockMvc.perform(post).andDo(print());
@@ -94,10 +96,11 @@ class ShelterControllerTest {
 
   @Test
   @DisplayName("[보호소 승인] - 성공 검증")
+  @WithMockCustomUser
   void verifyShelter_when_validInput_then_success() throws Exception {
     // when
     ResultActions resultActions = MockMvcUtil.performPost(mockMvc,
-        "/api/shelters/2/verify?userId=1", null);
+        "/api/shelters/2/verify", null);
 
     // then
     resultActions.andExpect(status().isOk());
@@ -114,6 +117,7 @@ class ShelterControllerTest {
 
   @Test
   @DisplayName("[보호소 수정] - 성공 검증")
+  @WithMockCustomUser
   void updateShelter_when_validInput_then_success() throws Exception {
     // given
     ShelterUpdateRequest request = ShelterUpdateRequest.builder()
@@ -129,7 +133,7 @@ class ShelterControllerTest {
         "src/test/resources/images/banzzokee.png");
 
     MockMultipartHttpServletRequestBuilder patch = MockMvcRequestBuilders
-        .multipart(PATCH, "/api/shelters/1?userId=1")
+        .multipart(PATCH, "/api/shelters/1")
         .file(mockFile)
         .part(mockPart);
 
@@ -186,10 +190,12 @@ class ShelterControllerTest {
 
   @Test
   @DisplayName("[보호소 삭제] - 성공 검증")
+  @WithMockCustomUser
   void unregisterShelter_when_validInput_then_success() throws Exception {
     // given
     // when
-    ResultActions resultActions = MockMvcUtil.performDelete(mockMvc, "/api/shelters/1?userId=1");
+    ResultActions resultActions = MockMvcUtil.performDelete(mockMvc,
+        "/api/shelters/1");
 
     // then
     resultActions.andExpect(status().isOk());
