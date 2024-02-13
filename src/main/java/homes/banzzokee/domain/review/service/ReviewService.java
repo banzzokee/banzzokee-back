@@ -15,6 +15,7 @@ import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.review.exception.DeletedReviewException;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
 import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
@@ -79,6 +80,10 @@ public class ReviewService {
   public ReviewResponse getReview(long reviewId) {
     Review review = reviewRepository.findById(reviewId).orElseThrow(
         ReviewNotFoundException::new);
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
+
     return ReviewResponse.fromEntity(review);
   }
 
@@ -88,6 +93,10 @@ public class ReviewService {
     Review review = reviewRepository.findById(reviewId)
         .orElseThrow(ReviewNotFoundException::new);
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
 
     if (!review.getUser().equals(user)) {
       throw new NoAuthorizedException();
