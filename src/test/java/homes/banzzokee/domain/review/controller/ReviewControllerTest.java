@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -314,7 +315,7 @@ class ReviewControllerTest {
   }
 
   @Test
-  @DisplayName("후기 게시글 수정 - request 필드 유효성 검사 실패")
+  @DisplayName("후기 게시글 수가정 - request 필드 유효성 검사 실패")
   void updateReview_shouldThrowValidationError_whenInputInvalidRequest()
       throws Exception {
     String over50 = "over".repeat(50);
@@ -335,6 +336,19 @@ class ReviewControllerTest {
     //then
     resultActions.andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("ARGUMENT_NOT_VALID"));
+  }
+
+  @Test
+  @DisplayName("후기 게시글 삭제 성공 테스트")
+  void deleteReview_success() throws Exception {
+    //given & when & then
+    mockMvc.perform(delete("/api/reviews/100"));
+
+    ArgumentCaptor<Long> longArgumentCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(reviewService).deleteReview(longArgumentCaptor.capture(),
+        longArgumentCaptor.capture());
+    assertEquals(100L, longArgumentCaptor.getAllValues().get(0));
+    assertEquals(1L, longArgumentCaptor.getAllValues().get(1));
   }
 
   private MockMultipartHttpServletRequestBuilder addImages(
