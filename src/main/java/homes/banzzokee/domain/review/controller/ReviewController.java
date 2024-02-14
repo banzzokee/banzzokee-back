@@ -1,6 +1,6 @@
 package homes.banzzokee.domain.review.controller;
 
-import homes.banzzokee.domain.review.dto.ReviewListResponse;
+import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
@@ -62,7 +62,7 @@ public class ReviewController {
   }
 
   @GetMapping
-  public Slice<ReviewListResponse> getReviewList(@RequestParam int page,
+  public Slice<ReviewSearchResponse> getReviewList(@RequestParam int page,
       @RequestParam int size, @RequestParam String direction) {
     PageRequest pageRequest = PageRequest.of(page, size,
         Sort.by(Direction.fromString(direction), "createdAt"));

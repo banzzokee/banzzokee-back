@@ -9,7 +9,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ReviewListResponse {
+public class ReviewSearchResponse {
 
   private final long reviewId;
 
@@ -27,8 +27,8 @@ public class ReviewListResponse {
 
   private final LocalDateTime updatedAt;
 
-  public static ReviewListResponse fromDocument(ReviewDocument reviewDocument) {
-    return ReviewListResponse.builder()
+  public static ReviewSearchResponse fromDocument(ReviewDocument reviewDocument) {
+    return ReviewSearchResponse.builder()
         .reviewId(reviewDocument.getId())
         .userId(reviewDocument.getUser().getUserId())
         .userNickname(reviewDocument.getUser().getNickname())

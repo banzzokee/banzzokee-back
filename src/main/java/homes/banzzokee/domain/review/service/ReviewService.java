@@ -9,7 +9,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
-import homes.banzzokee.domain.review.dto.ReviewListResponse;
+import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
@@ -148,11 +148,11 @@ public class ReviewService {
     reviewRepository.save(review);
   }
 
-  public Slice<ReviewListResponse> getReviewList(Pageable pageable) {
+  public Slice<ReviewSearchResponse> getReviewList(Pageable pageable) {
     List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(
         pageable);
     return new SliceImpl<>(
-        reviewList.stream().map(ReviewListResponse::fromDocument).toList());
+        reviewList.stream().map(ReviewSearchResponse::fromDocument).toList());
   }
 
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
