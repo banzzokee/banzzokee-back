@@ -17,7 +17,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
 import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Getter
 @Builder
