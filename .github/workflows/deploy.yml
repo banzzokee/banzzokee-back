@@ -29,8 +29,8 @@ jobs:
           mkdir properties
           cd properties
           touch ./env.properties
-          echo "${{ secrets.ENV_PROPERTIES }}"
-#        #> ./env.properties
+          echo "${{ secrets.ENV_PROPERTIES }}" > ./env.properties
+          cat ./env.properties
 #
 #      - name: Spring Boot Build
 #        run: ./gradlew bootJar
