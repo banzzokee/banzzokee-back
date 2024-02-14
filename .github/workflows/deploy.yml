@@ -73,4 +73,4 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
-            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 -e "SPRING_PROFILES_ACTIVE=prod" ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
