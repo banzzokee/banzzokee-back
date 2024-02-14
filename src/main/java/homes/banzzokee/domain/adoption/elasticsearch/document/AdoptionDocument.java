@@ -1,9 +1,9 @@
 package homes.banzzokee.domain.adoption.elasticsearch.document;
 
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
-import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.type.S3Object;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
@@ -57,11 +57,11 @@ public class AdoptionDocument {
   @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private LocalDate adoptedAt;
 
-  private UserProfileDto user;
+  private UserDocumentVo user;
 
-  private UserProfileDto assignedUser;
+  private UserDocumentVo assignedUser;
 
-  private ReviewDto review;
+  private ReviewDocumentVo review;
 
   @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private LocalDateTime deletedAt;
@@ -86,8 +86,8 @@ public class AdoptionDocument {
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
         .images(adoption.getImages())
-        .user(getUserProfileDto(adoption.getUser()))
-        .assignedUser(getUserProfileDto(adoption.getAssignedUser()))
+        .user(getUserDocumentVo(adoption.getUser()))
+        .assignedUser(getUserDocumentVo(adoption.getAssignedUser()))
         .review(getReview(adoption))
         .deletedAt(adoption.getDeletedAt())
         .createdAt(adoption.getCreatedAt())
@@ -111,27 +111,27 @@ public class AdoptionDocument {
 
   public void updateStatus(Adoption adoption) {
     this.status = adoption.getStatus().getStatus();
-    this.assignedUser = getUserProfileDto(adoption.getAssignedUser());
+    this.assignedUser = getUserDocumentVo(adoption.getAssignedUser());
     this.adoptedAt = adoption.getAdoptedAt();
     this.updatedAt = adoption.getUpdatedAt();
   }
 
-  public void updateReview(ReviewDto review) {
+  public void updateReview(ReviewDocumentVo review) {
     this.review = review;
   }
 
-  private static UserProfileDto getUserProfileDto(User user) {
+  private static UserDocumentVo getUserDocumentVo(User user) {
     if (user == null) {
       return null;
     }
-    return UserProfileDto.fromEntity(user);
+    return UserDocumentVo.fromEntity(user);
   }
 
-  private static ReviewDto getReview(Adoption adoption) {
+  private static ReviewDocumentVo getReview(Adoption adoption) {
     if (adoption.getReview() == null) {
       return null;
     }
-    return ReviewDto.fromEntity(adoption.getReview());
+    return ReviewDocumentVo.fromEntity(adoption.getReview());
   }
 
   public void delete(Adoption adoption) {

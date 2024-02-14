@@ -1,69 +1,48 @@
-package homes.banzzokee.domain.user.dto;
+package homes.banzzokee.domain.adoption.elasticsearch.document.subclass;
 
-import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/**
- * 사용자 프로필
- */
 @Getter
 @Builder
-public class UserProfileDto {
+public class UserDocumentVo {
 
-  /**
-   * 사용자 아이디
-   */
   private final Long userId;
 
-  /**
-   * 이메일
-   */
   private final String email;
 
-  /**
-   * 프로필 이미지 경로
-   */
   private final String profileImgUrl;
 
-  /**
-   * 닉네임
-   */
   private final String nickname;
 
-  /**
-   * 자기소개
-   */
   private final String introduce;
 
-  /**
-   * 가입일
-   */
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private final LocalDate joinedAt;
 
-  /**
-   * 보호소
-   */
-  private final ShelterDto shelter;
+  private final ShelterDocumentVo shelter;
 
-  public static UserProfileDto fromEntity(User user) {
-    return UserProfileDto.builder()
+  public static UserDocumentVo fromEntity(User user) {
+    return UserDocumentVo.builder()
         .userId(user.getId())
         .email(user.getEmail())
         .profileImgUrl(user.getProfileImageUrl())
         .nickname(user.getNickname())
         .introduce(user.getIntroduce())
         .joinedAt(user.getCreatedAt().toLocalDate())
-        .shelter(getShelterDto(user.getShelter()))
+        .shelter(getShelterDocumentVo(user.getShelter()))
         .build();
   }
 
-  private static ShelterDto getShelterDto(Shelter shelter) {
+  private static ShelterDocumentVo getShelterDocumentVo(Shelter shelter) {
     if (shelter != null && shelter.isVerified()) {
-      return ShelterDto.fromEntity(shelter);
+      return ShelterDocumentVo.fromEntity(shelter);
     }
     return null;
   }
