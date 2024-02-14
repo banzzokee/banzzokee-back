@@ -27,6 +27,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
@@ -42,7 +43,6 @@ import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
@@ -630,8 +630,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 분양완료로 변경하려는 경우 assignedUserId가 null인 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
         .status("분양완료")
@@ -644,8 +643,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 예약중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
         .status("예약중")
@@ -658,8 +656,7 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 분양중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
         .status("분양중")
@@ -1013,7 +1010,7 @@ class AdoptionServiceTest {
     for (int i = 1; i <= addNum; i++) {
       responses.add(AdoptionDocument.builder()
           .id(Integer.toUnsignedLong(i))
-          .user(mock(UserProfileDto.class))
+          .user(mock(UserDocumentVo.class))
           .build());
     }
     return responses;
