@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+  banzzokee:
+    image: ${DOCKERHUB_USERNAME}/banzzokee:latest
+    container_name: banzzokee
+    env_file:
+      - .env
+    expose:
+      - 8080:8080
+    restart: always
