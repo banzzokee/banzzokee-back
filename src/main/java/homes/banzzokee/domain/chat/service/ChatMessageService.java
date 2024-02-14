@@ -8,10 +8,12 @@ import homes.banzzokee.domain.chat.dto.MessageDto;
 import homes.banzzokee.domain.chat.entity.ChatMessage;
 import homes.banzzokee.domain.room.dao.ChatRoomRepository;
 import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.room.exception.SocketRoomNotFoundException;
 import homes.banzzokee.domain.room.exception.SocketUserNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
+import homes.banzzokee.global.config.stomp.exception.SocketNoAuthorizedException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +42,19 @@ public class ChatMessageService {
    * @return
    */
   @Transactional
-  public MessageDto sendMessage(Long roomId, ChatSendDto message) {
+  public MessageDto sendMessage(String email, Long roomId, ChatSendDto message) {
+
+    User user = userRepository.findByEmailAndDeletedAtNull(email)
+        .orElseThrow(SocketUserNotFoundException::new);
 
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-        .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));
+        .orElseThrow(SocketRoomNotFoundException::new);
 
-    // todo: @AuthenticationPrincipal username -> findByEmail(email) 로 변경
-    User user = userRepository.findById(1L)
-        .orElseThrow(SocketUserNotFoundException::new);
+    if ((chatRoom.getUser() == null || !chatRoom.getUser().equals(user))
+        && (chatRoom.getShelter() == null || !chatRoom.getShelter().getUser()
+        .equals(user))) {
+      throw new SocketNoAuthorizedException();
+    }
 
     chatRoom.updateLastMessage(message.getMessage(), message.getMessageType(),
         LocalDateTime.now());

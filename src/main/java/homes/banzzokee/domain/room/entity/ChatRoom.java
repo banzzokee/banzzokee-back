@@ -69,6 +69,10 @@ public class ChatRoom {
     this.adoption = adoption;
   }
 
+  public void leaveUser() {
+    this.user = null;
+  }
+
   public void leaveShelter() {
     this.shelter = null;
   }

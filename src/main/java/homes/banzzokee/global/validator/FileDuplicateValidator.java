@@ -15,6 +15,9 @@ public class FileDuplicateValidator implements ConstraintValidator<FileDuplicate
 
   @Override
   public boolean isValid(List<MultipartFile> value, ConstraintValidatorContext context) {
+    if (value == null) {
+      return true;
+    }
     Set<String> duplicatFileCheckSet = new HashSet<>();
     for (MultipartFile multipartFile : value) {
       if (!duplicatFileCheckSet.add(multipartFile.getOriginalFilename())) {

@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,4 +63,20 @@ public class ChatRoomController {
         PageRequest.of(page, size)
     );
   }
+
+  /**
+   * 채팅방 나가기
+   *
+   * @param userDetails
+   * @param roomId
+   */
+  @DeleteMapping("/{roomId}")
+  public void exitChatRoom(
+      @AuthenticationPrincipal UserDetails userDetails,
+      @PathVariable Long roomId) {
+    log.info("[exitChatRoom] 채팅방 나가기 요청 - 유저 email : {}", userDetails.getUsername());
+
+    chatRoomService.exitChatRoom(userDetails.getUsername(), roomId);
+  }
+
 }

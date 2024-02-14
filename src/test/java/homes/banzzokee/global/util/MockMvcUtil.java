@@ -10,12 +10,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import java.text.SimpleDateFormat;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 public class MockMvcUtil {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final AuthenticationPrincipalArgumentResolver authenticationPrincipalArgumentResolver = new AuthenticationPrincipalArgumentResolver();
+  private static final ObjectMapper jackson2ObjectMapper = new Jackson2ObjectMapperBuilder()
+      .indentOutput(true)
+      .dateFormat(new SimpleDateFormat("yyyy-MM-dd"))
+      .modulesToInstall(new ParameterNamesModule())
+      .build();
+  private static final MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter(
+      jackson2ObjectMapper);
 
   public static ResultActions performPost(MockMvc mockMvc, String url, Object requestBody)
       throws Exception {

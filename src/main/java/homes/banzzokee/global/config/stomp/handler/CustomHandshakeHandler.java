@@ -1,9 +1,7 @@
 package homes.banzzokee.global.config.stomp.handler;
 
-import homes.banzzokee.global.config.stomp.principal.StompPrincipal;
 import java.security.Principal;
 import java.util.Map;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
@@ -22,9 +20,9 @@ public class CustomHandshakeHandler extends DefaultHandshakeHandler {
   protected Principal determineUser(ServerHttpRequest request,
       WebSocketHandler wsHandler,
       Map<String, Object> attributes) {
+    log.info("[handShakeHandler] try to handshake");
 
-    return new StompPrincipal(
-        UUID.randomUUID().toString()); // random 유저 고유 id 생성
+    return super.determineUser(request, wsHandler, attributes);
 
   }
 }
