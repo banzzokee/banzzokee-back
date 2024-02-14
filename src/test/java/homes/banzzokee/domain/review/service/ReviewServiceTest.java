@@ -18,6 +18,7 @@ import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
@@ -659,7 +660,7 @@ class ReviewServiceTest {
   @DisplayName("후기게시글 목록 조회 성공 테스트")
   void getReviewList_success() {
     //given
-    UserProfileDto user = UserProfileDto.builder()
+    UserDocumentVo user = UserDocumentVo.builder()
         .userId(2L)
         .nickname("하하하하")
         .build();
