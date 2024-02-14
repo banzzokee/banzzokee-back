@@ -1,18 +1,19 @@
-package homes.banzzokee.domain.adoption.dto;
+package homes.banzzokee.domain.review.elasticsearch.document.subclass;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.type.S3Object;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Getter
-@AllArgsConstructor
 @Builder
-public class AdoptionDto {
+public class AdoptionDocumentVo {
 
   private final Long adoptionId;
 
@@ -40,16 +41,20 @@ public class AdoptionDto {
 
   private final boolean healthChecked;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private final LocalDate registeredAt;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private final LocalDate adoptedAt;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private final LocalDateTime createdAt;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private final LocalDateTime updatedAt;
 
-  public static AdoptionDto fromEntity(Adoption adoption) {
-    return AdoptionDto.builder()
+  public static AdoptionDocumentVo fromEntity(Adoption adoption) {
+    return AdoptionDocumentVo.builder()
         .adoptionId(adoption.getId())
         .userId(adoption.getUser().getId())
         .userNickname(adoption.getUser().getNickname())
