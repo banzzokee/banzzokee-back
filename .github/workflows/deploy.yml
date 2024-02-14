@@ -72,4 +72,4 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
-            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 --network bridge -v /home/ubuntu/config/fcm:/deploy/config ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            sudo docker run -it -d --name banzzokee-demo -p 8081:8081 --network bridge -v /home/ubuntu/config/fcm:/deploy/config ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
