@@ -29,7 +29,7 @@ jobs:
           mkdir properties
           cd properties
           touch ./env.properties
-          echo ${{ secrets.ENV_PROPERTIES }} | base64 --decode > ./env.properties
+          echo "${{ secrets.ENV_PROPERTIES }}" > ./env.properties
         shell: bash
 #          cat ./env.properties
 
