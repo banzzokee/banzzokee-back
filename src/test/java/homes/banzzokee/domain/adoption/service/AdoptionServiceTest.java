@@ -45,6 +45,9 @@ import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.AdoptionEvent;
+import homes.banzzokee.event.FcmTokenRegisteredEvent;
+import homes.banzzokee.event.type.EntityAction;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
@@ -62,6 +65,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -82,6 +86,8 @@ class AdoptionServiceTest {
   private AdoptionSearchRepository adoptionSearchRepository;
   @Mock
   private AdoptionSearchQueryRepository queryRepository;
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
   @InjectMocks
   private AdoptionService adoptionService;
 
@@ -128,6 +134,9 @@ class AdoptionServiceTest {
         .shelter(shelter)
         .build());
 
+    Adoption adoption = mock(Adoption.class);
+//    given(adoption.getId()).willReturn(10L);
+
     List<FileDto> fileDtoList = createFileDtoList(4);
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
     given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
@@ -140,6 +149,15 @@ class AdoptionServiceTest {
     adoptionService.registerAdoption(registerRequest, images, 1L);
 
     //then
+    ArgumentCaptor<AdoptionEvent> eventCaptor
+        = ArgumentCaptor.forClass(AdoptionEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    AdoptionEvent event = eventCaptor.getValue();
+    assertEquals(EntityAction.CREATE, event.getPayload().getAction());
+    // TODO: id 검증을 못함
+//    assertEquals(adoption.getId(), event.getPayload().getId());
+
     ArgumentCaptor<AdoptionDocument> adoptionDocumentCaptor = ArgumentCaptor.forClass(
         AdoptionDocument.class);
     verify(adoptionSearchRepository).save(adoptionDocumentCaptor.capture());
