@@ -2,9 +2,8 @@ server:
   port: 8081
 
 spring:
-  config:
-    activate:
-      on-profile: prod
+  profiles:
+    active: prod
 
   datasource:
     url: ${DB_URL}

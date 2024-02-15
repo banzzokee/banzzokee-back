@@ -12,4 +12,3 @@ spring:
       - elasticsearch
       - rabbitmq
       - oauth2
-    active: local
