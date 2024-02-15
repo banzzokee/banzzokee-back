@@ -58,12 +58,7 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 등록] - 성공 검증")
   void registerBookmark_when_success_then_verify() {
     // given
-    User user = User.builder()
-        .email("test@gmail.com")
-        .nickname("반쪽이")
-        .role(Set.of(ROLE_USER))
-        .loginType(LoginType.EMAIL)
-        .build();
+    User user = mock(User.class);
 
     Adoption adoption = Adoption.builder()
         .title("강아지")
@@ -81,19 +76,19 @@ class BookmarkServiceTest {
         .adoptionId(1L)
         .build();
 
-    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(adoption));
-    when(bookmarkRepository.findByUserIdAndAdoptionId(1L, bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.empty());
+    when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId()))
+        .thenReturn(Optional.of(adoption));
+    when(bookmarkRepository.findByUserIdAndAdoptionId(anyLong(),
+        eq(bookmarkRegisterRequest.getAdoptionId()))).thenReturn(Optional.ofNullable(null));
 
-    UserDetailsImpl userDetails = new UserDetailsImpl(user,
-        List.of(new SimpleGrantedAuthority(ROLE_USER.name())));
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
 
     // when
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
 
     // then
     verify(bookmarkRepository).save(any(Bookmark.class));
-
   }
 
   @Test
