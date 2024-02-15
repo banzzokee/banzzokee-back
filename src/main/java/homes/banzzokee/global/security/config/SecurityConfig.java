@@ -9,6 +9,9 @@ import static org.springframework.http.HttpMethod.PUT;
 import homes.banzzokee.global.error.AccessDeniedHandlerImpl;
 import homes.banzzokee.global.error.ExceptionHandlerFilter;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
+import homes.banzzokee.global.security.oauth2.handler.OAuth2FailureHandler;
+import homes.banzzokee.global.security.oauth2.handler.OAuth2SuccessHandler;
+import homes.banzzokee.global.security.oauth2.service.OAuth2UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +28,9 @@ public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final ExceptionHandlerFilter exceptionHandlerFilter;
+  private final OAuth2SuccessHandler oAuth2SuccessHandler;
+  private final OAuth2FailureHandler oAuth2FailureHandler;
+  private final OAuth2UserDetailsServiceImpl oAuth2UserDetailsService;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -33,6 +39,7 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+            .requestMatchers("/oauth2/**").permitAll()
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/users/**").hasAnyRole("USER")
             .requestMatchers("/api/shelters/{shelterId}/verify").hasAnyRole("ADMIN")
@@ -53,6 +60,12 @@ public class SecurityConfig {
             .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
+        .oauth2Login(oauth2 -> oauth2
+            .loginPage("/oauth2/authorization/google")
+            .successHandler(oAuth2SuccessHandler)
+            .failureHandler(oAuth2FailureHandler)
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(oAuth2UserDetailsService)))
         .addFilterBefore(jwtAuthenticationFilter,
             UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class)
