@@ -3,6 +3,7 @@ package homes.banzzokee.domain.adoption.service;
 import static homes.banzzokee.domain.type.AdoptionStatus.ADOPTING;
 import static homes.banzzokee.domain.type.AdoptionStatus.FINISHED;
 import static homes.banzzokee.domain.type.AdoptionStatus.RESERVING;
+import static homes.banzzokee.event.type.AdoptionAction.STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,8 +47,8 @@ import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.AdoptionEvent;
-import homes.banzzokee.event.FcmTokenRegisteredEvent;
-import homes.banzzokee.event.type.EntityAction;
+import homes.banzzokee.event.dto.EntityStatusDto;
+import homes.banzzokee.event.type.AdoptionAction;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
@@ -154,7 +155,7 @@ class AdoptionServiceTest {
     verify(eventPublisher).publishEvent(eventCaptor.capture());
 
     AdoptionEvent event = eventCaptor.getValue();
-    assertEquals(EntityAction.CREATE, event.getPayload().getAction());
+    assertEquals(AdoptionAction.CREATE, event.getPayload().getAction());
     // TODO: id 검증을 못함
 //    assertEquals(adoption.getId(), event.getPayload().getId());
 
@@ -603,6 +604,16 @@ class AdoptionServiceTest {
         adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getUserId());
     assertEquals(now.toLocalDate(),
         adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getJoinedAt());
+
+    ArgumentCaptor<AdoptionEvent> eventCaptor =
+        ArgumentCaptor.forClass(AdoptionEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    AdoptionEvent event = eventCaptor.getValue();
+    EntityStatusDto payload = event.getPayload();
+    assertEquals("adoption.status.changed", event.getRoutingKey());
+    assertEquals(STATUS, payload.getAction());
+    assertEquals(adoption.getId(), payload.getId());
   }
 
   @Test
