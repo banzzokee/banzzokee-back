@@ -1,7 +1,9 @@
 package homes.banzzokee.event.dto;
 
+import static homes.banzzokee.event.type.FcmTopicCategory.ADOPTION;
 import static homes.banzzokee.event.type.FcmTopicCategory.SHELTER;
 
+import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.event.type.FcmTopicAction;
 import homes.banzzokee.event.type.FcmTopicCategory;
@@ -45,6 +47,15 @@ public class FcmTopicStatusDto {
         .topicCategory(SHELTER)
         .topicId(follow.getFollowee().getShelter().getId())
         .userId(follow.getFollower().getId())
+        .build();
+  }
+
+  public static FcmTopicStatusDto of(FcmTopicAction action, Bookmark bookmark) {
+    return FcmTopicStatusDto.builder()
+        .action(action)
+        .topicCategory(ADOPTION)
+        .topicId(bookmark.getAdoption().getId())
+        .userId(bookmark.getUser().getId())
         .build();
   }
 }
