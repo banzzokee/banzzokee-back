@@ -7,6 +7,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Converter
@@ -16,15 +17,20 @@ public class ImagesConvertor implements AttributeConverter<List<S3Object>, Strin
 
   @Override
   public String convertToDatabaseColumn(List<S3Object> attribute) {
+    if (attribute == null || attribute.isEmpty()) {
+      return null;
+    }
 
     return gson.toJson(attribute);
   }
 
   @Override
   public List<S3Object> convertToEntityAttribute(String dbData) {
+    if (dbData == null) {
+      return new ArrayList<>();
+    }
 
     Type listOfS3Object = new TypeToken<ArrayList<S3Object>>() {}.getType();
-
     return gson.fromJson(dbData, listOfS3Object);
   }
 }

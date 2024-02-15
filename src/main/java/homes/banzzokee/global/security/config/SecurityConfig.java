@@ -52,6 +52,7 @@ public class SecurityConfig {
             .requestMatchers("/api/rooms/**", "/api/chats/**")
             .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/ws-stomp/**").permitAll()
+            .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter,
             UsernamePasswordAuthenticationFilter.class)
