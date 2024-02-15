@@ -27,6 +27,10 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.*;
 
 import static homes.banzzokee.domain.type.Role.ROLE_USER;
@@ -81,8 +85,8 @@ class BookmarkServiceTest {
     when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(adoption));
     when(bookmarkRepository.findByUserIdAndAdoptionId(1L, bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.empty());
 
-    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    given(userDetails.getUserId()).willReturn(1L);
+    UserDetailsImpl userDetails = new UserDetailsImpl(user,
+        List.of(new SimpleGrantedAuthority(ROLE_USER.name())));
 
     // when
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
@@ -96,8 +100,14 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 등록] - 회원 정보가 없는 경우 UserNotFoundException 발생")
   void registerBookmark_when_verifyUser_then_UserNotFoundException() {
     // given
-    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    given(userDetails.getUserId()).willReturn(1L);
+    User user = User.builder()
+        .email("test@gmail.com")
+        .nickname("반쪽이")
+        .role(Set.of(ROLE_USER))
+        .loginType(LoginType.EMAIL)
+        .build();
+    UserDetailsImpl userDetails = new UserDetailsImpl(user,
+        List.of(new SimpleGrantedAuthority(ROLE_USER.name())));
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
@@ -123,7 +133,6 @@ class BookmarkServiceTest {
         .build();
     UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
     given(userDetails.getUserId()).willReturn(1L);
-
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest
         .builder()
         .adoptionId(1L)
