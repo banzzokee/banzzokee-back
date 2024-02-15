@@ -74,5 +74,6 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
-            docker-compose up -d
+            sudo cd docker
+            sudo docker-compose up -d
 #            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
