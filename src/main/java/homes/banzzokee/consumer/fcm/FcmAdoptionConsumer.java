@@ -1,7 +1,10 @@
 package homes.banzzokee.consumer.fcm;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
+import static homes.banzzokee.event.type.AdoptionAction.CREATE;
+import static homes.banzzokee.event.type.AdoptionAction.STATUS;
+
 import homes.banzzokee.consumer.error.exception.AdoptionNotFoundException;
+import homes.banzzokee.consumer.error.exception.BusinessException;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.notification.dao.FcmSubscriptionRepository;
@@ -11,6 +14,7 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.event.AdoptionEvent;
 import homes.banzzokee.event.dto.EntityStatusDto;
+import homes.banzzokee.event.type.AdoptionAction;
 import homes.banzzokee.infra.firebase.FcmService;
 import homes.banzzokee.infra.firebase.dto.TopicMessage;
 import java.util.HashMap;
@@ -45,7 +49,8 @@ public class FcmAdoptionConsumer {
 
     String messageId = null;
     String notificationId = UUID.randomUUID().toString();
-    TopicMessage message = createTopicMessage(notificationId, adoption);
+    TopicMessage message = createTopicMessage(notificationId, adoption,
+        payload.getAction());
 
     try {
       messageId = fcmService.sendTopicMessage(message);
@@ -67,22 +72,45 @@ public class FcmAdoptionConsumer {
             users));
   }
 
-  private static String getTopic(Adoption adoption) {
-    return "topic.shelter." + adoption.getUser().getShelter().getId();
-  }
-
   private static TopicMessage createTopicMessage(String notificationId,
-      Adoption adoption) {
-    Optional<S3Object> image = adoption.getImages().stream().findFirst();
+      Adoption adoption, AdoptionAction action) {
     Map<String, String> data = new HashMap<>();
     data.put("adoptionId", adoption.getId().toString());
     data.put("notificationId", notificationId);
 
+    if (action == CREATE) {
+      return createAdoptionRegisterMessage(adoption, data);
+    } else if (action == STATUS) {
+      return createAdoptionStatusChangeMessage(adoption, data);
+    }
+
+    throw new BusinessException("unsupported action: " + action);
+  }
+
+  private static TopicMessage createAdoptionRegisterMessage(Adoption adoption,
+      Map<String, String> data) {
+    String topic = "topic.shelter." + adoption.getUser().getShelter().getId();
+    Optional<S3Object> image = adoption.getImages().stream().findFirst();
     return TopicMessage.builder()
-        .topic(getTopic(adoption))
-        .title(adoption.getTitle())
-        .body(adoption.getContent())
+        .topic(topic)
+        .title("새로운 반쪽이가 가족을 찾고있어요!")
+        .body(adoption.getTitle())
         .image(image.isPresent() ? image.map(S3Object::getUrl).orElse(null) : null)
+        .data(data)
+        .build();
+  }
+
+  private static TopicMessage createAdoptionStatusChangeMessage(Adoption adoption,
+      Map<String, String> data) {
+    String topic = "topic.adoption." + adoption.getId();
+    String title = switch (adoption.getStatus()) {
+      case ADOPTING -> "반쪽이가 가족을 찾고있어요!";
+      case RESERVING -> "반쪽이가 가족을 만날 예정이에요!";
+      case FINISHED -> "반쪽이가 가족을 만났어요!";
+    };
+    return TopicMessage.builder()
+        .topic(topic)
+        .title(title)
         .data(data)
         .build();
   }

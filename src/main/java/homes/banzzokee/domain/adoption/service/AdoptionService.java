@@ -1,8 +1,9 @@
 package homes.banzzokee.domain.adoption.service;
 
-import static homes.banzzokee.event.type.EntityAction.CREATE;
-import static homes.banzzokee.event.type.EntityAction.DELETE;
-import static homes.banzzokee.event.type.EntityAction.UPDATE;
+import static homes.banzzokee.event.type.AdoptionAction.CREATE;
+import static homes.banzzokee.event.type.AdoptionAction.DELETE;
+import static homes.banzzokee.event.type.AdoptionAction.STATUS;
+import static homes.banzzokee.event.type.AdoptionAction.UPDATE;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
@@ -166,6 +167,8 @@ public class AdoptionService {
         savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
     adoptionDocument.updateStatus(savedAdoption);
     adoptionSearchRepository.save(adoptionDocument);
+
+    eventPublisher.publishEvent(AdoptionEvent.of(savedAdoption.getId(), STATUS));
   }
 
   @Transactional
