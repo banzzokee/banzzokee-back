@@ -3,16 +3,18 @@ version: '3.7'
 services:
   banzzokee-demo:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME}/banzzokee:latest
     container_name: banzzokee-demo
     env_file:
-      - ~/prod.env
-    expose:
-      - 8080:8080
+      - prod.env
+    ports:
+      - "8080:8080"
     volumes:
       - /home/ubuntu/config/fcm:/deploy/config
+    networks:
+      - banzzokee
     restart: always
 
 networks:

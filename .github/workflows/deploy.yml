@@ -34,7 +34,7 @@ jobs:
 #          cat ./env.properties
 
       - name: Spring Boot Build
-        run: ./gradlew bootJar
+        run: ./gradlew bootJar -Dspring.profiles.active=prod
 
       - name: Docker meta
         id: meta
@@ -75,5 +75,5 @@ jobs:
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
             cd docker
-            docker-compose up -d
+            sudo docker-compose up -d
 #            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
