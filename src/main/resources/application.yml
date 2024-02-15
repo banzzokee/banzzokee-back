@@ -11,3 +11,4 @@ spring:
       - jwt
       - elasticsearch
       - rabbitmq
+      - oauth2
