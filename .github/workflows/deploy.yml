@@ -30,8 +30,8 @@ jobs:
           cd properties
           touch ./env.properties
           echo "${{ secrets.ENV_PROPERTIES }}" > ./env.properties
+          cat ./env.properties
         shell: bash
-#          cat ./env.properties
 
       - name: Spring Boot Build
         run: ./gradlew bootJar -Dspring.profiles.active=prod
@@ -76,4 +76,3 @@ jobs:
             sudo docker rm banzzokee-demo
             cd docker
             sudo docker-compose up -d
-#            sudo docker run -it -d --name banzzokee-demo -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
