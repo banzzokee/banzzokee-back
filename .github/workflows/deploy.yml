@@ -34,7 +34,7 @@ jobs:
         shell: bash
 
       - name: Spring Boot Build
-        run: ./gradlew bootJar -Dspring.profiles.active=prod
+        run: ./gradlew bootJar -Pprofile=prod
 
       - name: Docker meta
         id: meta
