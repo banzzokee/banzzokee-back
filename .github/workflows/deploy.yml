@@ -62,9 +62,11 @@ jobs:
           file: ./docker/app/Dockerfile
           push: true
           tags: |
-           ${{ steps.meta.outputs.tags }}
-           latest
-          labels: ${{ steps.meta.outputs.labels }}
+            ${{ steps.meta.outputs.tags }}
+            latest
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            latest
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
