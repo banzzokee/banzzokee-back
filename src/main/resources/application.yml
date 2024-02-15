@@ -1,4 +1,14 @@
+server:
+  port: 8080
+
 spring:
   profiles:
-    active:
-     - local
+    include:
+      - jpa
+      - s3
+      - smtp
+      - redis
+      - jwt
+      - elasticsearch
+      - rabbitmq
+      - oauth2
