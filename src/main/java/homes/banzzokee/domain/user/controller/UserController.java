@@ -36,6 +36,12 @@ public class UserController {
     return userService.getUserProfile(userId);
   }
 
+  @GetMapping("me")
+  public UserProfileDto getMyProfile(
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    return userService.getUserProfile(userDetails.getUserId());
+  }
+
   @PostMapping("me/withdraw")
   public UserWithdrawResponse withdrawalUser(
       @Valid @RequestBody UserWithdrawRequest request,
