@@ -61,7 +61,9 @@ jobs:
           context: .
           file: ./docker/app/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+           ${{ steps.meta.outputs.tags }}
+           latest
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Deploy to EC2
