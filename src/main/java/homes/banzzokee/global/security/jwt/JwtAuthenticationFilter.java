@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import static homes.banzzokee.global.security.oauth2.handler.OAuth2SuccessHandler.GOOGLE_URI;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -51,15 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         throw e;
       }
     }
-    if (isRedirectToOAuth2CodeGoogle(request)) {
-      response.sendRedirect(GOOGLE_URI);
-      return;
-    }
-    filterChain.doFilter(request, response);
-  }
 
-  private boolean isRedirectToOAuth2CodeGoogle(HttpServletRequest request) {
-    return request.getRequestURI().equals(GOOGLE_URI);
+    filterChain.doFilter(request, response);
   }
 
   /**
@@ -82,7 +73,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     jwtTokenProvider.validateToken(token);
     String userEmail = jwtTokenProvider.getUserEmailFromToken(token);
     UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-    Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    Authentication authentication = new UsernamePasswordAuthenticationToken(
+        userDetails, null, userDetails.getAuthorities());
     SecurityContextHolder.getContext().setAuthentication(authentication);
   }
 }

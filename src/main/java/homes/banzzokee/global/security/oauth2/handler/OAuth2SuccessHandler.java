@@ -19,7 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  public static final String GOOGLE_URI = "/login/oauth2/code/google";
+  public static final String SUCCESS_URI = "/oauth2/success";
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisService redisService;
 
@@ -33,7 +33,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     String refreshToken = jwtTokenProvider.createAccessToken(oauth2User.getUsername());
     redisService.setRefreshToken(oauth2User.getUsername(), refreshToken,
         jwtTokenProvider.getRefreshTokenExpire());
-    String redirectUrl = UriComponentsBuilder.fromUriString(GOOGLE_URI)
+    String redirectUrl = UriComponentsBuilder.fromUriString(SUCCESS_URI)
         .queryParam("accessToken", accessToken)
         .build().toUriString();
     response.sendRedirect(redirectUrl);
