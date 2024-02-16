@@ -21,6 +21,8 @@ spring:
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
+    ssl:
+      enabled: true
 
   servlet:
     multipart:

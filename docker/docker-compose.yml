@@ -2,9 +2,6 @@ version: '3.7'
 
 services:
   banzzokee-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME}/banzzokee:latest
     container_name: banzzokee-demo
     env_file:
