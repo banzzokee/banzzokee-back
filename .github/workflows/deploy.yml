@@ -66,7 +66,7 @@ jobs:
 #          tags: ${{ steps.meta.outputs.tags }}
 #          labels: ${{ steps.meta.outputs.labels }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:${{ steps.meta.outputs.tags }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:new
             ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
 
       - name: Deploy to EC2

@@ -2,13 +2,77 @@ server:
   port: 8080
 
 spring:
-  profiles:
-    include:
-      - jpa
-      - s3
-      - smtp
-      - redis
-      - jwt
-      - elasticsearch
-      - rabbitmq
-      - oauth2
+  datasource:
+    url: jdbc:mysql://localhost:3304/banzzokee?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: banzzokeeuser
+    password: banzzokeepass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            scope:
+              - profile
+              - email
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GOOGLE_SMTP_EMAIL}
+    password: ${GOOGLE_SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+elasticsearch:
+  hostAndPort: localhost:9200
+  username: banzzokee
+  password: funnycode
+  fingerprint: ${ES_FINGERPRINT}
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  accessTokenExpire: 1800000  # 30분
+  refreshTokenExpire: 2592000000  # 30일
+
+cloud:
+  aws:
+    s3:
+      bucket: ${IMAGE_BUCKET_NAME}
+    credentials:
+      access-key: ${AWS_IMAGE_ACCESS_KEY}
+      secret-key: ${AWS_IMAGE_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false
