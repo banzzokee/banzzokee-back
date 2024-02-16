@@ -74,10 +74,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            sudo docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
+            sudo docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             cd docker
             sudo docker-compose down
             sudo docker-compose up -d
