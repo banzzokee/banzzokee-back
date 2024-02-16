@@ -33,19 +33,17 @@ jobs:
           cat ./env.properties
         shell: bash
 
-      - name: Spring Boot Build
-        run: ./gradlew bootJar -Pprofile=prod
-#      - name: Build with Gradle
-#        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
-#        with:
-#          arguments: build -Pprofile=prod
+#      - name: Spring Boot Build
+#        run: ./gradlew bootJar -Pprofile=prod
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+        with:
+          arguments: build
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee
           tag-semver: |
             {{version}}
             {{major}}.{{minor}}
@@ -67,7 +65,9 @@ jobs:
           push: true
 #          tags: ${{ steps.meta.outputs.tags }}
 #          labels: ${{ steps.meta.outputs.labels }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:${{ steps.meta.outputs.tags }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
@@ -80,4 +80,5 @@ jobs:
             sudo docker stop banzzokee-demo
             sudo docker rm banzzokee-demo
             cd docker
+            sudo docker-compose down
             sudo docker-compose up -d
