@@ -1,6 +1,6 @@
 package homes.banzzokee.event.dto;
 
-import homes.banzzokee.event.type.AdoptionAction;
+import homes.banzzokee.event.type.EntityAction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,9 +10,9 @@ public class EntityStatusDto {
 
   private final Long id;
 
-  private final AdoptionAction action;
+  private final EntityAction action;
 
-  public static EntityStatusDto of(Long id, AdoptionAction action) {
+  public static EntityStatusDto of(Long id, EntityAction action) {
     return EntityStatusDto.builder()
         .id(id)
         .action(action)
