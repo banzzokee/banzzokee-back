@@ -58,7 +58,6 @@ public class SecurityConfig {
             .hasAnyRole("USER", "ADMIN", "SHELTER")
             .requestMatchers("/api/rooms/**", "/api/chats/**")
             .hasAnyRole("USER", "ADMIN", "SHELTER")
-            .requestMatchers("/api/tests/**").permitAll()
             .requestMatchers("/ws-stomp/**").permitAll()
             .anyRequest().authenticated())
         .oauth2Login(oauth2 -> oauth2
