@@ -64,7 +64,7 @@ jobs:
           file: ./docker/app/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:new
+            ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:new2
             ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
 
       - name: Deploy to EC2
