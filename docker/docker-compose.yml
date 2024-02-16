@@ -11,9 +11,9 @@ services:
     volumes:
       - /home/ubuntu/config/fcm:/deploy/config
     networks:
-      - banzzokee
+      - bridge
     restart: always
 
 networks:
-  banzzokee:
+  bridge:
     driver: bridge
