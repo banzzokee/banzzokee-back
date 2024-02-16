@@ -33,20 +33,10 @@ jobs:
           cat ./env.properties
         shell: bash
 
-#      - name: Spring Boot Build
-#        run: ./gradlew bootJar -Pprofile=prod
       - name: Build with Gradle
         uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
         with:
           arguments: build
-
-#      - name: Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v5
-#        with:
-#          tag-semver: |
-#            {{version}}
-#            {{major}}.{{minor}}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -74,10 +64,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            sudo docker stop banzzokee-demo
-            sudo docker rm banzzokee-demo
+            sudo docker stop banzzokee
+            sudo docker rm banzzokee
             sudo docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
-            cd docker
-            sudo docker-compose down
-            sudo docker-compose up -d
+            sudo docker run -it -d --name banzzokee -p 8080:8080 --env-file ~/docker/.env --network bridge -v /home/ubuntu/config/fcm:/deploy/config ${{ secrets.DOCKERHUB_USERNAME }}/banzzokee:latest
