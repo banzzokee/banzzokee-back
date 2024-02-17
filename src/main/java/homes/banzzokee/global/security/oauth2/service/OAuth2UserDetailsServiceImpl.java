@@ -45,21 +45,21 @@ public class OAuth2UserDetailsServiceImpl extends DefaultOAuth2UserService {
         , oAuth2UserAttributes);
   }
 
+  /**
+   * 최초 소셜로그인 구분 로직
+   */
   private User getOrSave(OAuth2UserInfo oAuth2UserInfo) {
     String email = oAuth2UserInfo.getEmail();
     Optional<User> findUser = userRepository.findByEmail(email);
     if (findUser.isPresent()) {
       User existingUser = findUser.get();
-      // 이미 등록된 이메일이지만 로그인 타입이 다르면 예외 발생
       if (!oAuth2UserInfo.getLoginType().equals(existingUser.getLoginType())) {
         OAuth2Error oauthError = new OAuth2Error(
             "invalid_request", EMAIL_EXIST_DIFFERENT_LOGIN.getMessage(), null);
         throw new OAuth2AuthenticationException(oauthError);
       }
-      // 등록된 사용자이면 해당 사용자 반환
       return existingUser;
     } else {
-      // 등록되지 않은 사용자이면 새로운 사용자를 생성하여 저장
       User newUser = oAuth2UserInfo.toEntity();
       return userRepository.save(newUser);
     }

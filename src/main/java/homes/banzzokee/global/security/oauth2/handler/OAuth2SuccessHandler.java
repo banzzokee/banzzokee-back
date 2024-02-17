@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -30,12 +29,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     log.info("소셜 로그인 성공! 서버 로그를 확인해주세요.");
     UserDetailsImpl oauth2User = (UserDetailsImpl) authentication.getPrincipal();
     String accessToken = jwtTokenProvider.createAccessToken(oauth2User.getUsername());
-    String refreshToken = jwtTokenProvider.createAccessToken(oauth2User.getUsername());
-    redisService.setRefreshToken(oauth2User.getUsername(), refreshToken,
-        jwtTokenProvider.getRefreshTokenExpire());
-    String redirectUrl = UriComponentsBuilder.fromUriString(SUCCESS_URI)
-        .queryParam("accessToken", accessToken)
-        .build().toUriString();
-    response.sendRedirect(redirectUrl);
+    boolean isFirstSocialLogin = checkIfFirstSocialLogin(oauth2User.getUsername());
+    String redirectUrl;
+    if (isFirstSocialLogin) {
+      redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=true";
+    } else {
+      redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=false";
+    }
+    getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+  }
+
+  /**
+   * 최초 소셜로그인 레디스 확인
+   */
+  private boolean checkIfFirstSocialLogin(String email) {
+    return !redisService.hasUserEmail(email);
   }
 }
