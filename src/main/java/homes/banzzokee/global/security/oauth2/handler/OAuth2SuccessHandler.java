@@ -33,6 +33,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     String redirectUrl;
     if (isFirstSocialLogin) {
       redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=true";
+      String refreshToken = jwtTokenProvider.createRefreshToken(oauth2User.getUsername());
+      redisService.setRefreshToken(
+          oauth2User.getUsername(), refreshToken, jwtTokenProvider.getRefreshTokenExpire());
     } else {
       redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=false";
     }
