@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -86,5 +87,18 @@ public class ChatRoom {
     this.lastMessageType = lastMessageType;
     this.lastMessageCreatedAt = lastMessageCreatedAt;
 
+  }
+
+  public boolean isParticipatedUser(User user) {
+    if (user == null) {
+      return false;
+    }
+
+    return (this.user != null
+        && Objects.equals(this.user.getId(), user.getId()))
+        ||
+        (this.shelter != null
+            && this.shelter.getUser() != null
+            && Objects.equals(this.shelter.getUser().getId(), user.getId()));
   }
 }
