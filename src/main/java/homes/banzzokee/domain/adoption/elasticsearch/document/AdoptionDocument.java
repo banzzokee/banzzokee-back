@@ -77,11 +77,11 @@ public class AdoptionDocument {
         .id(adoption.getId())
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .status(adoption.getStatus().getStatus())
-        .breed(adoption.getBreed().getBreed())
-        .size(adoption.getSize().getSize())
+        .status(adoption.getStatus().getValue())
+        .breed(adoption.getBreed().getValue())
+        .size(adoption.getSize().getValue())
         .neutering(adoption.isNeutering())
-        .gender(adoption.getGender().getGender())
+        .gender(adoption.getGender().getValue())
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
@@ -98,10 +98,10 @@ public class AdoptionDocument {
   public void update(Adoption adoption) {
     this.title = adoption.getTitle();
     this.content = adoption.getContent();
-    this.breed = adoption.getBreed().getBreed();
-    this.size = adoption.getSize().getSize();
+    this.breed = adoption.getBreed().getValue();
+    this.size = adoption.getSize().getValue();
     this.neutering = adoption.isNeutering();
-    this.gender = adoption.getGender().getGender();
+    this.gender = adoption.getGender().getValue();
     this.age = adoption.getAge();
     this.healthChecked = adoption.isHealthChecked();
     this.registeredAt = adoption.getRegisteredAt();
@@ -110,7 +110,7 @@ public class AdoptionDocument {
   }
 
   public void updateStatus(Adoption adoption) {
-    this.status = adoption.getStatus().getStatus();
+    this.status = adoption.getStatus().getValue();
     this.assignedUser = getUserDocumentVo(adoption.getAssignedUser());
     this.adoptedAt = adoption.getAdoptedAt();
     this.updatedAt = adoption.getUpdatedAt();

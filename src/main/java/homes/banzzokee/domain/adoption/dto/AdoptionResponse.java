@@ -72,7 +72,7 @@ public class AdoptionResponse {
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
-        .status(adoption.getStatus().getStatus())
+        .status(adoption.getStatus().getValue())
         .adoptedAt(adoption.getAdoptedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
@@ -108,20 +108,20 @@ public class AdoptionResponse {
     if (breedType == null) {
       return null;
     }
-    return breedType.getBreed();
+    return breedType.getValue();
   }
 
   private static String getSize(DogSize size) {
     if (size == null) {
       return null;
     }
-    return size.getSize();
+    return size.getValue();
   }
 
   private static String getGender(DogGender gender) {
     if (gender == null) {
       return null;
     }
-    return gender.getGender();
+    return gender.getValue();
   }
 }
