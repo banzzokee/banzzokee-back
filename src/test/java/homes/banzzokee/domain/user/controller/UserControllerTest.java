@@ -107,6 +107,57 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("[본인 프로필 조회] - 성공 검증")
+  @WithMockCustomUser
+  void getMyProfile_when_validInput_then_success() throws Exception {
+    // given
+    ShelterDto shelter = ShelterDto.builder()
+        .shelterId(1L)
+        .shelterImgUrl("shelter.png")
+        .name("반쪽이 보호소")
+        .description("반쪽이 화이팅")
+        .tel("02-1234-5678")
+        .address("서울시 행복구")
+        .registeredAt(LocalDate.of(2024, 1, 1))
+        .build();
+
+    UserProfileDto profile = UserProfileDto.builder()
+        .userId(1L)
+        .email("user1@banzzokee.homes")
+        .profileImgUrl("avatar.png")
+        .nickname("사용자1")
+        .introduce("안녕하세요")
+        .joinedAt(LocalDate.of(2024, 1, 1))
+        .shelter(shelter)
+        .build();
+
+    given(userService.getUserProfile(profile.getUserId()))
+        .willReturn(profile);
+
+    // when
+    ResultActions resultActions = MockMvcUtil.performGet(mockMvc, "/api/users/me");
+
+    // then
+    verify(userService).getUserProfile(profile.getUserId());
+
+    resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(profile.getUserId()))
+        .andExpect(jsonPath("$.email").value(profile.getEmail()))
+        .andExpect(jsonPath("$.profileImgUrl").value(profile.getProfileImgUrl()))
+        .andExpect(jsonPath("$.nickname").value(profile.getNickname()))
+        .andExpect(jsonPath("$.introduce").value(profile.getIntroduce()))
+        .andExpect(jsonPath("$.joinedAt").value(profile.getJoinedAt().toString()))
+        .andExpect(jsonPath("$.shelter.shelterId").value(shelter.getShelterId()))
+        .andExpect(jsonPath("$.shelter.shelterImgUrl").value(shelter.getShelterImgUrl()))
+        .andExpect(jsonPath("$.shelter.name").value(shelter.getName()))
+        .andExpect(jsonPath("$.shelter.description").value(shelter.getDescription()))
+        .andExpect(jsonPath("$.shelter.tel").value(shelter.getTel()))
+        .andExpect(jsonPath("$.shelter.address").value(shelter.getAddress()))
+        .andExpect(jsonPath("$.shelter.registeredAt")
+            .value(shelter.getRegisteredAt().toString()));
+  }
+
+  @Test
   @DisplayName("[사용자 탈퇴] - 성공 검증")
   @WithMockCustomUser
   void withdrawUser_when_validInput_then_success() throws Exception {
