@@ -172,7 +172,7 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(fileDtoList.get(3).getUrl(),
         adoptionDocumentCaptor.getValue().getImages().get(3).getUrl());
-    assertEquals(ADOPTING.getStatus(), adoptionDocumentCaptor.getValue().getStatus());
+    assertEquals(ADOPTING.getValue(), adoptionDocumentCaptor.getValue().getStatus());
   }
 
   @Test

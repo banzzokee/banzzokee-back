@@ -291,8 +291,8 @@ class ReviewServiceTest {
     assertEquals("분양 게시글 작성자", response.getAdoption().getUserNickname());
     assertEquals("입양자", response.getUser().getNickname());
     assertEquals("강아지", response.getAdoption().getTitle());
-    assertEquals("포메라니안", response.getAdoption().getBreed());
-    assertEquals("분양완료", response.getAdoption().getStatus());
+    assertEquals("포메라니안", response.getAdoption().getBreed().getValue());
+    assertEquals("분양완료", response.getAdoption().getStatus().getValue());
     assertEquals("후기 게시글", response.getTitle());
 
   }
