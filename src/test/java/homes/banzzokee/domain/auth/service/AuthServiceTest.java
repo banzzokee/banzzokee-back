@@ -292,4 +292,29 @@ class AuthServiceTest {
     // then & then
     assertThrows(PasswordUnmatchedException.class, () -> authService.signIn(signInRequest));
   }
+
+  @Test
+  @DisplayName("[로그아웃] - 성공 검증")
+  public void logout_when_success_then_verify() {
+    // given
+    String token = "testToken";
+    String email = "testEmail";
+    String cleanedToken = "cleanedTestToken";
+
+    // when
+    given(jwtTokenProvider.removeBearerFromToken(token)).willReturn(cleanedToken);
+    doNothing().when(jwtTokenProvider).validateToken(cleanedToken);
+    doNothing().when(redisService).addToBlacklist(cleanedToken);
+    given(jwtTokenProvider.getUserEmailFromToken(cleanedToken)).willReturn(email);
+    doNothing().when(redisService).deleteRefreshToken(email);
+
+    // then
+    authService.logout(token);
+
+    verify(jwtTokenProvider).removeBearerFromToken("testToken");
+    verify(jwtTokenProvider).validateToken("cleanedTestToken");
+    verify(redisService).addToBlacklist("cleanedTestToken");
+    verify(jwtTokenProvider).getUserEmailFromToken("cleanedTestToken");
+    verify(redisService).deleteRefreshToken("testEmail");
+  }
 }
