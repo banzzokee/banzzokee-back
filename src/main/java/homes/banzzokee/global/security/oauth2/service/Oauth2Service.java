@@ -15,15 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class Oauth2Service {
 
-  public static final int BEARER_LENGTH = 7;
-
   private final RedisService redisService;
   private final UserRepository userRepository;
   private final JwtTokenProvider jwtTokenProvider;
 
   @Transactional
   public TokenResponse signup(String token, NicknameRequest nicknameRequest) {
-    String email = jwtTokenProvider.getUserEmailFromToken(token.substring(BEARER_LENGTH));
+    String email = jwtTokenProvider.getUserEmailFromToken(
+        jwtTokenProvider.removeBearerFromToken(token));
     User user = userRepository.findByEmail(email)
         .orElseThrow(EmailNotFoundException::new);
     user.updateNickname(nicknameRequest.getNickname());

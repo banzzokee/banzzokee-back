@@ -39,8 +39,8 @@ public class RedisService {
     return redisTemplate.opsForValue().get(key);
   }
 
-  public void deleteRefreshToken(String key) {
-    redisTemplate.delete(key);
+  public void deleteRefreshToken(String email) {
+    redisTemplate.delete(email);
   }
 
   public void addToBlacklist(String token) {

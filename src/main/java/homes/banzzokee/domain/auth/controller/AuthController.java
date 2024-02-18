@@ -43,4 +43,10 @@ public class AuthController {
   public ResponseEntity<TokenResponse> signIn(@Valid @RequestBody SignInRequest signInRequest) {
     return ResponseEntity.ok(authService.signIn(signInRequest));
   }
+
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
+    authService.logout(token);
+    return ResponseEntity.ok().build();
+  }
 }
