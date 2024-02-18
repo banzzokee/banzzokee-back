@@ -1,5 +1,8 @@
 package homes.banzzokee.domain.adoption.dto;
 
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.global.validator.annotation.BreedValid;
 import homes.banzzokee.global.validator.annotation.DateValid;
 import homes.banzzokee.global.validator.annotation.DogGenderValid;
@@ -23,16 +26,16 @@ public class AdoptionRegisterRequest {
   @NotBlank @Size(max = 500)
   private final String content;
 
-  @NotNull @BreedValid
-  private final String breed;
+  @NotNull
+  private final BreedType breed;
 
-  @NotNull @DogSizeValid
-  private final String size;
+  @NotNull
+  private final DogSize size;
 
   private final boolean neutering;
 
-  @NotNull @DogGenderValid
-  private final String gender;
+  @NotNull
+  private final DogGender gender;
 
   @Max(100)
   private final int age;

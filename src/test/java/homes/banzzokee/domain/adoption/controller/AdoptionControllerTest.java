@@ -21,12 +21,16 @@ import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -79,10 +83,10 @@ class AdoptionControllerTest {
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("이쁜 우리 강아지")
       .content("우리 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(5)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -115,7 +119,20 @@ class AdoptionControllerTest {
   @DisplayName("분양게시글 등록 성공 테스트")
   void registerAdoption_success() throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = "{\n"
+        + "    \"title\": \"이쁜 우리 강아지\",\n"
+        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
+        + "    \"breed\": \"POMERANIAN\",\n"
+        + "    \"size\": \"MEDIUM\",\n"
+        + "    \"neutering\": false,\n"
+        + "    \"gender\": \"MALE\",\n"
+        + "    \"age\": 5,\n"
+        + "    \"healthChecked\": true,\n"
+        + "    \"registeredAt\": \"2024-01-01\"\n"
+        + "}";
+    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
@@ -160,7 +177,20 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenFileHasDuplicateFilename()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = "{\n"
+        + "    \"title\": \"이쁜 우리 강아지\",\n"
+        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
+        + "    \"breed\": \"POMERANIAN\",\n"
+        + "    \"size\": \"MEDIUM\",\n"
+        + "    \"neutering\": false,\n"
+        + "    \"gender\": \"MALE\",\n"
+        + "    \"age\": 5,\n"
+        + "    \"healthChecked\": true,\n"
+        + "    \"registeredAt\": \"2024-01-01\"\n"
+        + "}";
+    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile image = MockDataUtil.createMockMultipartFile("images",
@@ -184,7 +214,20 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenNumberOfFilesOver8()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = "{\n"
+        + "    \"title\": \"이쁜 우리 강아지\",\n"
+        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
+        + "    \"breed\": \"POMERANIAN\",\n"
+        + "    \"size\": \"MEDIUM\",\n"
+        + "    \"neutering\": false,\n"
+        + "    \"gender\": \"MALE\",\n"
+        + "    \"age\": 5,\n"
+        + "    \"healthChecked\": true,\n"
+        + "    \"registeredAt\": \"2024-01-01\"\n"
+        + "}";
+    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
@@ -204,7 +247,20 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenFileIsNotImage()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = "{\n"
+        + "    \"title\": \"이쁜 우리 강아지\",\n"
+        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
+        + "    \"breed\": \"POMERANIAN\",\n"
+        + "    \"size\": \"MEDIUM\",\n"
+        + "    \"neutering\": false,\n"
+        + "    \"gender\": \"MALE\",\n"
+        + "    \"age\": 5,\n"
+        + "    \"healthChecked\": true,\n"
+        + "    \"registeredAt\": \"2024-01-01\"\n"
+        + "}";
+    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile textFile = createMockTextFile();
@@ -244,10 +300,10 @@ class AdoptionControllerTest {
     AdoptionRegisterRequest request = AdoptionRegisterRequest.builder()
         .title(over50)  // 50자 이상
         .content(over500)  // 500자 이상
-        .breed("잘못된 견종")  // 유효한 견종 아님경
-        .size("기쁨형")  // 유효한 크기 아님
+        .breed(null)  // null
+        .size(null)  // null
         .neutering(false)
-        .gender("남성")  // 유효한 성별 아님
+        .gender(null)  // null
         .age(120)  // 100세 이상 입력 불가
         .healthChecked(true)
         .registeredAt("2024012301")  // 유효한 날짜 형식 아님

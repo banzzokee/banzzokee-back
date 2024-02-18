@@ -40,6 +40,8 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -88,10 +90,10 @@ class AdoptionServiceTest {
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -152,12 +154,12 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getTitle());
     assertEquals(registerRequest.getContent(),
         adoptionDocumentCaptor.getValue().getContent());
-    assertEquals(registerRequest.getBreed(),
+    assertEquals(registerRequest.getBreed().getValue(),
         adoptionDocumentCaptor.getValue().getBreed());
-    assertEquals(registerRequest.getSize(), adoptionDocumentCaptor.getValue().getSize());
+    assertEquals(registerRequest.getSize().getValue(), adoptionDocumentCaptor.getValue().getSize());
     assertEquals(registerRequest.isNeutering(),
         adoptionDocumentCaptor.getValue().isNeutering());
-    assertEquals(registerRequest.getGender(),
+    assertEquals(registerRequest.getGender().getValue(),
         adoptionDocumentCaptor.getValue().getGender());
     assertEquals(registerRequest.getAge(), adoptionDocumentCaptor.getValue().getAge());
     assertEquals(registerRequest.isHealthChecked(),
