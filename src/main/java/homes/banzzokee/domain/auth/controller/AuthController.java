@@ -49,4 +49,10 @@ public class AuthController {
     authService.logout(token);
     return ResponseEntity.ok().build();
   }
+
+  @PostMapping("/token/reissue")
+  public ResponseEntity<TokenResponse> reissueAccessToken(@RequestHeader("Authorization")
+                                                            String refreshToken) {
+    return ResponseEntity.ok(authService.reissueAccessToken(refreshToken));
+  }
 }

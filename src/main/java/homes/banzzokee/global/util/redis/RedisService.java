@@ -19,11 +19,6 @@ public class RedisService {
     redisTemplate.opsForValue().set(key, value, duration, TimeUnit.SECONDS);
   }
 
-  public void setDataExpire(String key, String value, long duration) {
-    ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-    valueOperations.set(key, value, duration, TimeUnit.SECONDS);
-  }
-
   public String getData(String key) {
     ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
     return valueOperations.get(key);
@@ -50,15 +45,7 @@ public class RedisService {
         TimeUnit.SECONDS);
   }
 
-  public boolean isBlacklisted(String token) {
-    return Boolean.TRUE.equals(redisTemplate.hasKey(token));
-  }
-
   public boolean isRefreshTokenExist(String email, String token) {
     return this.getRefreshToken(email) != null && this.getRefreshToken(email).equals(token);
-  }
-
-  public boolean hasUserEmail(String email) {
-    return Boolean.TRUE.equals(redisTemplate.hasKey(email));
   }
 }
