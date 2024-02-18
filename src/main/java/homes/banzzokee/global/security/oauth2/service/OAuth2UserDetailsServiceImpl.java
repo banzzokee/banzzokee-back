@@ -1,5 +1,6 @@
 package homes.banzzokee.global.security.oauth2.service;
 
+import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
@@ -40,9 +41,10 @@ public class OAuth2UserDetailsServiceImpl extends DefaultOAuth2UserService {
     } catch (AuthException e) {
       throw new SocialLoginAuthorizedException();
     }
+    boolean isFirstLongin = checkIfFirstSocialLogin(oAuth2UserInfo.getEmail());
     User user = getOrSave(oAuth2UserInfo);
     return new UserDetailsImpl(user, List.of(new SimpleGrantedAuthority(Role.ROLE_USER.name()))
-        , oAuth2UserAttributes);
+        , oAuth2UserAttributes, isFirstLongin);
   }
 
   /**
@@ -63,5 +65,9 @@ public class OAuth2UserDetailsServiceImpl extends DefaultOAuth2UserService {
       User newUser = oAuth2UserInfo.toEntity();
       return userRepository.save(newUser);
     }
+  }
+
+  public boolean checkIfFirstSocialLogin(String email) {
+    return !userRepository.existsByEmailAndLoginType(email, LoginType.GOOGLE);
   }
 }

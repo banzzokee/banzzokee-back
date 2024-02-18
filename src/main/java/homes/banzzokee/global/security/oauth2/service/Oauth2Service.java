@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class Oauth2Service {
 
-  private static final int BEARER_LENGTH = 7;
+  public static final int BEARER_LENGTH = 7;
 
   private final RedisService redisService;
   private final UserRepository userRepository;

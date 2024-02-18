@@ -18,7 +18,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  public static final String SUCCESS_URI = "/oauth2/success";
+  public static final String SUCCESS_URI = "/MyPage";
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisService redisService;
 
@@ -29,23 +29,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     log.info("소셜 로그인 성공! 서버 로그를 확인해주세요.");
     UserDetailsImpl oauth2User = (UserDetailsImpl) authentication.getPrincipal();
     String accessToken = jwtTokenProvider.createAccessToken(oauth2User.getUsername());
-    boolean isFirstSocialLogin = checkIfFirstSocialLogin(oauth2User.getUsername());
+    String refreshToken = jwtTokenProvider.createRefreshToken(oauth2User.getUsername());
+    redisService.setRefreshToken(
+        oauth2User.getUsername(), refreshToken, jwtTokenProvider.getRefreshTokenExpire());
     String redirectUrl;
-    if (isFirstSocialLogin) {
-      redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=true";
-      String refreshToken = jwtTokenProvider.createRefreshToken(oauth2User.getUsername());
-      redisService.setRefreshToken(
-          oauth2User.getUsername(), refreshToken, jwtTokenProvider.getRefreshTokenExpire());
-    } else {
-      redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken + "&isFirstLogin=false";
-    }
+    redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken +
+        "&isFirstLogin=" + oauth2User.isFirstLogin();
     getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-  }
-
-  /**
-   * 최초 소셜로그인 레디스 확인
-   */
-  private boolean checkIfFirstSocialLogin(String email) {
-    return !redisService.hasUserEmail(email);
   }
 }
