@@ -54,4 +54,8 @@ public class RedisService {
   public boolean isRefreshTokenExist(String email, String token) {
     return this.getRefreshToken(email) != null && this.getRefreshToken(email).equals(token);
   }
+
+  public boolean hasUserEmail(String email) {
+    return Boolean.TRUE.equals(redisTemplate.hasKey(email));
+  }
 }

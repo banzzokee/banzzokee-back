@@ -38,3 +38,7 @@ out/
 
 ### QueryDSL ###
 /src/main/generated
+
+### env ###
+/src/main/resources/properties
+/docker/.env

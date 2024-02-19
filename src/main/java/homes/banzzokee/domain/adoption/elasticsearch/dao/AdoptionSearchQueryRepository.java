@@ -3,6 +3,7 @@ package homes.banzzokee.domain.adoption.elasticsearch.dao;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
+import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
@@ -44,7 +45,10 @@ public class AdoptionSearchQueryRepository {
     NativeQueryBuilder query = new NativeQueryBuilder();
 
     if (request == null) {
+      BoolQuery.Builder boolQueryBuilder = new Builder();
+      boolQueryBuilder.mustNot(ExistsQuery.of(e -> e.field("deletedAt"))._toQuery());
       return query
+          .withQuery(boolQueryBuilder.build()._toQuery())
           .withPageable(pageable)
           .build();
     }
@@ -93,6 +97,8 @@ public class AdoptionSearchQueryRepository {
           ._toQuery();
       boolQueryBuilder.must(ageRangeQuery);
     }
+
+    boolQueryBuilder.mustNot(ExistsQuery.of(e -> e.field("deletedAt"))._toQuery());
 
     return query
         .withQuery(boolQueryBuilder.build()._toQuery())
