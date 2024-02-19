@@ -21,9 +21,6 @@ import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoExcept
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
-import homes.banzzokee.domain.type.BreedType;
-import homes.banzzokee.domain.type.DogGender;
-import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -31,11 +28,9 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -94,10 +89,10 @@ public class AdoptionService {
     adoption.updateAdoption(
         request.getTitle(),
         request.getContent(),
-        BreedType.findByString(request.getBreed()),
-        DogSize.findByString(request.getSize()),
+        request.getBreed(),
+        request.getSize(),
         request.isNeutering(),
-        DogGender.findByString(request.getGender()),
+        request.getGender(),
         request.getAge(),
         request.isHealthChecked(),
         LocalDate.parse(request.getRegisteredAt()),

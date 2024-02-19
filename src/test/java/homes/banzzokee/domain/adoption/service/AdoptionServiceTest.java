@@ -104,10 +104,10 @@ class AdoptionServiceTest {
   private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -336,13 +336,13 @@ class AdoptionServiceTest {
     assertEquals(updateRequest.getContent(),
         adoptionDocumentArgumentCaptor.getValue().getContent());
     assertEquals(updateRequest.getBreed(),
-        adoptionDocumentArgumentCaptor.getValue().getBreed().getValue());
+        adoptionDocumentArgumentCaptor.getValue().getBreed());
     assertEquals(updateRequest.getSize(),
-        adoptionDocumentArgumentCaptor.getValue().getSize().getValue());
+        adoptionDocumentArgumentCaptor.getValue().getSize());
     assertEquals(updateRequest.isNeutering(),
         adoptionDocumentArgumentCaptor.getValue().isNeutering());
     assertEquals(updateRequest.getGender(),
-        adoptionDocumentArgumentCaptor.getValue().getGender().getValue());
+        adoptionDocumentArgumentCaptor.getValue().getGender());
     assertEquals(updateRequest.getAge(),
         adoptionDocumentArgumentCaptor.getValue().getAge());
     assertEquals(updateRequest.isHealthChecked(),
