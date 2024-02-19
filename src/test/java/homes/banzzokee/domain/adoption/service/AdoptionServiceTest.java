@@ -3,7 +3,8 @@ package homes.banzzokee.domain.adoption.service;
 import static homes.banzzokee.domain.type.AdoptionStatus.ADOPTING;
 import static homes.banzzokee.domain.type.AdoptionStatus.FINISHED;
 import static homes.banzzokee.domain.type.AdoptionStatus.RESERVING;
-import static homes.banzzokee.event.type.AdoptionAction.STATUS;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_CREATED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_STATUS_CHANGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,9 +47,8 @@ import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.event.AdoptionEvent;
+import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.event.dto.EntityStatusDto;
-import homes.banzzokee.event.type.AdoptionAction;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
@@ -150,12 +150,11 @@ class AdoptionServiceTest {
     adoptionService.registerAdoption(registerRequest, images, 1L);
 
     //then
-    ArgumentCaptor<AdoptionEvent> eventCaptor
-        = ArgumentCaptor.forClass(AdoptionEvent.class);
+    ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-    AdoptionEvent event = eventCaptor.getValue();
-    assertEquals(AdoptionAction.CREATE, event.getPayload().getAction());
+    EntityEvent event = eventCaptor.getValue();
+    assertEquals(ADOPTION_CREATED, event.getPayload().getAction());
     // TODO: id 검증을 못함
 //    assertEquals(adoption.getId(), event.getPayload().getId());
 
@@ -605,14 +604,13 @@ class AdoptionServiceTest {
     assertEquals(now.toLocalDate(),
         adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getJoinedAt());
 
-    ArgumentCaptor<AdoptionEvent> eventCaptor =
-        ArgumentCaptor.forClass(AdoptionEvent.class);
+    ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-    AdoptionEvent event = eventCaptor.getValue();
+    EntityEvent event = eventCaptor.getValue();
     EntityStatusDto payload = event.getPayload();
     assertEquals("adoption.status.changed", event.getRoutingKey());
-    assertEquals(STATUS, payload.getAction());
+    assertEquals(ADOPTION_STATUS_CHANGED, payload.getAction());
     assertEquals(adoption.getId(), payload.getId());
   }
 
