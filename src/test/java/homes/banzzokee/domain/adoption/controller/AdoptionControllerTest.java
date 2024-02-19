@@ -21,6 +21,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
+import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
@@ -120,17 +121,18 @@ class AdoptionControllerTest {
   void registerAdoption_success() throws Exception {
     //given
     // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
-    String requestJson = "{\n"
-        + "    \"title\": \"이쁜 우리 강아지\",\n"
-        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
-        + "    \"breed\": \"POMERANIAN\",\n"
-        + "    \"size\": \"MEDIUM\",\n"
-        + "    \"neutering\": false,\n"
-        + "    \"gender\": \"MALE\",\n"
-        + "    \"age\": 5,\n"
-        + "    \"healthChecked\": true,\n"
-        + "    \"registeredAt\": \"2024-01-01\"\n"
-        + "}";
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
     MockPart mockPart = new MockPart("request",
         requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
@@ -179,17 +181,18 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
-    String requestJson = "{\n"
-        + "    \"title\": \"이쁜 우리 강아지\",\n"
-        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
-        + "    \"breed\": \"POMERANIAN\",\n"
-        + "    \"size\": \"MEDIUM\",\n"
-        + "    \"neutering\": false,\n"
-        + "    \"gender\": \"MALE\",\n"
-        + "    \"age\": 5,\n"
-        + "    \"healthChecked\": true,\n"
-        + "    \"registeredAt\": \"2024-01-01\"\n"
-        + "}";
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
     MockPart mockPart = new MockPart("request",
         requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
@@ -217,17 +220,18 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
-    String requestJson = "{\n"
-        + "    \"title\": \"이쁜 우리 강아지\",\n"
-        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
-        + "    \"breed\": \"POMERANIAN\",\n"
-        + "    \"size\": \"MEDIUM\",\n"
-        + "    \"neutering\": false,\n"
-        + "    \"gender\": \"MALE\",\n"
-        + "    \"age\": 5,\n"
-        + "    \"healthChecked\": true,\n"
-        + "    \"registeredAt\": \"2024-01-01\"\n"
-        + "}";
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
     MockPart mockPart = new MockPart("request",
         requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
@@ -251,17 +255,18 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
-    String requestJson = "{\n"
-        + "    \"title\": \"이쁜 우리 강아지\",\n"
-        + "    \"content\": \"우리 강아지를 소개합니다.\",\n"
-        + "    \"breed\": \"POMERANIAN\",\n"
-        + "    \"size\": \"MEDIUM\",\n"
-        + "    \"neutering\": false,\n"
-        + "    \"gender\": \"MALE\",\n"
-        + "    \"age\": 5,\n"
-        + "    \"healthChecked\": true,\n"
-        + "    \"registeredAt\": \"2024-01-01\"\n"
-        + "}";
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
     MockPart mockPart = new MockPart("request",
         requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
@@ -479,12 +484,17 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(AdoptionStatus.FINISHED)
         .assignedUserId(1L)
         .build();
+    String json = """
+        {
+            "assignedUserId": 1,
+            "status": "FINISHED"
+        }""";
     // when & then
     mockMvc.perform(patch("/api/adoptions/2/status")
-            .content(objectMapper.writeValueAsString(request))
+            .content(json)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -506,7 +516,7 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양")
+        .status(null)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -578,17 +588,18 @@ class AdoptionControllerTest {
   void getAdoptionList_shouldThrowValidationError_whenFieldIsInvalidInRequest()
       throws Exception {
     //given
-    String requestJson = "{\n"
-        + "    \"breed\":[\"POODLE\", \"MALTESE\"],\n"
-        + "    \"size\": \"MEDIUM\",\n"
-        + "    \"neutering\": true,\n"
-        + "    \"healthChecked\": true,\n"
-        + "    \"gender\": \"MALE\",\n"
-        + "    \"ageRange\":{\n"
-        + "        \"minAge\": 2,\n"
-        + "        \"maxAge\": 3\n"
-        + "    }\n"
-        + "}";
+    String requestJson = """
+        {
+            "breed":["POODLE", "MALTESE"],
+            "size": "MEDIUM",
+            "neutering": true,
+            "healthChecked": true,
+            "gender": "MALE",
+            "ageRange":{
+                "minAge": 2,
+                "maxAge": 3
+            }
+        }""";
 
     List<AdoptionSearchResponse> responses = List.of(
         AdoptionSearchResponse.builder().adoptionId(1L).build());

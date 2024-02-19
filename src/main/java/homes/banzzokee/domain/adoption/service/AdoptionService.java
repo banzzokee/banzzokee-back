@@ -116,13 +116,13 @@ public class AdoptionService {
   @Transactional
   public void changeAdoptionStatus(long adoptionId, AdoptionStatusChangeRequest request,
       long userId) {
-    if (request.getStatus().equals(AdoptionStatus.FINISHED.getValue())
+    if (request.getStatus().equals(AdoptionStatus.FINISHED)
         && request.getAssignedUserId() == null) {
       throw new MustInputAssignedUserInfoException();
     }
 
-    if (request.getStatus().equals(AdoptionStatus.RESERVING.getValue())
-        || request.getStatus().equals(AdoptionStatus.ADOPTING.getValue())) {
+    if (request.getStatus().equals(AdoptionStatus.RESERVING)
+        || request.getStatus().equals(AdoptionStatus.ADOPTING)) {
       if (request.getAssignedUserId() != null) {
         throw new AssignedUserMustBeNullException();
       }
@@ -135,7 +135,7 @@ public class AdoptionService {
     throwIfShelterIsNotVerified(shelter);
 
     // 변경하려는 분양게시글 상태가 현재 상태와 같으면 예외 발생
-    if (adoption.getStatus().getValue().equals(request.getStatus())) {
+    if (adoption.getStatus().equals(request.getStatus())) {
       throw new CurrentStatusIsSameToChangeException();
     }
 
@@ -143,12 +143,10 @@ public class AdoptionService {
         : findByUserIdOrThrow(request.getAssignedUserId());
 
     // 분양완료로 변경하려는 경우는 상태변경, 입양자 정보 입력, 입양일시 입력
-    if (request.getStatus().equals(AdoptionStatus.FINISHED.getValue())) {
-      adoption.updateStatusToFinish(AdoptionStatus.findByString(request.getStatus()),
-          assignedUser);
+    if (request.getStatus().equals(AdoptionStatus.FINISHED)) {
+      adoption.updateStatusToFinish(request.getStatus(), assignedUser);
     } else {  // 분양중, 예약중으로 변경하려는 경우 상태만 변경
-      adoption.updateStatusExceptToFinish(
-          AdoptionStatus.findByString(request.getStatus()));
+      adoption.updateStatusExceptToFinish(request.getStatus());
     }
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
