@@ -11,10 +11,12 @@ import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
+import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
+import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.FilePath;
@@ -22,14 +24,17 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -77,6 +82,36 @@ public class ReviewService {
     return ReviewResponse.fromEntity(review);
   }
 
+  @Transactional
+  public ReviewResponse updateReview(long reviewId, ReviewUpdateRequest request,
+      List<MultipartFile> images, long userId) {
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(ReviewNotFoundException::new);
+    User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+    if (!review.getUser().equals(user)) {
+      throw new NoAuthorizedException();
+    }
+
+    List<S3Object> oldImages = review.getImages();
+    List<S3Object> uploadedReviewImages = uploadReviewImages(images);
+
+    review.update(request.getTitle(), request.getContent(), uploadedReviewImages);
+    Review savedReview = reviewRepository.save(review);
+
+    registerReviewInAdoptionDocument(savedReview, savedReview.getAdoption().getId());
+
+    ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
+        .orElseThrow(ReviewDocumentNotFoundException::new);
+
+    reviewDocument.update(savedReview.getTitle(), savedReview.getContent(),
+        savedReview.getImages());
+    reviewDocumentRepository.save(reviewDocument);
+
+    deleteOldImages(oldImages);
+    return ReviewResponse.fromEntity(savedReview);
+  }
+
   private void registerReviewInAdoptionDocument(Review savedReview,
       long adoptionId) {
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
@@ -107,6 +142,22 @@ public class ReviewService {
         .content(request.getContent())
         .images(images)
         .build());
+  }
+
+  private void deleteOldImages(List<S3Object> oldImages) {
+    if (oldImages == null) {
+      return;
+    }
+    for (S3Object image : oldImages) {
+      if (image == null) {
+        continue;
+      }
+      try {
+        fileUploadService.deleteFile(image.getFileName());
+      } catch (Exception e) {
+        log.error("delete review image failed. file={}", image, e);
+      }
+    }
   }
 
 }
