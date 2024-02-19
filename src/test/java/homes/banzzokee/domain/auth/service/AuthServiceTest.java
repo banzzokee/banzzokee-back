@@ -246,8 +246,8 @@ class AuthServiceTest {
 
     given(userRepository.findByEmail(signInRequest.getEmail())).willReturn(Optional.of(user));
     given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-    given(jwtTokenProvider.createAccessToken(any(User.class))).willReturn(tokenResponse.getAccessToken());
-    given(jwtTokenProvider.createRefreshToken(any(User.class))).willReturn(tokenResponse.getRefreshToken());
+    given(jwtTokenProvider.createAccessToken(anyString())).willReturn(tokenResponse.getAccessToken());
+    given(jwtTokenProvider.createRefreshToken(anyString())).willReturn(tokenResponse.getRefreshToken());
 
     // when
     TokenResponse result = authService.signIn(signInRequest);
