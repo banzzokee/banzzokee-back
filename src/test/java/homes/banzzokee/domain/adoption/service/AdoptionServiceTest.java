@@ -260,8 +260,8 @@ class AdoptionServiceTest {
     AdoptionResponse response = adoptionService.getAdoption(2L);
     //then
     assertEquals("강아지", response.getTitle());
-    assertEquals("포메라니안", response.getBreed());
-    assertEquals("분양중", response.getStatus());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
   }
 
