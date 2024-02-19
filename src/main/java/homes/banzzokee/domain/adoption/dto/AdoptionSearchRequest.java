@@ -1,5 +1,8 @@
 package homes.banzzokee.domain.adoption.dto;
 
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.global.validator.annotation.BreedValid;
 import homes.banzzokee.global.validator.annotation.DogGenderValid;
 import homes.banzzokee.global.validator.annotation.DogSizeValid;
@@ -17,18 +20,16 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class AdoptionSearchRequest {
 
-  @Size(max = 3) @BreedValid
-  private List<String> breed;
+  @Size(max = 3)
+  private List<BreedType> breed;
 
-  @DogSizeValid
-  private String size;
+  private DogSize size;
 
   private Boolean neutering;
 
   private Boolean healthChecked;
 
-  @DogGenderValid
-  private String gender;
+  private DogGender gender;
 
   private AgeRange ageRange;
 

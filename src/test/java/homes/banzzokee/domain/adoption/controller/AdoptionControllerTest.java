@@ -131,7 +131,8 @@ class AdoptionControllerTest {
         + "    \"healthChecked\": true,\n"
         + "    \"registeredAt\": \"2024-01-01\"\n"
         + "}";
-    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
@@ -189,7 +190,8 @@ class AdoptionControllerTest {
         + "    \"healthChecked\": true,\n"
         + "    \"registeredAt\": \"2024-01-01\"\n"
         + "}";
-    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
@@ -226,7 +228,8 @@ class AdoptionControllerTest {
         + "    \"healthChecked\": true,\n"
         + "    \"registeredAt\": \"2024-01-01\"\n"
         + "}";
-    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
@@ -259,7 +262,8 @@ class AdoptionControllerTest {
         + "    \"healthChecked\": true,\n"
         + "    \"registeredAt\": \"2024-01-01\"\n"
         + "}";
-    MockPart mockPart = new MockPart("request", requestJson.getBytes(StandardCharsets.UTF_8));
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
     mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
@@ -570,29 +574,41 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request 필드 유효한 값이 아닌 경우")
+  @DisplayName("분양 게시글 검색 - 성공테스트")
   void getAdoptionList_shouldThrowValidationError_whenFieldIsInvalidInRequest()
       throws Exception {
     //given
-    AdoptionSearchRequest request = AdoptionSearchRequest.builder()
-        .breed(List.of("잘못된 견종"))
-        .size("잘못된 사이즈")
-        .gender("잘못된 성별")
-        .build();
+    String requestJson = "{\n"
+        + "    \"breed\":[\"POODLE\", \"MALTESE\"],\n"
+        + "    \"size\": \"MEDIUM\",\n"
+        + "    \"neutering\": true,\n"
+        + "    \"healthChecked\": true,\n"
+        + "    \"gender\": \"MALE\",\n"
+        + "    \"ageRange\":{\n"
+        + "        \"minAge\": 2,\n"
+        + "        \"maxAge\": 3\n"
+        + "    }\n"
+        + "}";
+
+    List<AdoptionSearchResponse> responses = List.of(
+        AdoptionSearchResponse.builder().adoptionId(1L).build());
+    SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
+        responses);
+
+    given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
+        any(PageRequest.class))).willReturn(
+        searchResponses);
 
     //when & then
     mockMvc.perform(get("/api/adoptions")
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
-            .content(objectMapper.writeValueAsString(request))
+            .content(requestJson)
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errors[*][0:1].reason").isNotEmpty())
-        .andExpect(jsonPath("$.errors[*][1:2].reason").isNotEmpty())
-        .andExpect(jsonPath("$.errors[*][2:3].reason").isNotEmpty());
-
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0:1].adoptionId").value(1));
   }
 
 }

@@ -57,7 +57,7 @@ public class AdoptionSearchQueryRepository {
 
     if (request.getBreed() != null) {
       List<FieldValue> fieldValues = request.getBreed().stream()
-          .map(FieldValue::of)
+          .map(breedType -> FieldValue.of(breedType.getValue()))
           .toList();
 
       Query breedQuery = TermsQuery.of(terms -> terms.field("breed")
@@ -66,7 +66,7 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getSize() != null) {
-      Query sizeQuery = TermQuery.of(t -> t.field("size").value(request.getSize()))
+      Query sizeQuery = TermQuery.of(t -> t.field("size").value(request.getSize().getValue()))
           ._toQuery();
       boolQueryBuilder.must(sizeQuery);
     }
@@ -84,7 +84,7 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getGender() != null) {
-      Query genderQuery = TermQuery.of(t -> t.field("gender").value(request.getGender()))
+      Query genderQuery = TermQuery.of(t -> t.field("gender").value(request.getGender().getValue()))
           ._toQuery();
       boolQueryBuilder.must(genderQuery);
     }
