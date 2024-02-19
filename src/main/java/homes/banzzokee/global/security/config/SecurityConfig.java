@@ -6,7 +6,7 @@ import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
-import homes.banzzokee.global.error.AccessDeniedHandlerImpl;
+import homes.banzzokee.global.error.CustomAccessDeniedHandler;
 import homes.banzzokee.global.error.CustomAuthenticationEntryPoint;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.security.oauth2.handler.OAuth2FailureHandler;
@@ -32,6 +32,7 @@ public class SecurityConfig {
   private final OAuth2FailureHandler oAuth2FailureHandler;
   private final OAuth2UserDetailsServiceImpl oAuth2UserDetailsService;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -44,6 +45,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+            .requestMatchers("/error").permitAll()
             .requestMatchers("/oauth2/**").permitAll()
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/users/**").hasAnyRole("USER")
@@ -79,7 +81,7 @@ public class SecurityConfig {
                 .userService(oAuth2UserDetailsService)))
 
         .exceptionHandling(ex -> {
-          ex.accessDeniedHandler(new AccessDeniedHandlerImpl());
+          ex.accessDeniedHandler(customAccessDeniedHandler);
           ex.authenticationEntryPoint(customAuthenticationEntryPoint);
         })
 

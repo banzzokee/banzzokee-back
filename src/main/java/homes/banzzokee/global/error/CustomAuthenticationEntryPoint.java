@@ -33,18 +33,23 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     Object exception = request.getAttribute("exception");
 
     if (exception == NO_AUTHORIZED) {
+      log.error("[commence] 접근 제한");
       setErrorResponse(NO_AUTHORIZED, request, response);
 
     } else if (exception == ACCESS_TOKEN_EXPIRED) {
+      log.error("[commence] 엑세스 토큰 만료");
       setErrorResponse(ACCESS_TOKEN_EXPIRED, request, response);
 
     } else if (exception == INVALID_TOKEN) {
+      log.error("[commence] 유효하지 않은 토큰");
       setErrorResponse(INVALID_TOKEN, request, response);
 
     } else if (exception == REFRESH_TOKEN_EXPIRED) {
+      log.error("[commence] 리프레시 토큰 만료");
       setErrorResponse(REFRESH_TOKEN_EXPIRED, request, response);
 
     } else if (exception == INTERNAL_ERROR) {
+      log.error("[commence] 서버 에러");
       setErrorResponse(INTERNAL_ERROR, request, response);
     }
 
