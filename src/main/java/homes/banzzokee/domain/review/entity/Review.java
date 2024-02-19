@@ -68,4 +68,12 @@ public class Review extends BaseEntity {
     this.content = content;
     this.images = images;
   }
+
+  public void delete(LocalDateTime deletedAt) {
+    this.deletedAt = deletedAt;
+  }
+
+  public void restore() {
+    this.deletedAt = null;
+  }
 }

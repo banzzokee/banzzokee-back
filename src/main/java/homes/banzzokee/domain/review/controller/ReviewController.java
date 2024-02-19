@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,5 +47,11 @@ public class ReviewController {
       @FileDuplicateValid @ImageFile @Size(min = 1, max = 8) List<MultipartFile> images,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     return reviewService.updateReview(reviewId, request, images, userDetails.getUserId());
+  }
+
+  @DeleteMapping("/{reviewId}")
+  public void deleteReview(@PathVariable long reviewId,
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    reviewService.deleteReview(reviewId, userDetails.getUserId());
   }
 }

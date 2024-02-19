@@ -15,6 +15,7 @@ import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
 import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
 import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.review.exception.DeletedReviewException;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
 import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
@@ -26,6 +27,7 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +69,7 @@ public class ReviewService {
 
     List<S3Object> uploadedReviewImages = uploadReviewImages(images);
 
-    Review savedReview = registerReviewToDataBase(request, adoption, user,
+    Review savedReview = registerOrRestoreReviewToDataBase(request, adoption, user,
         uploadedReviewImages);
 
     registerReviewInAdoptionDocument(savedReview, request.getAdoptionId());
@@ -79,6 +81,10 @@ public class ReviewService {
   public ReviewResponse getReview(long reviewId) {
     Review review = reviewRepository.findById(reviewId).orElseThrow(
         ReviewNotFoundException::new);
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
+
     return ReviewResponse.fromEntity(review);
   }
 
@@ -88,6 +94,10 @@ public class ReviewService {
     Review review = reviewRepository.findById(reviewId)
         .orElseThrow(ReviewNotFoundException::new);
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
 
     if (!review.getUser().equals(user)) {
       throw new NoAuthorizedException();
@@ -112,6 +122,42 @@ public class ReviewService {
     return ReviewResponse.fromEntity(savedReview);
   }
 
+  @Transactional
+  public void deleteReview(long reviewId, long userId) {
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(ReviewNotFoundException::new);
+    User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+    if (review.isDeleted()) {
+      throw new DeletedReviewException();
+    }
+
+    if (!review.getUser().equals(user)) {
+      throw new NoAuthorizedException();
+    }
+
+    deleteReviewInAdoptionDocument(review.getAdoption().getId());
+
+    LocalDateTime now = LocalDateTime.now();
+    deleteReviewInReviewDocument(reviewId, now);
+    review.delete(now);
+    reviewRepository.save(review);
+  }
+
+  private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
+    ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
+        .orElseThrow(ReviewDocumentNotFoundException::new);
+    reviewDocument.delete(deletedAt);
+    reviewDocumentRepository.save(reviewDocument);
+  }
+
+  private void deleteReviewInAdoptionDocument(long adoptionId) {
+    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
+        .orElseThrow(AdoptionDocumentNotFoundException::new);
+    adoptionDocument.deleteReview();
+    adoptionSearchRepository.save(adoptionDocument);
+  }
+
   private void registerReviewInAdoptionDocument(Review savedReview,
       long adoptionId) {
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
@@ -132,16 +178,27 @@ public class ReviewService {
         .collect(Collectors.toList());
   }
 
-  private Review registerReviewToDataBase(ReviewRegisterRequest request,
+  private Review registerOrRestoreReviewToDataBase(ReviewRegisterRequest request,
       Adoption adoption,
       User user, List<S3Object> images) {
-    return reviewRepository.save(Review.builder()
-        .adoption(adoption)
-        .user(user)
-        .title(request.getTitle())
-        .content(request.getContent())
-        .images(images)
-        .build());
+    Review review = adoption.getReview();
+    if (review == null) {
+      review = Review.builder()
+          .adoption(adoption)
+          .user(user)
+          .title(request.getTitle())
+          .content(request.getContent())
+          .images(images)
+          .build();
+      adoption.updateReview(review);
+      adoptionRepository.save(adoption);
+    }
+
+    if (review.isDeleted()) {
+      review.restore();
+    }
+
+    return reviewRepository.save(review);
   }
 
   private void deleteOldImages(List<S3Object> oldImages) {
