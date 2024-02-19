@@ -9,6 +9,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
 import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
@@ -32,6 +33,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -142,6 +146,13 @@ public class ReviewService {
     deleteReviewInReviewDocument(reviewId, now);
     review.delete(now);
     reviewRepository.save(review);
+  }
+
+  public Slice<ReviewSearchResponse> getReviewList(Pageable pageable) {
+    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(
+        pageable);
+    return new SliceImpl<>(
+        reviewList.stream().map(ReviewSearchResponse::fromDocument).toList());
   }
 
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {

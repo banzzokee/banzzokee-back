@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +38,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
@@ -349,6 +353,27 @@ class ReviewControllerTest {
         longArgumentCaptor.capture());
     assertEquals(100L, longArgumentCaptor.getAllValues().get(0));
     assertEquals(1L, longArgumentCaptor.getAllValues().get(1));
+  }
+
+  @Test
+  @DisplayName("후기게시글 목록 조회 성공 테스트")
+  void getReviewList_success() throws Exception {
+    //given
+    PageRequest pageRequest = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
+
+    // when & then
+    mockMvc.perform(get("/api/reviews")
+            .param("page", "0")
+            .param("size", "10")
+            .param("direction", "desc"))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<PageRequest> pageRequestArgumentCaptor = ArgumentCaptor.forClass(
+        PageRequest.class);
+    verify(reviewService).getReviewList(pageRequestArgumentCaptor.capture());
+    assertEquals(pageRequest, pageRequestArgumentCaptor.getValue());
   }
 
   private MockMultipartHttpServletRequestBuilder addImages(
