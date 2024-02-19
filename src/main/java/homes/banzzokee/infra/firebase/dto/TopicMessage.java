@@ -1,31 +1,24 @@
 package homes.banzzokee.infra.firebase.dto;
 
 import java.util.Map;
-import java.util.UUID;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@Builder
-public class TopicMessage {
+@SuperBuilder
+public class TopicMessage extends Message {
 
-  private final String id = UUID.randomUUID().toString();
   private final String topic;
-  private final String title;
-  private final String body;
-  private final String image;
-  private final Map<String, String> data;
 
-  public TopicMessage(String topic, String title, String body, String image,
+  public static TopicMessage of(String topic, String title, String body,
+      String image,
       Map<String, String> data) {
-    this.topic = topic;
-    this.title = title;
-    this.body = body;
-    this.image = image;
-    this.data = data;
-
-    if (data != null) {
-      data.put("notificationId", id);
-    }
+    return TopicMessage.builder()
+        .topic(topic)
+        .title(title)
+        .body(body)
+        .image(image)
+        .data(data)
+        .build();
   }
 }
