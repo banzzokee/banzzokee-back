@@ -1,23 +1,60 @@
 package homes.banzzokee.global.security;
 
 import homes.banzzokee.domain.user.entity.User;
+
 import java.util.Collection;
 import java.util.List;
+
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.Map;
 
 @Getter
-public class UserDetailsImpl implements UserDetails {
-
+public class UserDetailsImpl implements UserDetails, OAuth2User {
   private final Long userId;
   private final String username;
   private final List<GrantedAuthority> authorities;
+  private Map<String, Object> attributes;
+  private boolean isFirstLogin;
 
+  /**
+   * 이메일 로그인
+   */
   public UserDetailsImpl(User user, List<GrantedAuthority> authorities) {
     this.userId = user.getId();
     this.username = user.getEmail();
     this.authorities = authorities;
+  }
+
+  /**
+   * 소셜 로그인
+   */
+  public UserDetailsImpl(User user, List<GrantedAuthority> authorities,
+                         Map<String, Object> attributes, boolean isFirstLogin) {
+    this.userId = user.getId();
+    this.username = user.getEmail();
+    this.authorities = authorities;
+    this.attributes = attributes;
+    this.isFirstLogin = isFirstLogin;
+  }
+
+  /**
+   * OAuth2
+   */
+  @Override
+  public Map<String, Object> getAttributes() {
+    return attributes;
+  }
+
+  /**
+   * OAuth2
+   */
+  @Override
+  public String getName() {
+    return username;
   }
 
   /**
