@@ -1,5 +1,10 @@
 package homes.banzzokee.domain.adoption.service;
 
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_CREATED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_DELETED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_STATUS_CHANGED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_UPDATED;
+
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionResponse;
@@ -29,15 +34,15 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -55,11 +60,11 @@ public class AdoptionService {
   private final AdoptionRepository adoptionRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
   private final AdoptionSearchQueryRepository queryRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
-                               List<MultipartFile> images,
-                               long userId) {
+      List<MultipartFile> images, long userId) {
     User user = findByUserIdOrThrow(userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(user);
     throwIfShelterIsNotVerified(shelter);
@@ -67,6 +72,9 @@ public class AdoptionService {
     List<S3Object> uploadedImages = uploadAdoptionImages(images);
 
     Adoption savedAdoption = registerAdoptionToDataBase(request, user, uploadedImages);
+    eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_CREATED));
+
+    // TODO: consumer에서 처리
     registerAdoptionToElasticSearch(savedAdoption);
   }
 
@@ -78,7 +86,7 @@ public class AdoptionService {
 
   @Transactional
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
-                             List<MultipartFile> images, long userId) {
+      List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfAdoptionIsDeleted(adoption);
     if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
@@ -104,7 +112,9 @@ public class AdoptionService {
         newImages);
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
+    eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_UPDATED));
 
+    // TODO: consumer에서 처리
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
         savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
     adoptionDocument.update(savedAdoption);
@@ -157,6 +167,9 @@ public class AdoptionService {
         savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
     adoptionDocument.updateStatus(savedAdoption);
     adoptionSearchRepository.save(adoptionDocument);
+
+    eventPublisher.publishEvent(
+        EntityEvent.of(savedAdoption.getId(), ADOPTION_STATUS_CHANGED));
   }
 
   @Transactional
@@ -175,6 +188,9 @@ public class AdoptionService {
     adoptionDocument.delete(adoption);
 
     adoptionRepository.save(adoption);
+    eventPublisher.publishEvent(EntityEvent.of(adoption.getId(), ADOPTION_DELETED));
+
+    // TODO: consumer에서 처리
     adoptionSearchRepository.save(adoptionDocument);
   }
 
@@ -204,7 +220,7 @@ public class AdoptionService {
   }
 
   private void throwIfRequestUserIsNotMatchedAdoptionWriter(Adoption adoption,
-                                                            long userId) {
+      long userId) {
     if (adoption.getUser().getId() != userId) {
       throw new NoAuthorizedException();
     }
@@ -248,7 +264,7 @@ public class AdoptionService {
   }
 
   private Adoption registerAdoptionToDataBase(AdoptionRegisterRequest request, User user,
-                                              List<S3Object> images) {
+      List<S3Object> images) {
     return adoptionRepository.save(Adoption.builder()
         .user(user)
         .title(request.getTitle())
