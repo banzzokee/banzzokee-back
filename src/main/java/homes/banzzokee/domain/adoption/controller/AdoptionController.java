@@ -12,15 +12,12 @@ import homes.banzzokee.global.validator.annotation.FileDuplicateValid;
 import homes.banzzokee.global.validator.annotation.ImageFile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,8 +77,10 @@ public class AdoptionController {
   @GetMapping
   public Slice<AdoptionSearchResponse> getAdoptionList(
       @Valid @RequestBody(required = false) AdoptionSearchRequest request,
-      @RequestParam int page, @RequestParam int size,
-      @RequestParam String direction) {
+      @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "10") int size,
+      @RequestParam(required = false, defaultValue = "desc") String direction) {
+
     PageRequest pageRequest = PageRequest.of(page, size,
         Sort.by(Direction.fromString(direction), "createdAt"));
     return adoptionService.getAdoptionList(request, pageRequest);
