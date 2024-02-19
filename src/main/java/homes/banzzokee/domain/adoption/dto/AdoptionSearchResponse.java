@@ -59,10 +59,10 @@ public class AdoptionSearchResponse {
   public static AdoptionSearchResponse fromDocument(AdoptionDocument document) {
     return AdoptionSearchResponse.builder()
         .adoptionId(document.getId())
-        .userId(document.getUser().getUserId())
-        .userNickname(document.getUser().getNickname())
-        .assignedUserId(document.getAssignedUser() == null ? null
-            : document.getAssignedUser().getUserId())
+        .userId(document.getUserId())
+        .userNickname(document.getUserNickname())
+        .assignedUserId(
+            document.getAssignedUserId() == null ? null : document.getAssignedUserId())
         .title(document.getTitle())
         .content(document.getContent())
         .imageUrls(document.getImages() == null ? null
@@ -78,7 +78,8 @@ public class AdoptionSearchResponse {
         .adoptedAt(document.getAdoptedAt() == null ? null : document.getAdoptedAt())
         .updatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt())
         .createdAt(document.getCreatedAt())
-        .reviewId(document.getReview() == null ? null : document.getReview().getReviewId())
+        .reviewId(
+            document.getReview() == null ? null : document.getReview().getReviewId())
         .build();
   }
 

@@ -3,14 +3,28 @@
     "id": {
       "type": "keyword"
     },
+    "userId": {
+      "type": "keyword"
+    },
+    "userNickname": {
+      "type": "keyword"
+    },
+    "assignedUserId": {
+      "type": "keyword"
+    },
     "title": {
       "type": "text"
     },
     "content": {
       "type": "text"
     },
-    "status": {
-      "type": "keyword"
+    "images": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "keyword"
+        }
+      }
     },
     "breed": {
       "type": "keyword"
@@ -30,118 +44,18 @@
     "healthChecked": {
       "type": "boolean"
     },
-    "registeredAt": {
-      "type": "date"
-    },
-    "images": {
-      "type": "object",
-      "properties": {
-        "url": {
-          "type": "keyword"
-        }
-      }
-    },
-    "user": {
-      "properties": {
-        "userId": {
-          "type": "keyword"
-        },
-        "email": {
-          "type": "keyword"
-        },
-        "profileImgUrl": {
-          "properties": {
-            "url": {
-              "type": "keyword"
-            }
-          }
-        },
-        "nickname": {
-          "type": "keyword"
-        },
-        "introduce": {
-          "type": "text"
-        },
-        "joinedAt": {
-          "type": "date"
-        },
-        "shelter": {
-          "properties": {
-            "shelterId": {
-              "type": "keyword"
-            },
-            "shelterImgUrl": {
-              "type": "text"
-            },
-            "name": {
-              "type": "keyword"
-            },
-            "description": {
-              "type": "text"
-            },
-            "tel": {
-              "type": "keyword"
-            },
-            "address": {
-              "type": "text"
-            },
-            "registeredAt": {
-              "type": "date"
-            }
-          }
-        }
-      }
-    },
-    "assignedUser": {
-      "properties": {
-        "userId": {
-          "type": "keyword"
-        },
-        "email": {
-          "type": "keyword"
-        },
-        "profileImgUrl": {
-          "type": "text"
-        },
-        "nickname": {
-          "type": "keyword"
-        },
-        "introduce": {
-          "type": "text"
-        },
-        "joinedAt": {
-          "type": "date"
-        },
-        "shelter": {
-          "properties": {
-            "shelterId": {
-              "type": "keyword"
-            },
-            "shelterImgUrl": {
-              "type": "text"
-            },
-            "name": {
-              "type": "keyword"
-            },
-            "description": {
-              "type": "text"
-            },
-            "tel": {
-              "type": "keyword"
-            },
-            "address": {
-              "type": "text"
-            },
-            "registeredAt": {
-              "type": "date"
-            }
-          }
-        }
-      }
+    "status": {
+      "type": "keyword"
     },
     "review": {
       "properties": {
         "reviewId": {
+          "type": "keyword"
+        },
+        "userId": {
+          "type": "keyword"
+        },
+        "userNickname": {
           "type": "keyword"
         },
         "title": {
@@ -157,16 +71,31 @@
               "type": "keyword"
             }
           }
+        },
+        "createdAt": {
+          "type": "date"
+        },
+        "updatedAt": {
+          "type": "date"
+        },
+        "deletedAt": {
+          "type": "date"
         }
       }
     },
-    "deletedAt": {
+    "registeredAt": {
+      "type": "date"
+    },
+    "adoptedAt": {
       "type": "date"
     },
     "createdAt": {
       "type": "date"
     },
     "updatedAt": {
+      "type": "date"
+    },
+    "deletedAt": {
       "type": "date"
     }
   }

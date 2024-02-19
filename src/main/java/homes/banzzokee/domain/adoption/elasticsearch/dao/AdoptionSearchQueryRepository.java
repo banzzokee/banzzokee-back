@@ -40,6 +40,16 @@ public class AdoptionSearchQueryRepository {
         .collect(Collectors.toList());
   }
 
+  public List<AdoptionDocument> findAllReview(Pageable pageable) {
+    NativeQuery query = createReviewSearchQuery(pageable);
+    SearchHits<AdoptionDocument> search = operations.search(query,
+        AdoptionDocument.class);
+
+    return search.stream()
+        .map(SearchHit::getContent)
+        .collect(Collectors.toList());
+  }
+
   private NativeQuery createAdoptionSearchQuery(AdoptionSearchRequest request,
       Pageable pageable) {
     NativeQueryBuilder query = new NativeQueryBuilder();
@@ -66,7 +76,8 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getSize() != null) {
-      Query sizeQuery = TermQuery.of(t -> t.field("size").value(request.getSize().toString()))
+      Query sizeQuery = TermQuery.of(
+              t -> t.field("size").value(request.getSize().toString()))
           ._toQuery();
       boolQueryBuilder.must(sizeQuery);
     }
@@ -84,7 +95,8 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getGender() != null) {
-      Query genderQuery = TermQuery.of(t -> t.field("gender").value(request.getGender().toString()))
+      Query genderQuery = TermQuery.of(
+              t -> t.field("gender").value(request.getGender().toString()))
           ._toQuery();
       boolQueryBuilder.must(genderQuery);
     }
@@ -106,5 +118,17 @@ public class AdoptionSearchQueryRepository {
         .build();
   }
 
+  private NativeQuery createReviewSearchQuery(Pageable pageable) {
+    NativeQueryBuilder query = new NativeQueryBuilder();
+    BoolQuery.Builder boolQueryBuilder = new Builder();
+    boolQueryBuilder.must(ExistsQuery.of(e -> e.field("review"))._toQuery());
+    boolQueryBuilder.mustNot(
+        ExistsQuery.of(e -> e.field("review").field("deletedAt"))._toQuery());
+
+    return query
+        .withQuery(boolQueryBuilder.build()._toQuery())
+        .withPageable(pageable)
+        .build();
+  }
 
 }

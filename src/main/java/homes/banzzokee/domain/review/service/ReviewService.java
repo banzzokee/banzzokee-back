@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.review.service;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
@@ -29,6 +30,7 @@ import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +53,7 @@ public class ReviewService {
   private final ReviewRepository reviewRepository;
   private final ReviewDocumentRepository reviewDocumentRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
+  private final AdoptionSearchQueryRepository adoptionSearchQueryRepository;
 
   @Transactional
   public void registerReview(ReviewRegisterRequest request, List<MultipartFile> images,
@@ -149,10 +152,11 @@ public class ReviewService {
   }
 
   public Slice<ReviewSearchResponse> getReviewList(Pageable pageable) {
-    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(
+    List<AdoptionDocument> allReview = adoptionSearchQueryRepository.findAllReview(
         pageable);
-    return new SliceImpl<>(
-        reviewList.stream().map(ReviewSearchResponse::fromDocument).toList());
+    return new SliceImpl<>(allReview.stream()
+        .map(ReviewSearchResponse::fromDocument)
+        .toList());
   }
 
   private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {

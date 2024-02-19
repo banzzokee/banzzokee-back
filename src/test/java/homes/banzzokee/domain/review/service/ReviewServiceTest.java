@@ -15,6 +15,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
@@ -81,6 +82,8 @@ class ReviewServiceTest {
   private ReviewDocumentRepository reviewDocumentRepository;
   @Mock
   private AdoptionSearchRepository adoptionSearchRepository;
+  @Mock
+  private AdoptionSearchQueryRepository adoptionSearchQueryRepository;
   @InjectMocks
   private ReviewService reviewService;
 
@@ -141,7 +144,7 @@ class ReviewServiceTest {
         adoptionDocumentCaptor.getValue().getReview().getImages().size());
     for (int i = 0; i < 4; i++) {
       assertEquals(fileDtoList.get(i).getUrl(),
-          adoptionDocumentCaptor.getValue().getReview().getImages().get(i));
+          adoptionDocumentCaptor.getValue().getReview().getImages().get(i).getUrl());
     }
 
     assertEquals(1L, reviewDocumentCaptor.getValue().getAdoption().getUserId());
@@ -353,6 +356,9 @@ class ReviewServiceTest {
         Optional.of(adoptionDocument));
     given(reviewDocumentRepository.findById(anyLong())).willReturn(
         Optional.of(reviewDocument));
+    given(review.getId()).willReturn(1L);
+    given(assignedUser.getId()).willReturn(1L);
+    given(assignedUser.getNickname()).willReturn("Happy");
 
     //when
     ReviewResponse response = reviewService.updateReview(1L, updateRequest, images, 1L);
@@ -487,6 +493,9 @@ class ReviewServiceTest {
         Optional.of(adoptionDocument));
     given(reviewDocumentRepository.findById(anyLong())).willReturn(
         Optional.empty());
+    given(review.getId()).willReturn(1L);
+    given(assignedUser.getId()).willReturn(1L);
+    given(assignedUser.getNickname()).willReturn("Happy");
 
     //when & then
     assertThrows(ReviewDocumentNotFoundException.class,
@@ -659,25 +668,23 @@ class ReviewServiceTest {
   @DisplayName("후기게시글 목록 조회 성공 테스트")
   void getReviewList_success() {
     //given
-    UserDocumentVo user = UserDocumentVo.builder()
-        .userId(2L)
-        .nickname("하하하하")
+    AdoptionDocument adoptionDocument1 = AdoptionDocument.builder()
+        .review(ReviewDocumentVo.builder()
+            .reviewId(1L)
+            .title("후기게시글")
+            .build())
         .build();
-    ReviewDocument reviewDocument1 = ReviewDocument.builder()
-        .id(1L)
-        .user(user)
-        .title("후기게시글")
+    AdoptionDocument adoptionDocument2 = AdoptionDocument.builder()
+        .review(ReviewDocumentVo.builder()
+            .reviewId(2L)
+            .title("후기게시글")
+            .build())
         .build();
-    ReviewDocument reviewDocument2 = ReviewDocument.builder()
-        .id(2L)
-        .user(user)
-        .title("후기게시글")
-        .build();
-    List<ReviewDocument> reviewDocuments = List.of(reviewDocument1, reviewDocument2);
+    List<AdoptionDocument> reviewDocuments = List.of(adoptionDocument1, adoptionDocument2);
     PageRequest pageRequest = PageRequest.of(0, 10,
         Sort.by(Direction.fromString("desc"), "createdAt"));
 
-    given(reviewDocumentRepository.findAllByDeletedAtIsNull(pageRequest)).willReturn(
+    given(adoptionSearchQueryRepository.findAllReview(pageRequest)).willReturn(
         reviewDocuments);
 
     //when
