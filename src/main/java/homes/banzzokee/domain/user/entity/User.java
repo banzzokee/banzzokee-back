@@ -207,4 +207,11 @@ public class User extends BaseEntity {
     this.shelter.delete();
     this.role.remove(ROLE_SHELTER);
   }
+
+  /**
+   * 최초 소셜로그인 닉네임 등록
+   */
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
 }
