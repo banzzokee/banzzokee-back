@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.review.service;
 
+import static homes.banzzokee.event.type.EntityAction.REVIEW_CREATED;
+
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
@@ -22,10 +24,12 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +44,7 @@ public class ReviewService {
   private final ReviewRepository reviewRepository;
   private final ReviewDocumentRepository reviewDocumentRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void registerReview(ReviewRegisterRequest request, List<MultipartFile> images,
@@ -69,6 +74,7 @@ public class ReviewService {
 
     reviewDocumentRepository.save(ReviewDocument.fromEntity(savedReview));
 
+    eventPublisher.publishEvent(EntityEvent.of(savedReview.getId(), REVIEW_CREATED));
   }
 
   public ReviewResponse getReview(long reviewId) {

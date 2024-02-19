@@ -1,8 +1,9 @@
 package homes.banzzokee.domain.adoption.service;
 
-import static homes.banzzokee.event.type.EntityAction.CREATE;
-import static homes.banzzokee.event.type.EntityAction.DELETE;
-import static homes.banzzokee.event.type.EntityAction.UPDATE;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_CREATED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_DELETED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_STATUS_CHANGED;
+import static homes.banzzokee.event.type.EntityAction.ADOPTION_UPDATED;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionRegisterRequest;
@@ -33,7 +34,7 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.event.AdoptionEvent;
+import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.time.LocalDate;
@@ -71,7 +72,7 @@ public class AdoptionService {
     List<S3Object> uploadedImages = uploadAdoptionImages(images);
 
     Adoption savedAdoption = registerAdoptionToDataBase(request, user, uploadedImages);
-    eventPublisher.publishEvent(AdoptionEvent.of(savedAdoption.getId(), CREATE));
+    eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_CREATED));
 
     // TODO: consumer에서 처리
     registerAdoptionToElasticSearch(savedAdoption);
@@ -111,7 +112,7 @@ public class AdoptionService {
         newImages);
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
-    eventPublisher.publishEvent(AdoptionEvent.of(savedAdoption.getId(), UPDATE));
+    eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_UPDATED));
 
     // TODO: consumer에서 처리
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
@@ -166,6 +167,9 @@ public class AdoptionService {
         savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
     adoptionDocument.updateStatus(savedAdoption);
     adoptionSearchRepository.save(adoptionDocument);
+
+    eventPublisher.publishEvent(
+        EntityEvent.of(savedAdoption.getId(), ADOPTION_STATUS_CHANGED));
   }
 
   @Transactional
@@ -184,7 +188,7 @@ public class AdoptionService {
     adoptionDocument.delete(adoption);
 
     adoptionRepository.save(adoption);
-    eventPublisher.publishEvent(AdoptionEvent.of(adoption.getId(), DELETE));
+    eventPublisher.publishEvent(EntityEvent.of(adoption.getId(), ADOPTION_DELETED));
 
     // TODO: consumer에서 처리
     adoptionSearchRepository.save(adoptionDocument);
