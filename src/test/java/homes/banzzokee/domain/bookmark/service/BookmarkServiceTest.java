@@ -121,6 +121,7 @@ class BookmarkServiceTest {
 
     // then
     verify(bookmarkRepository).save(any(Bookmark.class));
+
     ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor
         = ArgumentCaptor.forClass(FcmTopicStatusChangeEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
