@@ -18,6 +18,7 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
   private final String username;
   private final List<GrantedAuthority> authorities;
   private Map<String, Object> attributes;
+  private boolean isFirstLogin;
 
   /**
    * 이메일 로그인
@@ -32,11 +33,12 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
    * 소셜 로그인
    */
   public UserDetailsImpl(User user, List<GrantedAuthority> authorities,
-                         Map<String, Object> attributes) {
+                         Map<String, Object> attributes, boolean isFirstLogin) {
     this.userId = user.getId();
     this.username = user.getEmail();
     this.authorities = authorities;
     this.attributes = attributes;
+    this.isFirstLogin = isFirstLogin;
   }
 
   /**
