@@ -154,12 +154,12 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getTitle());
     assertEquals(registerRequest.getContent(),
         adoptionDocumentCaptor.getValue().getContent());
-    assertEquals(registerRequest.getBreed().getValue(),
+    assertEquals(registerRequest.getBreed(),
         adoptionDocumentCaptor.getValue().getBreed());
-    assertEquals(registerRequest.getSize().getValue(), adoptionDocumentCaptor.getValue().getSize());
+    assertEquals(registerRequest.getSize(), adoptionDocumentCaptor.getValue().getSize());
     assertEquals(registerRequest.isNeutering(),
         adoptionDocumentCaptor.getValue().isNeutering());
-    assertEquals(registerRequest.getGender().getValue(),
+    assertEquals(registerRequest.getGender(),
         adoptionDocumentCaptor.getValue().getGender());
     assertEquals(registerRequest.getAge(), adoptionDocumentCaptor.getValue().getAge());
     assertEquals(registerRequest.isHealthChecked(),
@@ -174,7 +174,7 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(fileDtoList.get(3).getUrl(),
         adoptionDocumentCaptor.getValue().getImages().get(3).getUrl());
-    assertEquals(ADOPTING.getValue(), adoptionDocumentCaptor.getValue().getStatus());
+    assertEquals(ADOPTING, adoptionDocumentCaptor.getValue().getStatus());
   }
 
   @Test
@@ -336,13 +336,13 @@ class AdoptionServiceTest {
     assertEquals(updateRequest.getContent(),
         adoptionDocumentArgumentCaptor.getValue().getContent());
     assertEquals(updateRequest.getBreed(),
-        adoptionDocumentArgumentCaptor.getValue().getBreed());
+        adoptionDocumentArgumentCaptor.getValue().getBreed().getValue());
     assertEquals(updateRequest.getSize(),
-        adoptionDocumentArgumentCaptor.getValue().getSize());
+        adoptionDocumentArgumentCaptor.getValue().getSize().getValue());
     assertEquals(updateRequest.isNeutering(),
         adoptionDocumentArgumentCaptor.getValue().isNeutering());
     assertEquals(updateRequest.getGender(),
-        adoptionDocumentArgumentCaptor.getValue().getGender());
+        adoptionDocumentArgumentCaptor.getValue().getGender().getValue());
     assertEquals(updateRequest.getAge(),
         adoptionDocumentArgumentCaptor.getValue().getAge());
     assertEquals(updateRequest.isHealthChecked(),
@@ -581,7 +581,7 @@ class AdoptionServiceTest {
     verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
 
     assertEquals(request.getStatus(),
-        adoptionDocumentArgumentCaptor.getValue().getStatus());
+        adoptionDocumentArgumentCaptor.getValue().getStatus().getValue());
     assertNotNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
     assertEquals(5L,
         adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getUserId());
@@ -625,7 +625,7 @@ class AdoptionServiceTest {
     verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
 
     assertEquals(request.getStatus(),
-        adoptionDocumentArgumentCaptor.getValue().getStatus());
+        adoptionDocumentArgumentCaptor.getValue().getStatus().getValue());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUser());
   }

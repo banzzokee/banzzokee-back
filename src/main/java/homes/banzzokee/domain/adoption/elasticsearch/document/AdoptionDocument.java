@@ -3,6 +3,10 @@ package homes.banzzokee.domain.adoption.elasticsearch.document;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Id;
@@ -35,15 +39,15 @@ public class AdoptionDocument {
 
   private String content;
 
-  private String status;
+  private AdoptionStatus status;
 
-  private String breed;
+  private BreedType breed;
 
-  private String size;
+  private DogSize size;
 
   private boolean neutering;
 
-  private String gender;
+  private DogGender gender;
 
   private int age;
 
@@ -77,11 +81,11 @@ public class AdoptionDocument {
         .id(adoption.getId())
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .status(adoption.getStatus().getValue())
-        .breed(adoption.getBreed().getValue())
-        .size(adoption.getSize().getValue())
+        .status(adoption.getStatus())
+        .breed(adoption.getBreed())
+        .size(adoption.getSize())
         .neutering(adoption.isNeutering())
-        .gender(adoption.getGender().getValue())
+        .gender(adoption.getGender())
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
@@ -98,10 +102,10 @@ public class AdoptionDocument {
   public void update(Adoption adoption) {
     this.title = adoption.getTitle();
     this.content = adoption.getContent();
-    this.breed = adoption.getBreed().getValue();
-    this.size = adoption.getSize().getValue();
+    this.breed = adoption.getBreed();
+    this.size = adoption.getSize();
     this.neutering = adoption.isNeutering();
-    this.gender = adoption.getGender().getValue();
+    this.gender = adoption.getGender();
     this.age = adoption.getAge();
     this.healthChecked = adoption.isHealthChecked();
     this.registeredAt = adoption.getRegisteredAt();
@@ -110,7 +114,7 @@ public class AdoptionDocument {
   }
 
   public void updateStatus(Adoption adoption) {
-    this.status = adoption.getStatus().getValue();
+    this.status = adoption.getStatus();
     this.assignedUser = getUserDocumentVo(adoption.getAssignedUser());
     this.adoptedAt = adoption.getAdoptedAt();
     this.updatedAt = adoption.getUpdatedAt();
