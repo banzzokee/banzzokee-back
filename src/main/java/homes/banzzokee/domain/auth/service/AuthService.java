@@ -111,8 +111,8 @@ public class AuthService {
     if (!passwordEncoder.matches(password, user.getPassword())) {
       throw new PasswordUnmatchedException();
     }
-    String accessToken = jwtTokenProvider.createAccessToken(user);
-    String refreshToken = jwtTokenProvider.createRefreshToken(user);
+    String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
+    String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
     redisService.setRefreshToken(user.getEmail(), refreshToken, jwtTokenProvider.getRefreshTokenExpire());
     return TokenResponse.builder()
         .accessToken(accessToken)

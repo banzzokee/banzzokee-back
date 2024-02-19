@@ -61,4 +61,14 @@ public class ReviewDocument {
         .updatedAt(review.getUpdatedAt())
         .build();
   }
+
+  public void update(String title, String content, List<S3Object> images) {
+    this.title = title;
+    this.content = content;
+    this.images = images;
+  }
+
+  public void delete(LocalDateTime deletedAt) {
+    this.deletedAt = deletedAt;
+  }
 }

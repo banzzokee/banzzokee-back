@@ -137,4 +137,8 @@ public class AdoptionDocument {
   public void delete(Adoption adoption) {
     this.deletedAt = adoption.getDeletedAt();
   }
+
+  public void deleteReview() {
+    this.review = null;
+  }
 }

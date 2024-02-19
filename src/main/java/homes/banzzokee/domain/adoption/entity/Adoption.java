@@ -138,4 +138,8 @@ public class Adoption extends BaseEntity {
     return this.deletedAt != null;
   }
 
+  public void updateReview(Review review) {
+    this.review = review;
+  }
+
 }
