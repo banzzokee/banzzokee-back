@@ -47,8 +47,9 @@ public class AdoptionController {
   }
 
   @GetMapping("/{adoptionId}")
-  public AdoptionResponse getAdoption(@PathVariable long adoptionId) {
-    return adoptionService.getAdoption(adoptionId);
+  public AdoptionResponse getAdoption(@PathVariable long adoptionId,
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    return adoptionService.getAdoption(adoptionId, userDetails);
   }
 
   @PutMapping("/{adoptionId}")

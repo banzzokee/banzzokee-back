@@ -339,7 +339,8 @@ class AdoptionControllerTest {
         .adoptionId(1L)
         .title("강아지")
         .build();
-    given(adoptionService.getAdoption(anyLong())).willReturn(response);
+    given(adoptionService.getAdoption(anyLong(), any(UserDetailsImpl.class))).willReturn(
+        response);
     //when
     MockMvcUtil.performGet(mockMvc, "/api/adoptions/1")
         .andExpect(jsonPath("$.adoptionId").value(1))

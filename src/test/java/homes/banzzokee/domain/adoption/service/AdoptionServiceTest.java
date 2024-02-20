@@ -6,9 +6,11 @@ import static homes.banzzokee.domain.type.AdoptionStatus.RESERVING;
 import static homes.banzzokee.event.type.EntityAction.ADOPTION_CREATED;
 import static homes.banzzokee.event.type.EntityAction.ADOPTION_STATUS_CHANGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -37,6 +39,8 @@ import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionExceptio
 import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
+import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
+import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -51,6 +55,7 @@ import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.event.dto.EntityStatusDto;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
@@ -88,6 +93,8 @@ class AdoptionServiceTest {
   private AdoptionSearchRepository adoptionSearchRepository;
   @Mock
   private AdoptionSearchQueryRepository queryRepository;
+  @Mock
+  private BookmarkRepository bookmarkRepository;
   @Mock
   private ApplicationEventPublisher eventPublisher;
   @InjectMocks
@@ -257,8 +264,72 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 상세정보 조회 성공 테스트")
-  void successGetAdoption() {
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 해당 글 북마크 한 경우")
+  void successGetAdoption_whenLogInUserBookmarked() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build();
+    LocalDateTime now = LocalDateTime.now();
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    Bookmark bookmark = mock(Bookmark.class);
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getCreatedAt()).willReturn(now);
+    given(userDetails.getUserId()).willReturn(1L);
+    given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
+        .willReturn(Optional.of(bookmark));
+    given(user.getId()).willReturn(1L);
+
+    //when
+    AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
+    //then
+    assertEquals("강아지", response.getTitle());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
+    assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertTrue(response.isBookmarked());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 북마크하지 않았을 경우")
+  void successGetAdoption_whenLogInUserNotBookmarked() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build();
+    LocalDateTime now = LocalDateTime.now();
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getCreatedAt()).willReturn(now);
+    given(userDetails.getUserId()).willReturn(1L);
+    given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
+        .willReturn(Optional.empty());
+
+    //when
+    AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
+    //then
+    assertEquals("강아지", response.getTitle());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
+    assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertFalse(response.isBookmarked());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저 없을 경우")
+  void successGetAdoption_withAnonymous() {
     //given
     User user = spy(User.builder()
         .build());
@@ -272,13 +343,15 @@ class AdoptionServiceTest {
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getCreatedAt()).willReturn(now);
+
     //when
-    AdoptionResponse response = adoptionService.getAdoption(2L);
+    AdoptionResponse response = adoptionService.getAdoption(2L, null);
     //then
     assertEquals("강아지", response.getTitle());
     assertEquals(BreedType.POMERANIAN, response.getBreed());
     assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertFalse(response.isBookmarked());
   }
 
   @Test
@@ -288,7 +361,7 @@ class AdoptionServiceTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
     //when & then
     assertThrows(AdoptionNotFoundException.class,
-        () -> adoptionService.getAdoption(2L));
+        () -> adoptionService.getAdoption(2L, null));
   }
 
   @Test
@@ -307,7 +380,7 @@ class AdoptionServiceTest {
     given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
     //when & then
     assertThrows(AdoptionIsDeletedException.class,
-        () -> adoptionService.getAdoption(2L));
+        () -> adoptionService.getAdoption(2L, null));
   }
 
   @Test
@@ -576,7 +649,6 @@ class AdoptionServiceTest {
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
-    LocalDateTime now = LocalDateTime.now();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
