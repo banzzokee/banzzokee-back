@@ -19,6 +19,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import homes.banzzokee.domain.auth.exception.ConfirmPasswordUnMatchException;
+import homes.banzzokee.domain.auth.exception.PasswordUnmatchedException;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
@@ -42,12 +44,10 @@ import homes.banzzokee.event.type.FcmTopicCategory;
 import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +56,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,6 +73,9 @@ class UserServiceTest {
 
   @Mock
   private FollowRepository followRepository;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
@@ -108,7 +112,7 @@ class UserServiceTest {
 
     // when & then
     assertThrows(UserNotFoundException.class,
-        () -> userService.getUserProfile(0L));
+        () -> userService.getUserProfile(0L, null));
   }
 
   @Test
@@ -123,7 +127,7 @@ class UserServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    UserProfileDto profile = userService.getUserProfile(user.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId(), null);
 
     // then
     assertEquals(user.getId(), profile.getUserId());
@@ -150,7 +154,7 @@ class UserServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    UserProfileDto profile = userService.getUserProfile(user.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId(), null);
 
     // then
     assertEquals(user.getId(), profile.getUserId());
@@ -178,6 +182,7 @@ class UserServiceTest {
   void withdrawUser_when_success_then_isWithdrawnIsTrue() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
     given(user.getPassword()).willReturn(USER_WITHDRAW_REQUEST.getPassword());
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
@@ -208,6 +213,7 @@ class UserServiceTest {
   void withdrawUser_when_passwordUnmatched_then_throwThrowPasswordUnmatchedException() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when & then
@@ -220,6 +226,7 @@ class UserServiceTest {
   void changePassword_when_originalPasswordEqualsNewPassword_then_throwOriginPasswordEqualsNewPasswordException() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when & then
@@ -238,6 +245,7 @@ class UserServiceTest {
   void changePassword_when_userPasswordNotEqualsUserInputPassword_then_throwPasswordUnmatchedException() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when & then
@@ -245,8 +253,7 @@ class UserServiceTest {
         .originPassword(user.getPassword() + "123")
         .build();
 
-    // TODO: CustomException -> PasswordUnmatchedException
-    assertThrows(CustomException.class,
+    assertThrows(PasswordUnmatchedException.class,
         () -> userService.changePassword(request, user.getId()));
   }
 
@@ -255,6 +262,7 @@ class UserServiceTest {
   void changePassword_when_newPasswordNotEqualsConfirmPassword_then_throwConfirmPasswordUnmatchedException() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when & then
@@ -264,8 +272,7 @@ class UserServiceTest {
         .confirmPassword("12345")
         .build();
 
-    // TODO: CustomException -> ConfirmPasswordUnmatchedException
-    assertThrows(CustomException.class,
+    assertThrows(ConfirmPasswordUnMatchException.class,
         () -> userService.changePassword(request, user.getId()));
   }
 
@@ -274,6 +281,8 @@ class UserServiceTest {
   void changePassword_when_success_then_verify() {
     // given
     User user = createMockUser();
+    given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+    given(passwordEncoder.encode(anyString())).willReturn("encrypted-password");
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
@@ -286,8 +295,8 @@ class UserServiceTest {
     userService.changePassword(request, user.getId());
 
     // then
-    verify(user).changePassword(newPassword);
-    assertEquals(newPassword, user.getPassword());
+    verify(user).changePassword("encrypted-password");
+    assertEquals("encrypted-password", user.getPassword());
   }
 
   @Test

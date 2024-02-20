@@ -16,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,5 +64,23 @@ public class ChatMessage {
     this.user = user;
     this.message = message;
     this.messageType = messageType;
+  }
+
+  public static ChatMessage of(ChatRoom room, User user, String message,
+      MessageType messageType) {
+    return ChatMessage.builder()
+        .room(room)
+        .user(user)
+        .message(message)
+        .messageType(messageType)
+        .build();
+  }
+
+  public User getReceiver() {
+    if (Objects.equals(user.getId(), room.getShelter().getUser().getId())) {
+      return room.getUser();
+    } else {
+      return room.getShelter().getUser();
+    }
   }
 }

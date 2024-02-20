@@ -148,7 +148,15 @@ public class FcmTokenAndTopicManagementConsumer {
           FcmToken token = fcmTokens.get(i);
           boolean isValid = !errors.containsKey(i);
           subscriptions.add(createSubscription(token, topic, isValid));
+          if (isValid) {
+            log.info("subscribe token success topic={}, token={}", topic,
+                token.getToken());
+          } else {
+            log.info("subscribe token failed topic={}, token={}", topic,
+                token.getToken());
+          }
         }
+
       } catch (FirebaseMessagingException e) {
         log.error("subscribe token failed topic={}", topic, e);
       } finally {
@@ -178,9 +186,14 @@ public class FcmTokenAndTopicManagementConsumer {
       Map<Integer, String> errors = getErrors(response);
       for (int i = 0; i < fcmTokens.size(); i++) {
         FcmToken token = fcmTokens.get(i);
-        boolean isValid = errors.containsKey(i);
-        if (!isValid) {
+        boolean isValid = !errors.containsKey(i);
+        if (isValid) {
           toDeleteTokens.add(token);
+          log.info("unsubscribe token success topic={}, token={}", topic,
+              token.getToken());
+        } else {
+          log.info("unsubscribe token failed topic={}, token={}", topic,
+              token.getToken());
         }
       }
     } catch (FirebaseMessagingException e) {
