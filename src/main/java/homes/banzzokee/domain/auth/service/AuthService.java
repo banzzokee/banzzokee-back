@@ -120,13 +120,10 @@ public class AuthService {
         .build();
   }
 
-  /**
-   * 로그아웃
-   *
-   * @param token
-   */
   public void logout(String token) {
-    redisService.addToBlacklist(token);
-    redisService.deleteRefreshToken(token);
+    String cleanedToken = jwtTokenProvider.removeBearerFromToken(token);
+    jwtTokenProvider.validateToken(cleanedToken);
+    redisService.addToBlacklist(cleanedToken);
+    redisService.deleteRefreshToken(jwtTokenProvider.getUserEmailFromToken(cleanedToken));
   }
 }

@@ -160,4 +160,20 @@ class AuthControllerTest {
         .andExpect(jsonPath("$.accessToken").value("!@#$%^&*()1234567890"))
         .andExpect(jsonPath("$.refreshToken").value("1234567890)(*&^%$#@!"));
   }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[로그아웃] - 성공 검증")
+  void logout_when_valid_then_success() throws Exception {
+    // given
+    String token = "Bearer testToken";
+
+    // when
+    doNothing().when(authService).logout(token);
+
+    // then
+    mockMvc.perform(post("/api/auth/logout")
+            .header("Authorization", token))
+        .andExpect(status().isOk());
+  }
 }
