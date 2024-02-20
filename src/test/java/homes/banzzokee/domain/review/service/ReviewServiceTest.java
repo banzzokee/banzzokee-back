@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.review.service;
 
 import static homes.banzzokee.domain.type.AdoptionStatus.FINISHED;
+import static homes.banzzokee.event.type.EntityAction.REVIEW_CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,6 +40,8 @@ import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.EntityEvent;
+import homes.banzzokee.event.dto.EntityStatusDto;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
@@ -56,6 +59,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -76,6 +80,8 @@ class ReviewServiceTest {
   private ReviewRepository reviewRepository;
   @Mock
   private AdoptionSearchRepository adoptionSearchRepository;
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
   @Mock
   private AdoptionSearchQueryRepository adoptionSearchQueryRepository;
   @InjectMocks
@@ -135,6 +141,16 @@ class ReviewServiceTest {
       assertEquals(fileDtoList.get(i).getUrl(),
           adoptionDocumentCaptor.getValue().getReview().getImages().get(i).getUrl());
     }
+
+    ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    EntityEvent event = eventCaptor.getValue();
+    EntityStatusDto payload = event.getPayload();
+    assertEquals("review.created", event.getRoutingKey());
+    assertEquals(REVIEW_CREATED, payload.getAction());
+    // TODO: id 검증, returnsFirstArg() 로 검증 불가
+//    assertEquals(null, payload.getId());
   }
 
   @Test

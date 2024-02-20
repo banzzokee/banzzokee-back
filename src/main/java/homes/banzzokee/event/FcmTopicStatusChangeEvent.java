@@ -1,8 +1,8 @@
 package homes.banzzokee.event;
 
-import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
 import static lombok.AccessLevel.PROTECTED;
 
+import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.event.dto.FcmTopicStatusDto;
 import homes.banzzokee.event.type.FcmTopicAction;
@@ -15,10 +15,16 @@ import lombok.experimental.SuperBuilder;
 public class FcmTopicStatusChangeEvent extends BaseMessage<FcmTopicStatusDto> {
 
   public static FcmTopicStatusChangeEvent of(FcmTopicAction action, Follow follow) {
-    String routingKey = (action == SUBSCRIBE) ? "topic.subscribe" : "topic.unsubscribe";
     return FcmTopicStatusChangeEvent.builder()
-        .routingKey(routingKey)
+        .routingKey(action.getRoutingKey())
         .payload(FcmTopicStatusDto.of(action, follow))
+        .build();
+  }
+
+  public static FcmTopicStatusChangeEvent of(FcmTopicAction action, Bookmark bookmark) {
+    return FcmTopicStatusChangeEvent.builder()
+        .routingKey(action.getRoutingKey())
+        .payload(FcmTopicStatusDto.of(action, bookmark))
         .build();
   }
 }

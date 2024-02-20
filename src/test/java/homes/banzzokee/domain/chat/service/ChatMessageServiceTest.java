@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.chat.dao.ChatMessageRepository;
 import homes.banzzokee.domain.chat.dto.ChatSendDto;
@@ -19,14 +20,18 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.MessageType;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.event.ChatMessageSendEvent;
+import homes.banzzokee.event.dto.ChatMessagePayload;
 import homes.banzzokee.global.config.stomp.exception.SocketNoAuthorizedException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ChatMessageServiceTest {
@@ -43,13 +48,20 @@ class ChatMessageServiceTest {
   @Mock
   private ChatMessageRepository chatMessageRepository;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @Test
   @DisplayName("[채팅 메세지 전송 성공] - 기대값 일치")
   void sendMessage_when_success_assertEqualsAll() {
     //given
     User user = mock(User.class);
-    Shelter shelter = mock(Shelter.class);
     given(user.getId()).willReturn(1L);
+
+    Shelter shelter = mock(Shelter.class);
+    User shelterUser = mock(User.class);
+    given(shelter.getUser()).willReturn(shelterUser);
+    given(shelterUser.getId()).willReturn(2L);
 
     ChatRoom chatRoom = ChatRoom.builder()
         .shelter(shelter)
@@ -84,6 +96,16 @@ class ChatMessageServiceTest {
     assertEquals(response.getMessage(), chatSendDto.getMessage());
     assertEquals(response.getUser().getUserId(), 1L);
     assertEquals(chatRoom.getLastMessage(), chatSendDto.getMessage());
+
+    ArgumentCaptor<ChatMessageSendEvent> eventCaptor =
+        ArgumentCaptor.forClass(ChatMessageSendEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    ChatMessagePayload payload = eventCaptor.getValue().getPayload();
+    assertEquals(payload.getMessage(), chatSendDto.getMessage());
+    assertEquals(payload.getMessageType(), chatSendDto.getMessageType());
+    assertEquals(payload.getSenderId(), 1L);
+    assertEquals(payload.getReceiverId(), 2L);
   }
 
   @Test
