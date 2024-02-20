@@ -26,9 +26,6 @@ import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoExcept
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
-import homes.banzzokee.domain.type.BreedType;
-import homes.banzzokee.domain.type.DogGender;
-import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -102,10 +99,10 @@ public class AdoptionService {
     adoption.updateAdoption(
         request.getTitle(),
         request.getContent(),
-        BreedType.findByString(request.getBreed()),
-        DogSize.findByString(request.getSize()),
+        request.getBreed(),
+        request.getSize(),
         request.isNeutering(),
-        DogGender.findByString(request.getGender()),
+        request.getGender(),
         request.getAge(),
         request.isHealthChecked(),
         LocalDate.parse(request.getRegisteredAt()),
@@ -126,13 +123,13 @@ public class AdoptionService {
   @Transactional
   public void changeAdoptionStatus(long adoptionId, AdoptionStatusChangeRequest request,
       long userId) {
-    if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())
+    if (request.getStatus().equals(AdoptionStatus.FINISHED)
         && request.getAssignedUserId() == null) {
       throw new MustInputAssignedUserInfoException();
     }
 
-    if (request.getStatus().equals(AdoptionStatus.RESERVING.getStatus())
-        || request.getStatus().equals(AdoptionStatus.ADOPTING.getStatus())) {
+    if (request.getStatus().equals(AdoptionStatus.RESERVING)
+        || request.getStatus().equals(AdoptionStatus.ADOPTING)) {
       if (request.getAssignedUserId() != null) {
         throw new AssignedUserMustBeNullException();
       }
@@ -145,7 +142,7 @@ public class AdoptionService {
     throwIfShelterIsNotVerified(shelter);
 
     // 변경하려는 분양게시글 상태가 현재 상태와 같으면 예외 발생
-    if (adoption.getStatus().getStatus().equals(request.getStatus())) {
+    if (adoption.getStatus().equals(request.getStatus())) {
       throw new CurrentStatusIsSameToChangeException();
     }
 
@@ -153,12 +150,10 @@ public class AdoptionService {
         : findByUserIdOrThrow(request.getAssignedUserId());
 
     // 분양완료로 변경하려는 경우는 상태변경, 입양자 정보 입력, 입양일시 입력
-    if (request.getStatus().equals(AdoptionStatus.FINISHED.getStatus())) {
-      adoption.updateStatusToFinish(AdoptionStatus.findByString(request.getStatus()),
-          assignedUser);
+    if (request.getStatus().equals(AdoptionStatus.FINISHED)) {
+      adoption.updateStatusToFinish(request.getStatus(), assignedUser);
     } else {  // 분양중, 예약중으로 변경하려는 경우 상태만 변경
-      adoption.updateStatusExceptToFinish(
-          AdoptionStatus.findByString(request.getStatus()));
+      adoption.updateStatusExceptToFinish(request.getStatus());
     }
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
@@ -269,10 +264,10 @@ public class AdoptionService {
         .user(user)
         .title(request.getTitle())
         .content(request.getContent())
-        .breed(BreedType.findByString(request.getBreed()))
-        .size(DogSize.findByString(request.getSize()))
+        .breed(request.getBreed())
+        .size(request.getSize())
         .neutering(request.isNeutering())
-        .gender(DogGender.findByString(request.getGender()))
+        .gender(request.getGender())
         .age(request.getAge())
         .healthChecked(request.isHealthChecked())
         .registeredAt(LocalDate.parse(request.getRegisteredAt()))

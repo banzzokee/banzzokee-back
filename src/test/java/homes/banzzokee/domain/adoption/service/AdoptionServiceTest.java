@@ -42,6 +42,8 @@ import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -95,10 +97,10 @@ class AdoptionServiceTest {
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -109,10 +111,10 @@ class AdoptionServiceTest {
   private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -190,7 +192,7 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(fileDtoList.get(3).getUrl(),
         adoptionDocumentCaptor.getValue().getImages().get(3).getUrl());
-    assertEquals(ADOPTING.getStatus(), adoptionDocumentCaptor.getValue().getStatus());
+    assertEquals(ADOPTING, adoptionDocumentCaptor.getValue().getStatus());
   }
 
   @Test
@@ -276,8 +278,8 @@ class AdoptionServiceTest {
     AdoptionResponse response = adoptionService.getAdoption(2L);
     //then
     assertEquals("강아지", response.getTitle());
-    assertEquals("포메라니안", response.getBreed());
-    assertEquals("분양중", response.getStatus());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
   }
 
@@ -559,7 +561,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_success_whenToChangeFinished() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(FINISHED)
         .assignedUserId(5L)
         .build();
     Shelter shelter = Shelter.builder()
@@ -619,7 +621,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_success_whenToChangeReserving() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -660,7 +662,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(FINISHED)
         .assignedUserId(null)
         .build();
     // when & then
@@ -673,7 +675,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -686,7 +688,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양중")
+        .status(ADOPTING)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -699,7 +701,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowAdoptionNotFound_whenAdoptionIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
@@ -714,7 +716,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowAdoptionIsDeleted_whenAdoptionIsDeleted() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
 
     Adoption adoption = spy(Adoption.builder()
@@ -736,7 +738,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowNoAuthorized_whenRequestUserIsNotAdoptionWriter() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -764,7 +766,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoAuthorized_whenShelterIsDeleted() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(true)
@@ -792,7 +794,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoAuthorized_whenShelterIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     User user = spy(User.builder().build());
     Adoption adoption = spy(Adoption.builder()
@@ -814,7 +816,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoVerifiedShelterExists_whenShelterIsNotVerified() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(false)
@@ -842,7 +844,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwCurrentStatusIsSameToChange_whenCurrentStatusIsSameToChange() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(true)
@@ -870,7 +872,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwAdoptionIsNotFound_whenAdoptionIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)

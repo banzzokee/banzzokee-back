@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.type;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
@@ -10,17 +12,18 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum DogGender {
+@JsonFormat(shape = Shape.OBJECT)
+public enum DogGender implements AdoptionEnum{
 
   MALE("수컷"),
   FEMALE("암컷")
   ;
 
-  private final String gender;
+  private final String value;
 
   private static final Map<String, DogGender> dogGenders = Collections.unmodifiableMap(
       Stream.of(values())
-          .collect(Collectors.toMap(DogGender::getGender, Function.identity()))
+          .collect(Collectors.toMap(DogGender::getValue, Function.identity()))
   );
 
   public static DogGender findByString(String gender) {
@@ -29,5 +32,10 @@ public enum DogGender {
 
   public static boolean contains(String gender) {
     return dogGenders.containsKey(gender);
+  }
+
+  @Override
+  public String getKey() {
+    return name();
   }
 }

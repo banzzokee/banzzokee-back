@@ -3,6 +3,7 @@ package homes.banzzokee.domain.adoption.dto;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.review.entity.Review;
+import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
@@ -34,13 +35,13 @@ public class AdoptionResponse {
 
   private final List<String> imageUrls;
 
-  private final String breed;
+  private final BreedType breed;
 
-  private final String size;
+  private final DogSize size;
 
   private final boolean neutering;
 
-  private final String gender;
+  private final DogGender gender;
 
   private final int age;
 
@@ -48,7 +49,7 @@ public class AdoptionResponse {
 
   private final LocalDate registeredAt;
 
-  private final String status;
+  private final AdoptionStatus status;
 
   private final LocalDate adoptedAt;
 
@@ -66,14 +67,14 @@ public class AdoptionResponse {
         .title(adoption.getTitle())
         .content(adoption.getContent())
         .imageUrls(getImages(adoption.getImages()))
-        .breed(getBreed(adoption.getBreed()))
-        .size(getSize(adoption.getSize()))
+        .breed(adoption.getBreed())
+        .size(adoption.getSize())
         .neutering(adoption.isNeutering())
-        .gender(getGender(adoption.getGender()))
+        .gender(adoption.getGender())
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
-        .status(adoption.getStatus().getStatus())
+        .status(adoption.getStatus())
         .adoptedAt(adoption.getAdoptedAt())
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
@@ -103,26 +104,5 @@ public class AdoptionResponse {
       return null;
     }
     return images.stream().map(S3Object::getUrl).toList();
-  }
-
-  private static String getBreed(BreedType breedType) {
-    if (breedType == null) {
-      return null;
-    }
-    return breedType.getBreed();
-  }
-
-  private static String getSize(DogSize size) {
-    if (size == null) {
-      return null;
-    }
-    return size.getSize();
-  }
-
-  private static String getGender(DogGender gender) {
-    if (gender == null) {
-      return null;
-    }
-    return gender.getGender();
   }
 }
