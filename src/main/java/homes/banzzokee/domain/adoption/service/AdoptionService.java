@@ -24,7 +24,6 @@ import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsExceptio
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
-import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
@@ -54,7 +53,6 @@ public class AdoptionService {
   private final AdoptionSearchRepository adoptionSearchRepository;
   private final AdoptionSearchQueryRepository queryRepository;
   private final BookmarkRepository bookmarkRepository;
-  private final FollowRepository followRepository;
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
@@ -78,10 +76,7 @@ public class AdoptionService {
       boolean isBookmarked = bookmarkRepository.findByUserIdAndAdoptionId(
           userDetails.getUserId(), adoptionId).isPresent();
 
-      boolean isFollowed = followRepository.findByFolloweeIdAndFollowerId(
-          adoption.getUser().getId(), userDetails.getUserId()).isPresent();
-
-      response.updateIsBookmarkedAndIsFollowed(isBookmarked, isFollowed);
+      response.updateIsBookmarkedAndIsFollowed(isBookmarked);
     }
     return response;
   }

@@ -60,8 +60,6 @@ public class AdoptionResponse {
 
   private boolean isBookmarked;
 
-  private boolean isFollowed;
-
   public static AdoptionResponse fromEntity(Adoption adoption) {
     return AdoptionResponse.builder()
         .adoptionId(adoption.getId())
@@ -83,7 +81,6 @@ public class AdoptionResponse {
         .updatedAt(adoption.getUpdatedAt())
         .review(getReview(adoption.getReview()))
         .isBookmarked(false)
-        .isFollowed(false)
         .build();
   }
 
@@ -111,8 +108,7 @@ public class AdoptionResponse {
     return images.stream().map(S3Object::getUrl).toList();
   }
 
-  public void updateIsBookmarkedAndIsFollowed(boolean isBookmarked, boolean isFollowed) {
+  public void updateIsBookmarkedAndIsFollowed(boolean isBookmarked) {
     this.isBookmarked = isBookmarked;
-    this.isFollowed = isFollowed;
   }
 }

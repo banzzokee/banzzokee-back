@@ -47,9 +47,7 @@ import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
-import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
@@ -92,8 +90,6 @@ class AdoptionServiceTest {
   private AdoptionSearchQueryRepository queryRepository;
   @Mock
   private BookmarkRepository bookmarkRepository;
-  @Mock
-  private FollowRepository followRepository;
   @InjectMocks
   private AdoptionService adoptionService;
 
@@ -250,7 +246,7 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 해당 글 북마크 및 팔로우 한 경우")
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 해당 글 북마크 한 경우")
   void successGetAdoption_whenLogInUserBookmarked() {
     //given
     User user = spy(User.builder()
@@ -264,7 +260,6 @@ class AdoptionServiceTest {
     LocalDateTime now = LocalDateTime.now();
     UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
     Bookmark bookmark = mock(Bookmark.class);
-    Follow follow = mock(Follow.class);
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getCreatedAt()).willReturn(now);
@@ -272,8 +267,6 @@ class AdoptionServiceTest {
     given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
         .willReturn(Optional.of(bookmark));
     given(user.getId()).willReturn(1L);
-    given(followRepository.findByFolloweeIdAndFollowerId(anyLong(), anyLong()))
-        .willReturn(Optional.of(follow));
 
     //when
     AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
@@ -283,11 +276,10 @@ class AdoptionServiceTest {
     assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
     assertTrue(response.isBookmarked());
-    assertTrue(response.isFollowed());
   }
 
   @Test
-  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 북마크, 팔로우 하지 않았을 경우")
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 북마크하지 않았을 경우")
   void successGetAdoption_whenLogInUserNotBookmarked() {
     //given
     User user = spy(User.builder()
@@ -306,9 +298,6 @@ class AdoptionServiceTest {
     given(userDetails.getUserId()).willReturn(1L);
     given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
         .willReturn(Optional.empty());
-    given(user.getId()).willReturn(1L);
-    given(followRepository.findByFolloweeIdAndFollowerId(anyLong(), anyLong()))
-        .willReturn(Optional.empty());
 
     //when
     AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
@@ -318,7 +307,6 @@ class AdoptionServiceTest {
     assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
     assertFalse(response.isBookmarked());
-    assertFalse(response.isFollowed());
   }
 
   @Test
