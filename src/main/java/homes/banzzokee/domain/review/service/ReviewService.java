@@ -5,12 +5,12 @@ import static homes.banzzokee.event.type.EntityAction.REVIEW_CREATED;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
-import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
@@ -180,7 +180,7 @@ public class ReviewService {
     AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
         .orElseThrow(AdoptionDocumentNotFoundException::new);
 
-    adoptionDocument.updateReview(ReviewDto.fromEntity(savedReview));
+    adoptionDocument.updateReview(ReviewDocumentVo.fromEntity(savedReview));
 
     adoptionSearchRepository.save(adoptionDocument);
   }

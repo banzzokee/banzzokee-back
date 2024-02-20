@@ -18,12 +18,13 @@ import static org.mockito.Mockito.verify;
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
-import homes.banzzokee.domain.review.dto.ReviewDto;
 import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
@@ -40,7 +41,6 @@ import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.EntityEvent;
@@ -525,7 +525,7 @@ class ReviewServiceTest {
         .build());
     adoption.updateReview(review);
     AdoptionDocument adoptionDocument = AdoptionDocument.builder()
-        .review(mock(ReviewDto.class))
+        .review(mock(ReviewDocumentVo.class))
         .build();
     ReviewDocument reviewDocument = ReviewDocument.builder().build();
 
@@ -655,7 +655,7 @@ class ReviewServiceTest {
         .adoption(adoption)
         .build());
     AdoptionDocument adoptionDocument = AdoptionDocument.builder()
-        .review(mock(ReviewDto.class))
+        .review(mock(ReviewDocumentVo.class))
         .build();
 
     given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
@@ -675,7 +675,7 @@ class ReviewServiceTest {
   @DisplayName("후기게시글 목록 조회 성공 테스트")
   void getReviewList_success() {
     //given
-    UserProfileDto user = UserProfileDto.builder()
+    UserDocumentVo user = UserDocumentVo.builder()
         .userId(2L)
         .nickname("하하하하")
         .build();

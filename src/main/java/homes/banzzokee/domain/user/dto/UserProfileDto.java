@@ -8,9 +8,6 @@ import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.elasticsearch.annotations.DateFormat;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * 사용자 프로필
@@ -47,7 +44,6 @@ public class UserProfileDto {
   /**
    * 가입일
    */
-  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private final LocalDate joinedAt;
 
   /**

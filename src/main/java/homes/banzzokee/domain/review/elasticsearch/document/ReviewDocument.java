@@ -1,9 +1,9 @@
 package homes.banzzokee.domain.review.elasticsearch.document;
 
-import homes.banzzokee.domain.adoption.dto.AdoptionDto;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
+import homes.banzzokee.domain.review.elasticsearch.document.subclass.AdoptionDocumentVo;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.type.S3Object;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,9 +29,9 @@ public class ReviewDocument {
   @Id
   private Long id;
 
-  private AdoptionDto adoption;
+  private AdoptionDocumentVo adoption;
 
-  private UserProfileDto user;
+  private UserDocumentVo user;
 
   private String title;
 
@@ -51,8 +51,8 @@ public class ReviewDocument {
   public static ReviewDocument fromEntity(Review review) {
     return ReviewDocument.builder()
         .id(review.getId())
-        .adoption(AdoptionDto.fromEntity(review.getAdoption()))
-        .user(UserProfileDto.fromEntity(review.getUser()))
+        .adoption(AdoptionDocumentVo.fromEntity(review.getAdoption()))
+        .user(UserDocumentVo.fromEntity(review.getUser()))
         .title(review.getTitle())
         .content(review.getContent())
         .images(review.getImages())
