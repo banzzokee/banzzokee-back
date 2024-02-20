@@ -2,9 +2,9 @@ package homes.banzzokee.domain.user.service;
 
 import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
 import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
-import static homes.banzzokee.global.error.ErrorCode.CONFIRM_PASSWORD_UNMATCHED;
-import static homes.banzzokee.global.error.ErrorCode.PASSWORD_UNMATCHED;
 
+import homes.banzzokee.domain.auth.exception.ConfirmPasswordUnMatchException;
+import homes.banzzokee.domain.auth.exception.PasswordUnmatchedException;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
@@ -25,11 +25,11 @@ import homes.banzzokee.domain.user.exception.OriginPasswordEqualsNewPasswordExce
 import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.FcmTopicStatusChangeEvent;
-import homes.banzzokee.global.error.exception.CustomException;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +43,7 @@ public class UserService {
   private final FollowRepository followRepository;
   private final FileUploadService s3Service;
   private final ApplicationEventPublisher eventPublisher;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional(readOnly = true)
   public UserProfileDto getUserProfile(long userId) {
@@ -124,27 +125,23 @@ public class UserService {
   }
 
   private void throwIfPasswordUnmatched(User user, String password) {
-    // TODO: Auth 회원가입 기능 완료 후, PasswordEncoder 비교 로직 추가
-    if (!user.getPassword().equals(password)) {
-      // TODO: Auth에 PasswordUnmatchedException 추가
-      throw new CustomException(PASSWORD_UNMATCHED);
+    if (!passwordEncoder.matches(password, user.getPassword())) {
+      throw new PasswordUnmatchedException();
     }
   }
 
   private void throwIfConfirmPasswordUnmatched(String password, String confirmPassword) {
-    // TODO: Auth 회원가입 기능 완료 후, PasswordEncoder 비교 로직 추가
     if (!password.equals(confirmPassword)) {
-      // TODO: Auth에 ConfirmPasswordUnmatched 추가
-      throw new CustomException(CONFIRM_PASSWORD_UNMATCHED);
+      throw new ConfirmPasswordUnMatchException();
     }
   }
 
   @Transactional
   public PasswordChangeResponse changePassword(PasswordChangeRequest request,
-                                               long userId) {
+      long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
-    user.changePassword(request.getNewPassword());
+    user.changePassword(passwordEncoder.encode(request.getNewPassword()));
     return PasswordChangeResponse.fromEntity(user);
   }
 
@@ -158,7 +155,7 @@ public class UserService {
   }
 
   private void throwIfOriginPasswordSameNewPassword(String originPassword,
-                                                    String newPassword) {
+      String newPassword) {
     if (originPassword.equals(newPassword)) {
       throw new OriginPasswordEqualsNewPasswordException();
     }
@@ -174,7 +171,7 @@ public class UserService {
    */
   @Transactional
   public UserProfileUpdateResponse updateUserProfile(UserProfileUpdateRequest request,
-                                                     MultipartFile profileImage, long userId) {
+      MultipartFile profileImage, long userId) {
     // TODO: userDetails & userId가 일치하는지 확인
     User user = findByUserIdOrThrow(userId);
     S3Object oldProfileImage = user.getProfileImage();
