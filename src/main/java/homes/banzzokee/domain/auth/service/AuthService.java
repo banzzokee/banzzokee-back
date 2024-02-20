@@ -17,6 +17,7 @@ import homes.banzzokee.domain.auth.exception.PasswordUnmatchedException;
 import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
 
@@ -120,13 +121,24 @@ public class AuthService {
         .build();
   }
 
-  /**
-   * 로그아웃
-   *
-   * @param token
-   */
   public void logout(String token) {
-    redisService.addToBlacklist(token);
-    redisService.deleteRefreshToken(token);
+    String cleanedToken = jwtTokenProvider.removeBearerFromToken(token);
+    jwtTokenProvider.validateToken(cleanedToken);
+    redisService.addToBlacklist(cleanedToken);
+    redisService.deleteRefreshToken(jwtTokenProvider.getUserEmailFromToken(cleanedToken));
+  }
+
+  public TokenResponse reissueAccessToken(String refreshToken) {
+    String removeBearerFromToken = jwtTokenProvider.removeBearerFromToken(refreshToken);
+    String email = jwtTokenProvider.getUserEmailFromToken(removeBearerFromToken);
+    if (!redisService.isRefreshTokenExist(email, removeBearerFromToken)) {
+      throw new RefreshTokenExpiredException();
+    }
+    String accessToken = jwtTokenProvider.createAccessToken(
+        jwtTokenProvider.getUserEmailFromToken(removeBearerFromToken));
+    return TokenResponse.builder()
+        .accessToken(accessToken)
+        .refreshToken(removeBearerFromToken)
+        .build();
   }
 }

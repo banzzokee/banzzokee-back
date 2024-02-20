@@ -160,4 +160,39 @@ class AuthControllerTest {
         .andExpect(jsonPath("$.accessToken").value("!@#$%^&*()1234567890"))
         .andExpect(jsonPath("$.refreshToken").value("1234567890)(*&^%$#@!"));
   }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[로그아웃] - 성공 검증")
+  void logout_when_valid_then_success() throws Exception {
+    // given
+    String token = "Bearer testToken";
+
+    // when
+    doNothing().when(authService).logout(token);
+
+    // then
+    mockMvc.perform(post("/api/auth/logout")
+            .header("Authorization", token))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[토큰 재발급] - 성공 검증")
+  void tokenReissue_when_validInput_then_success() throws Exception {
+    // given
+    String refreshToken = "Bearer refreshToken";
+    TokenResponse tokenResponse = new TokenResponse(
+        "newAccessToken", "refreshToken");
+    given(authService.reissueAccessToken(anyString())).willReturn(tokenResponse);
+
+    // when & then
+    mockMvc.perform(post("/api/auth/token/reissue")
+            .header("Authorization", refreshToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accessToken").value("newAccessToken"))
+        .andExpect(jsonPath("$.refreshToken").value("refreshToken"));
+    verify(authService).reissueAccessToken(refreshToken);
+  }
 }

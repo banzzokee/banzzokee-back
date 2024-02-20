@@ -24,14 +24,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-
 @Getter
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+
+  public static final int BEARER_LENGTH = 7;
 
   private final RedisService redisService;
   private final UserDetailsServiceImpl userDetailsService;
@@ -106,5 +104,9 @@ public class JwtTokenProvider {
     return new UsernamePasswordAuthenticationToken(
         userDetails, "", userDetails.getAuthorities()
     );
+  }
+
+  public String removeBearerFromToken(String token) {
+    return token.substring(BEARER_LENGTH);
   }
 }
