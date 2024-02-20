@@ -24,6 +24,7 @@ import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsExceptio
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
+import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
@@ -53,11 +54,12 @@ public class AdoptionService {
   private final AdoptionSearchRepository adoptionSearchRepository;
   private final AdoptionSearchQueryRepository queryRepository;
   private final BookmarkRepository bookmarkRepository;
+  private final FollowRepository followRepository;
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
-                               List<MultipartFile> images,
-                               long userId) {
+      List<MultipartFile> images,
+      long userId) {
     User user = findByUserIdOrThrow(userId);
     Shelter shelter = throwIfShelterIsDeletedOrNotExist(user);
     throwIfShelterIsNotVerified(shelter);
@@ -74,15 +76,19 @@ public class AdoptionService {
     AdoptionResponse response = AdoptionResponse.fromEntity(adoption);
     if (userDetails != null) {
       boolean isBookmarked = bookmarkRepository.findByUserIdAndAdoptionId(
-              userDetails.getUserId(), adoptionId).isPresent();
-      response.updateIsBookmarked(isBookmarked);
+          userDetails.getUserId(), adoptionId).isPresent();
+
+      boolean isFollowed = followRepository.findByFolloweeIdAndFollowerId(
+          adoption.getUser().getId(), userDetails.getUserId()).isPresent();
+
+      response.updateIsBookmarkedAndIsFollowed(isBookmarked, isFollowed);
     }
     return response;
   }
 
   @Transactional
   public void updateAdoption(long adoptionId, AdoptionUpdateRequest request,
-                             List<MultipartFile> images, long userId) {
+      List<MultipartFile> images, long userId) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfAdoptionIsDeleted(adoption);
     if (adoption.getStatus().equals(AdoptionStatus.FINISHED)) {
@@ -206,7 +212,7 @@ public class AdoptionService {
   }
 
   private void throwIfRequestUserIsNotMatchedAdoptionWriter(Adoption adoption,
-                                                            long userId) {
+      long userId) {
     if (adoption.getUser().getId() != userId) {
       throw new NoAuthorizedException();
     }
@@ -250,7 +256,7 @@ public class AdoptionService {
   }
 
   private Adoption registerAdoptionToDataBase(AdoptionRegisterRequest request, User user,
-                                              List<S3Object> images) {
+      List<S3Object> images) {
     return adoptionRepository.save(Adoption.builder()
         .user(user)
         .title(request.getTitle())
