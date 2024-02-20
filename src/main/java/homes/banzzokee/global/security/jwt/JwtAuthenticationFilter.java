@@ -27,13 +27,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import static homes.banzzokee.global.security.jwt.JwtTokenProvider.BEARER_LENGTH;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private static final String BEARER = "Bearer ";
-  private static final int TOKEN_SPLIT_DEFAULT_VALUE = 7;
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsServiceImpl userDetailsService;
@@ -78,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private String resolveToken(HttpServletRequest request) {
     String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER)) {
-      return bearerToken.substring(TOKEN_SPLIT_DEFAULT_VALUE);
+      return bearerToken.substring(BEARER_LENGTH);
     }
     return null;
   }

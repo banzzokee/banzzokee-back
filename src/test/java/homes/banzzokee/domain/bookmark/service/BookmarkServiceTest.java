@@ -1,5 +1,21 @@
 package homes.banzzokee.domain.bookmark.service;
 
+import static homes.banzzokee.domain.type.Role.ROLE_USER;
+import static homes.banzzokee.event.type.FcmTopicAction.SUBSCRIBE;
+import static homes.banzzokee.event.type.FcmTopicAction.UNSUBSCRIBE;
+import static homes.banzzokee.event.type.FcmTopicCategory.ADOPTION;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.dto.AdoptionDto;
 import homes.banzzokee.domain.adoption.entity.Adoption;
@@ -9,13 +25,23 @@ import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
-import homes.banzzokee.domain.type.*;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
+import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
-import homes.banzzokee.global.security.UserDetailsImpl;
+import homes.banzzokee.event.FcmTopicStatusChangeEvent;
+import homes.banzzokee.event.dto.FcmTopicStatusDto;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
-import homes.banzzokee.global.security.WithMockCustomUser;
+import homes.banzzokee.global.security.UserDetailsImpl;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,21 +49,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.*;
-
-import static homes.banzzokee.domain.type.Role.ROLE_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookmarkServiceTest {
@@ -54,13 +71,22 @@ class BookmarkServiceTest {
   @Mock
   private BookmarkRepository bookmarkRepository;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @Test
   @DisplayName("[북마크 등록] - 성공 검증")
   void registerBookmark_when_success_then_verify() {
     // given
-    User user = mock(User.class);
+    User user = spy(User.builder()
+        .email("test@gmail.com")
+        .nickname("반쪽이")
+        .role(Set.of(ROLE_USER))
+        .loginType(LoginType.EMAIL)
+        .build());
+    when(user.getId()).thenReturn(1L);
 
-    Adoption adoption = Adoption.builder()
+    Adoption adoption = spy(Adoption.builder()
         .title("강아지")
         .content("강아지 입니다.")
         .breed(BreedType.POODLE)
@@ -70,25 +96,44 @@ class BookmarkServiceTest {
         .age(1)
         .healthChecked(true)
         .registeredAt(LocalDate.parse("2024-02-06"))
-        .build();
+        .build());
+    when(adoption.getId()).thenReturn(1L);
+
+    Bookmark bookmark = spy(Bookmark.builder()
+        .user(user)
+        .adoption(adoption)
+        .build());
 
     BookmarkRegisterRequest bookmarkRegisterRequest = BookmarkRegisterRequest.builder()
         .adoptionId(1L)
         .build();
 
-    when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId()))
-        .thenReturn(Optional.of(adoption));
-    when(bookmarkRepository.findByUserIdAndAdoptionId(anyLong(),
-        eq(bookmarkRegisterRequest.getAdoptionId()))).thenReturn(Optional.ofNullable(null));
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(
+        Optional.of(adoption));
+    when(bookmarkRepository.findByUserIdAndAdoptionId(1L,
+        bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.empty());
+    when(bookmarkRepository.save(any(Bookmark.class))).thenReturn(bookmark);
 
     UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    given(userDetails.getUserId()).willReturn(1L);
 
     // when
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
 
     // then
     verify(bookmarkRepository).save(any(Bookmark.class));
+
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor
+        = ArgumentCaptor.forClass(FcmTopicStatusChangeEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    FcmTopicStatusDto payload = eventCaptor.getValue().getPayload();
+    assertEquals(SUBSCRIBE, payload.getAction());
+    assertEquals(ADOPTION, payload.getTopicCategory());
+    assertEquals("topic.adoption." + adoption.getId(), payload.getTopic());
+    assertEquals(adoption.getId(), payload.getTopicId());
+    assertEquals(user.getId(), payload.getUserId());
   }
 
   @Test
@@ -171,7 +216,8 @@ class BookmarkServiceTest {
     BookmarkRegisterRequest bookmarkRegisterRequest = new BookmarkRegisterRequest(1L);
 
     when(userRepository.findById(userDetails.getUserId())).thenReturn(Optional.of(user));
-    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(adoption));
+    when(adoptionRepository.findById(bookmarkRegisterRequest.getAdoptionId())).thenReturn(
+        Optional.of(adoption));
     when(bookmarkRepository.findByUserIdAndAdoptionId(userDetails.getUserId(),
         bookmarkRegisterRequest.getAdoptionId())).thenReturn(Optional.of(
         new Bookmark(user, adoption)));
@@ -186,9 +232,14 @@ class BookmarkServiceTest {
   void deleteBookmark_when_success_then_verify() {
     // given
     User user = mock(User.class);
+    when(user.getId()).thenReturn(1L);
+
+    Adoption adoption = mock(Adoption.class);
+    when(adoption.getId()).thenReturn(1L);
 
     Bookmark bookmark = Bookmark.builder()
         .user(user)
+        .adoption(adoption)
         .build();
     given(bookmarkRepository.findById(1L)).willReturn(Optional.of(bookmark));
 
@@ -201,6 +252,17 @@ class BookmarkServiceTest {
     ArgumentCaptor<Bookmark> bookmarkCaptor = ArgumentCaptor.forClass(Bookmark.class);
     verify(bookmarkRepository).delete(bookmarkCaptor.capture());
     assertEquals(bookmark, bookmarkCaptor.getValue());
+
+    ArgumentCaptor<FcmTopicStatusChangeEvent> eventCaptor
+        = ArgumentCaptor.forClass(FcmTopicStatusChangeEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    FcmTopicStatusDto payload = eventCaptor.getValue().getPayload();
+    assertEquals(UNSUBSCRIBE, payload.getAction());
+    assertEquals(ADOPTION, payload.getTopicCategory());
+    assertEquals("topic.adoption." + adoption.getId(), payload.getTopic());
+    assertEquals(adoption.getId(), payload.getTopicId());
+    assertEquals(user.getId(), payload.getUserId());
   }
 
   @Test
@@ -270,7 +332,8 @@ class BookmarkServiceTest {
 
     List<Bookmark> bookmarksList = Arrays.asList(bookmark1, bookmark2);
     Slice<Bookmark> bookmarksSlice = new SliceImpl<>(bookmarksList, pageable, true);
-    given(bookmarkRepository.findByUserId(userDetails.getUserId(), pageable)).willReturn(bookmarksSlice);
+    given(bookmarkRepository.findByUserId(userDetails.getUserId(), pageable)).willReturn(
+        bookmarksSlice);
 
     // when
     Slice<AdoptionDto> result = bookmarkService.findAllBookmark(userDetails, pageable);
