@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisService {
 
+  private static final int BLACKLIST_TOKEN_EXPIRE = 86400;
+
   private final RedisTemplate<String, String> redisTemplate;
 
   public void setData(String key, String value, long duration) {
@@ -44,7 +46,8 @@ public class RedisService {
   }
 
   public void addToBlacklist(String token) {
-    redisTemplate.opsForValue().set(token, "blacklisted");
+    redisTemplate.opsForValue().set(token, "blacklisted", BLACKLIST_TOKEN_EXPIRE,
+        TimeUnit.SECONDS);
   }
 
   public boolean isBlacklisted(String token) {
