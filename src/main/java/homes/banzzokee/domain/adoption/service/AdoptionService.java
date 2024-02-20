@@ -18,6 +18,7 @@ import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionExceptio
 import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
+import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -27,6 +28,7 @@ import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.time.LocalDate;
 import java.util.List;
@@ -50,6 +52,7 @@ public class AdoptionService {
   private final AdoptionRepository adoptionRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
   private final AdoptionSearchQueryRepository queryRepository;
+  private final BookmarkRepository bookmarkRepository;
 
   @Transactional
   public void registerAdoption(AdoptionRegisterRequest request,
@@ -65,10 +68,16 @@ public class AdoptionService {
     registerAdoptionToElasticSearch(savedAdoption);
   }
 
-  public AdoptionResponse getAdoption(long adoptionId) {
+  public AdoptionResponse getAdoption(long adoptionId, UserDetailsImpl userDetails) {
     Adoption adoption = findByAdoptionIdOrThrow(adoptionId);
     throwIfAdoptionIsDeleted(adoption);
-    return AdoptionResponse.fromEntity(adoption);
+    AdoptionResponse response = AdoptionResponse.fromEntity(adoption);
+    if (userDetails != null) {
+      boolean isBookmarked = bookmarkRepository.findByUserIdAndAdoptionId(
+              userDetails.getUserId(), adoptionId).isPresent();
+      response.updateIsBookmarked(isBookmarked);
+    }
+    return response;
   }
 
   @Transactional

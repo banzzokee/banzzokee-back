@@ -58,6 +58,8 @@ public class AdoptionResponse {
 
   private final ReviewDto review;
 
+  private boolean isBookmarked;
+
   public static AdoptionResponse fromEntity(Adoption adoption) {
     return AdoptionResponse.builder()
         .adoptionId(adoption.getId())
@@ -78,6 +80,7 @@ public class AdoptionResponse {
         .createdAt(adoption.getCreatedAt())
         .updatedAt(adoption.getUpdatedAt())
         .review(getReview(adoption.getReview()))
+        .isBookmarked(false)
         .build();
   }
 
@@ -103,5 +106,9 @@ public class AdoptionResponse {
       return null;
     }
     return images.stream().map(S3Object::getUrl).toList();
+  }
+
+  public void updateIsBookmarked(boolean isBookmarked) {
+    this.isBookmarked = isBookmarked;
   }
 }
