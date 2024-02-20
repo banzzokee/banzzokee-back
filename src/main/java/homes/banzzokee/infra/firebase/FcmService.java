@@ -1,8 +1,10 @@
 package homes.banzzokee.infra.firebase;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.TopicManagementResponse;
+import homes.banzzokee.infra.firebase.dto.MultiMessage;
 import homes.banzzokee.infra.firebase.dto.TopicMessage;
 import java.util.List;
 
@@ -15,5 +17,8 @@ public interface FcmService {
       throws FirebaseMessagingException;
 
   String sendTopicMessage(TopicMessage message)
+      throws FirebaseMessagingException, JsonProcessingException;
+
+  BatchResponse sendMultiMessage(MultiMessage message)
       throws FirebaseMessagingException, JsonProcessingException;
 }

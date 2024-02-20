@@ -38,30 +38,21 @@ public class FcmNotificationConsumer {
   private final FcmService fcmService;
 
   @Transactional
-  @RabbitListener(queues = {"queue.notify.fcm.adoption",
-      "queue.notify.fcm.review"}, errorHandler = "customErrorHandler")
+  @RabbitListener(queues = {
+      "queue.notify.fcm.adoption",
+      "queue.notify.fcm.review"
+  }, errorHandler = "customErrorHandler")
   public void handleEvent(EntityEvent event) {
-    String messageId = null;
     TopicMessage message = createTopicMessage(event.getPayload());
 
     try {
-      messageId = fcmService.sendTopicMessage(message);
-      log.info("send message success, topic={}, messageId={}",
-          message.getTopic(),
-          messageId);
+      fcmService.sendTopicMessage(message);
+      log.info("send message success, topic={}", message.getTopic());
     } catch (Exception e) {
       log.error("send message failed, topic={}", message.getTopic(), e);
     }
 
-    List<User> users = fcmSubscriptionRepository.findUsersByTopic(message.getTopic());
-    notificationRepository.save(
-        Notification.of(message.getId(),
-            messageId,
-            message.getTopic(),
-            message.getTitle(),
-            message.getBody(),
-            message.getImage(),
-            users));
+    notificationRepository.save(createNotification(message));
   }
 
   private TopicMessage createTopicMessage(EntityStatusDto payload) {
@@ -83,13 +74,11 @@ public class FcmNotificationConsumer {
     data.put("adoptionId", adoption.getId().toString());
     String topic = "topic.shelter." + adoption.getUser().getShelter().getId();
     Optional<S3Object> image = adoption.getImages().stream().findFirst();
-    return TopicMessage.builder()
-        .topic(topic)
-        .title("새로운 반쪽이가 가족을 찾고있어요!")
-        .body(adoption.getTitle())
-        .image(image.isPresent() ? image.map(S3Object::getUrl).orElse(null) : null)
-        .data(data)
-        .build();
+    return TopicMessage.of(topic,
+        "새로운 반쪽이가 가족을 찾고있어요!",
+        adoption.getTitle(),
+        image.isPresent() ? image.map(S3Object::getUrl).orElse(null) : null,
+        data);
   }
 
   private TopicMessage createAdoptionStatusChangeMessage(Long adoptionId,
@@ -102,11 +91,7 @@ public class FcmNotificationConsumer {
       case RESERVING -> "반쪽이가 가족을 만날 예정이에요!";
       case FINISHED -> "반쪽이가 가족을 만났어요!";
     };
-    return TopicMessage.builder()
-        .topic(topic)
-        .title(title)
-        .data(data)
-        .build();
+    return TopicMessage.of(topic, title, null, null, data);
   }
 
   private TopicMessage createReviewRegisterMessage(Long reviewId,
@@ -114,12 +99,11 @@ public class FcmNotificationConsumer {
     Review review = findReviewOrThrow(reviewId);
     data.put("reviewId", review.getId().toString());
     String topic = "topic.adoption." + review.getAdoption().getId();
-    return TopicMessage.builder()
-        .topic(topic)
-        .title("가족을 만난 반쪽이의 소식이 도착했어요!")
-        .body(review.getTitle())
-        .data(data)
-        .build();
+    return TopicMessage.of(topic,
+        "가족을 만난 반쪽이의 소식이 도착했어요!",
+        review.getTitle(),
+        null,
+        data);
   }
 
   private Adoption findAdoptionOrThrow(Long adoptionId) {
@@ -130,5 +114,16 @@ public class FcmNotificationConsumer {
   private Review findReviewOrThrow(Long reviewId) {
     return reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+  }
+
+  private Notification createNotification(TopicMessage message) {
+    List<User> users = fcmSubscriptionRepository.findUsersByTopic(message.getTopic());
+
+    return Notification.of(
+        message.getTopic(),
+        message.getTitle(),
+        message.getBody(),
+        message.getImage(),
+        users);
   }
 }

@@ -1,20 +1,21 @@
 package homes.banzzokee.infra.firebase.dto;
 
+import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class TopicMessage extends Message {
+public class MultiMessage extends Message {
 
-  private final String topic;
+  private final List<String> tokens;
 
-  public static TopicMessage of(String topic, String title, String body,
+  public static MultiMessage of(List<String> tokens, String title, String body,
       String image,
       Map<String, String> data) {
-    return TopicMessage.builder()
-        .topic(topic)
+    return MultiMessage.builder()
+        .tokens(tokens)
         .title(title)
         .body(body)
         .image(image)
