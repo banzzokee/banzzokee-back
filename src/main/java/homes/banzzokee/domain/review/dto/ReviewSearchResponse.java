@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.review.dto;
 
-import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
 import homes.banzzokee.domain.type.S3Object;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,24 +28,25 @@ public class ReviewSearchResponse {
 
   private final LocalDateTime updatedAt;
 
-  public static ReviewSearchResponse fromDocument(ReviewDocument reviewDocument) {
+  public static ReviewSearchResponse fromDocument(AdoptionDocument adoptionDocument) {
+    ReviewDocumentVo reviewDocumentVo = adoptionDocument.getReview();
     return ReviewSearchResponse.builder()
-        .reviewId(reviewDocument.getId())
-        .userId(reviewDocument.getUser().getUserId())
-        .userNickname(reviewDocument.getUser().getNickname())
-        .title(reviewDocument.getTitle())
-        .content(reviewDocument.getContent())
-        .imageUrls(getImageUrls(reviewDocument.getImages()))
-        .createdAt(reviewDocument.getCreatedAt())
-        .updatedAt(reviewDocument.getUpdatedAt())
+        .reviewId(reviewDocumentVo.getReviewId())
+        .userId(reviewDocumentVo.getUserId())
+        .userNickname(reviewDocumentVo.getUserNickname())
+        .title(reviewDocumentVo.getTitle())
+        .content(reviewDocumentVo.getContent())
+        .imageUrls(getImages(reviewDocumentVo))
+        .createdAt(reviewDocumentVo.getCreatedAt())
+        .updatedAt(reviewDocumentVo.getUpdatedAt())
         .build();
   }
 
-  private static List<String> getImageUrls(List<S3Object> images) {
-    if (images == null) {
+  private static List<String> getImages(ReviewDocumentVo reviewDocumentVo) {
+    if (reviewDocumentVo.getImages() == null) {
       return null;
     }
-    return images.stream().map(S3Object::getUrl).toList();
+    return reviewDocumentVo.getImages().stream().map(S3Object::getUrl).toList();
   }
 
 }

@@ -29,7 +29,6 @@ import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
-import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
@@ -134,6 +133,7 @@ class AdoptionServiceTest {
         .build());
     User user = spy(User.builder()
         .email("abcd@abcd.com")
+        .nickname("행복해")
         .shelter(shelter)
         .build());
 
@@ -145,8 +145,7 @@ class AdoptionServiceTest {
     given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
         .willReturn(fileDtoList);
     given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(user.getCreatedAt()).willReturn(LocalDateTime.now());
-    given(shelter.getCreatedAt()).willReturn(LocalDateTime.now());
+    given(user.getId()).willReturn(1L);
 
     //when
     adoptionService.registerAdoption(registerRequest, images, 1L);
@@ -165,9 +164,8 @@ class AdoptionServiceTest {
     verify(adoptionSearchRepository).save(adoptionDocumentCaptor.capture());
 
     // ES 저장되는 AdoptionDocument 객체 검증
-    assertEquals(user.getEmail(), adoptionDocumentCaptor.getValue().getUser().getEmail());
-    assertEquals(user.getShelter().getDescription(),
-        adoptionDocumentCaptor.getValue().getUser().getShelter().getDescription());
+    assertEquals(1L, adoptionDocumentCaptor.getValue().getUserId());
+    assertEquals("행복해", adoptionDocumentCaptor.getValue().getUserNickname());
     assertEquals(registerRequest.getTitle(),
         adoptionDocumentCaptor.getValue().getTitle());
     assertEquals(registerRequest.getContent(),
@@ -588,7 +586,6 @@ class AdoptionServiceTest {
         Optional.of(adoptionDocument));
     given(adoption.getId()).willReturn(2L);
     given(assignedUser.getId()).willReturn(5L);
-    given(assignedUser.getCreatedAt()).willReturn(now);
 
     //when
     adoptionService.changeAdoptionStatus(2L, request, 1L);
@@ -602,9 +599,8 @@ class AdoptionServiceTest {
         adoptionDocumentArgumentCaptor.getValue().getStatus());
     assertNotNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
     assertEquals(5L,
-        adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getUserId());
-    assertEquals(now.toLocalDate(),
-        adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getJoinedAt());
+        adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
+
 
     ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -654,7 +650,7 @@ class AdoptionServiceTest {
     assertEquals(request.getStatus(),
         adoptionDocumentArgumentCaptor.getValue().getStatus());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
-    assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUser());
+    assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
   }
 
   @Test
@@ -1039,7 +1035,8 @@ class AdoptionServiceTest {
     for (int i = 1; i <= addNum; i++) {
       responses.add(AdoptionDocument.builder()
           .id(Integer.toUnsignedLong(i))
-          .user(mock(UserDocumentVo.class))
+          .userId((long) i)
+          .userNickname("happy")
           .build());
     }
     return responses;

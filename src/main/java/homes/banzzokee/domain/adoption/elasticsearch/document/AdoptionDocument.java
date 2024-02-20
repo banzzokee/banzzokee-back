@@ -1,7 +1,6 @@
 package homes.banzzokee.domain.adoption.elasticsearch.document;
 
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
-import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
@@ -27,7 +26,7 @@ import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 @Getter
 @Builder
 @AllArgsConstructor
-@Document(indexName = "adoption", writeTypeHint = WriteTypeHint.FALSE)
+@Document(indexName = "adoptions", writeTypeHint = WriteTypeHint.FALSE)
 @Setting(settingPath = "/elasticsearch/setting.json")
 @Mapping(mappingPath = "/elasticsearch/adoption-mapping.json")
 public class AdoptionDocument {
@@ -35,11 +34,17 @@ public class AdoptionDocument {
   @Id
   private Long id;
 
+  private Long userId;
+
+  private String userNickname;
+
+  private Long assignedUserId;
+
   private String title;
 
   private String content;
 
-  private AdoptionStatus status;
+  private List<S3Object> images;
 
   private BreedType breed;
 
@@ -53,22 +58,15 @@ public class AdoptionDocument {
 
   private boolean healthChecked;
 
-  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
-  private LocalDate registeredAt;
-
-  private List<S3Object> images;
-
-  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
-  private LocalDate adoptedAt;
-
-  private UserDocumentVo user;
-
-  private UserDocumentVo assignedUser;
+  private AdoptionStatus status;
 
   private ReviewDocumentVo review;
 
-  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-  private LocalDateTime deletedAt;
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+  private LocalDate registeredAt;
+
+  @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+  private LocalDate adoptedAt;
 
   @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private LocalDateTime createdAt;
@@ -76,12 +74,18 @@ public class AdoptionDocument {
   @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private LocalDateTime updatedAt;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
+  private LocalDateTime deletedAt;
+
   public static AdoptionDocument fromEntity(Adoption adoption) {
     return AdoptionDocument.builder()
         .id(adoption.getId())
+        .userId(adoption.getUser().getId())
+        .userNickname(adoption.getUser().getNickname())
+        .assignedUserId(registerAssignedUserId(adoption.getAssignedUser()))
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .status(adoption.getStatus())
+        .images(adoption.getImages())
         .breed(adoption.getBreed())
         .size(adoption.getSize())
         .neutering(adoption.isNeutering())
@@ -89,13 +93,12 @@ public class AdoptionDocument {
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
-        .images(adoption.getImages())
-        .user(getUserDocumentVo(adoption.getUser()))
-        .assignedUser(getUserDocumentVo(adoption.getAssignedUser()))
+        .status(adoption.getStatus())
+        .adoptedAt(adoption.getAdoptedAt())
+        .updatedAt(adoption.getUpdatedAt())
+        .createdAt(adoption.getCreatedAt())
         .review(getReview(adoption))
         .deletedAt(adoption.getDeletedAt())
-        .createdAt(adoption.getCreatedAt())
-        .updatedAt(adoption.getUpdatedAt())
         .build();
   }
 
@@ -115,7 +118,7 @@ public class AdoptionDocument {
 
   public void updateStatus(Adoption adoption) {
     this.status = adoption.getStatus();
-    this.assignedUser = getUserDocumentVo(adoption.getAssignedUser());
+    this.assignedUserId = registerAssignedUserId(adoption.getAssignedUser());
     this.adoptedAt = adoption.getAdoptedAt();
     this.updatedAt = adoption.getUpdatedAt();
   }
@@ -124,11 +127,11 @@ public class AdoptionDocument {
     this.review = review;
   }
 
-  private static UserDocumentVo getUserDocumentVo(User user) {
+  private static Long registerAssignedUserId(User user) {
     if (user == null) {
       return null;
     }
-    return UserDocumentVo.fromEntity(user);
+    return user.getId();
   }
 
   private static ReviewDocumentVo getReview(Adoption adoption) {

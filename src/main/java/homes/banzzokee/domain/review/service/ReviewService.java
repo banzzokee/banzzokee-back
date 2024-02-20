@@ -3,6 +3,7 @@ package homes.banzzokee.domain.review.service;
 import static homes.banzzokee.event.type.EntityAction.REVIEW_CREATED;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
+import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
@@ -15,12 +16,9 @@ import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
-import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
-import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.DeletedReviewException;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
-import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.FilePath;
@@ -53,9 +51,9 @@ public class ReviewService {
   private final AdoptionRepository adoptionRepository;
   private final FileUploadService fileUploadService;
   private final ReviewRepository reviewRepository;
-  private final ReviewDocumentRepository reviewDocumentRepository;
   private final AdoptionSearchRepository adoptionSearchRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final AdoptionSearchQueryRepository adoptionSearchQueryRepository;
 
   @Transactional
   public void registerReview(ReviewRegisterRequest request, List<MultipartFile> images,
@@ -82,8 +80,6 @@ public class ReviewService {
         uploadedReviewImages);
 
     registerReviewInAdoptionDocument(savedReview, request.getAdoptionId());
-
-    reviewDocumentRepository.save(ReviewDocument.fromEntity(savedReview));
 
     eventPublisher.publishEvent(EntityEvent.of(savedReview.getId(), REVIEW_CREATED));
   }
@@ -121,13 +117,6 @@ public class ReviewService {
 
     registerReviewInAdoptionDocument(savedReview, savedReview.getAdoption().getId());
 
-    ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
-        .orElseThrow(ReviewDocumentNotFoundException::new);
-
-    reviewDocument.update(savedReview.getTitle(), savedReview.getContent(),
-        savedReview.getImages());
-    reviewDocumentRepository.save(reviewDocument);
-
     deleteOldImages(oldImages);
     return ReviewResponse.fromEntity(savedReview);
   }
@@ -149,23 +138,16 @@ public class ReviewService {
     deleteReviewInAdoptionDocument(review.getAdoption().getId());
 
     LocalDateTime now = LocalDateTime.now();
-    deleteReviewInReviewDocument(reviewId, now);
     review.delete(now);
     reviewRepository.save(review);
   }
 
   public Slice<ReviewSearchResponse> getReviewList(Pageable pageable) {
-    List<ReviewDocument> reviewList = reviewDocumentRepository.findAllByDeletedAtIsNull(
+    List<AdoptionDocument> allReview = adoptionSearchQueryRepository.findAllReview(
         pageable);
-    return new SliceImpl<>(
-        reviewList.stream().map(ReviewSearchResponse::fromDocument).toList());
-  }
-
-  private void deleteReviewInReviewDocument(long reviewId, LocalDateTime deletedAt) {
-    ReviewDocument reviewDocument = reviewDocumentRepository.findById(reviewId)
-        .orElseThrow(ReviewDocumentNotFoundException::new);
-    reviewDocument.delete(deletedAt);
-    reviewDocumentRepository.save(reviewDocument);
+    return new SliceImpl<>(allReview.stream()
+        .map(ReviewSearchResponse::fromDocument)
+        .toList());
   }
 
   private void deleteReviewInAdoptionDocument(long adoptionId) {
