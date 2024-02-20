@@ -54,4 +54,22 @@ public class CustomNotificationRepositoryImpl implements
 
     return new SliceImpl<>(contents, pageable, hasNext);
   }
+
+  @Override
+  public void checkNotification(Long notificationId, Long userId) {
+    queryFactory.update(notificationReceiver)
+        .set(notificationReceiver.checked, true)
+        .where(notificationReceiver.notification.id.eq(notificationId)
+            .and(notificationReceiver.user.id.eq(userId)))
+        .execute();
+  }
+
+  @Override
+  public void checkAllNotifications(Long userId) {
+    queryFactory.update(notificationReceiver)
+        .set(notificationReceiver.checked, true)
+        .where(notificationReceiver.user.id.eq(userId)
+            .and(notificationReceiver.checked.eq(false)))
+        .execute();
+  }
 }

@@ -6,7 +6,6 @@ import homes.banzzokee.domain.notification.dto.FcmTokenDto;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
 import homes.banzzokee.domain.notification.dto.NotificationDto;
 import homes.banzzokee.domain.notification.entity.FcmToken;
-import homes.banzzokee.domain.notification.entity.NotificationReceiver;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
@@ -60,9 +59,28 @@ public class NotificationService {
   @Transactional(readOnly = true)
   public Slice<NotificationDto> getNotificationList(PageRequest pageRequest,
       Boolean checked, Long userId) {
-    return  notificationRepository.getNotificationList(
-        pageRequest, checked, userId);
+    return notificationRepository.getNotificationList(pageRequest, checked, userId);
+  }
 
+  /**
+   * 알림 확인
+   *
+   * @param notificationId 알림 아이디
+   * @param userId         사용자 아이디
+   */
+  @Transactional
+  public void checkNotification(Long notificationId, Long userId) {
+    notificationRepository.checkNotification(notificationId, userId);
+  }
+
+  /**
+   * 모든 알림 확인
+   *
+   * @param userId 사용자 아이디
+   */
+  @Transactional
+  public void checkAllNotifications(Long userId) {
+    notificationRepository.checkAllNotifications(userId);
   }
 
   /**

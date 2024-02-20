@@ -9,4 +9,7 @@ public interface CustomNotificationRepository {
   Slice<NotificationDto> getNotificationList(Pageable pageable, Boolean checked,
       Long userId);
 
+  void checkNotification(Long notificationId, Long userId);
+
+  void checkAllNotifications(Long userId);
 }
