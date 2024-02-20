@@ -5,6 +5,7 @@ import homes.banzzokee.domain.auth.exception.*;
 import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -316,5 +317,41 @@ class AuthServiceTest {
     verify(redisService).addToBlacklist("cleanedTestToken");
     verify(jwtTokenProvider).getUserEmailFromToken("cleanedTestToken");
     verify(redisService).deleteRefreshToken("testEmail");
+  }
+
+  @Test
+  @DisplayName("[토큰 재발급] - 성공 검증")
+  void tokenReissue_when_success_then_verify() {
+    // given
+    String refreshToken = "refreshToken";
+    String email = "test@gmail.com";
+    String accessToken = "newAccessToken";
+
+    given(jwtTokenProvider.removeBearerFromToken(refreshToken)).willReturn(refreshToken);
+    given(jwtTokenProvider.getUserEmailFromToken(refreshToken)).willReturn(email);
+    given(redisService.isRefreshTokenExist(email, refreshToken)).willReturn(true);
+    given(jwtTokenProvider.createAccessToken(email)).willReturn(accessToken);
+
+    // when
+    TokenResponse result = authService.reissueAccessToken("refreshToken");
+
+    // then
+    assertEquals(result.getAccessToken(), accessToken);
+    assertEquals(result.getRefreshToken(), refreshToken);
+  }
+
+  @Test
+  @DisplayName("[토큰 재발급] - refreshToken 이 만료된 경우 RefreshTokenExpiredException 발생")
+  void tokenReissue_when_verify_no_refreshToken_then_RefreshTokenExpiredException() {
+    // given
+    String refreshToken = "refreshToken";
+    String email = "test@gmail.com";
+
+    given(jwtTokenProvider.removeBearerFromToken(refreshToken)).willReturn(refreshToken);
+    given(jwtTokenProvider.getUserEmailFromToken(refreshToken)).willReturn(email);
+    given(redisService.isRefreshTokenExist(email, refreshToken)).willReturn(false);
+
+    // when & then
+    assertThrows(RefreshTokenExpiredException.class, () -> authService.reissueAccessToken(refreshToken));
   }
 }

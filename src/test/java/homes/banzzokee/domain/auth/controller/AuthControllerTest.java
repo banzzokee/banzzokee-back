@@ -176,4 +176,23 @@ class AuthControllerTest {
             .header("Authorization", token))
         .andExpect(status().isOk());
   }
+
+  @Test
+  @WithMockUser
+  @DisplayName("[토큰 재발급] - 성공 검증")
+  void tokenReissue_when_validInput_then_success() throws Exception {
+    // given
+    String refreshToken = "Bearer refreshToken";
+    TokenResponse tokenResponse = new TokenResponse(
+        "newAccessToken", "refreshToken");
+    given(authService.reissueAccessToken(anyString())).willReturn(tokenResponse);
+
+    // when & then
+    mockMvc.perform(post("/api/auth/token/reissue")
+            .header("Authorization", refreshToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accessToken").value("newAccessToken"))
+        .andExpect(jsonPath("$.refreshToken").value("refreshToken"));
+    verify(authService).reissueAccessToken(refreshToken);
+  }
 }
