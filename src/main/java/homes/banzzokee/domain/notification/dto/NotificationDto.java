@@ -1,10 +1,12 @@
 package homes.banzzokee.domain.notification.dto;
 
 import java.time.LocalDateTime;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
+@Builder
 @RequiredArgsConstructor
 public class NotificationDto {
 
