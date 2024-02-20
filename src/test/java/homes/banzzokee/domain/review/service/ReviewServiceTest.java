@@ -19,7 +19,6 @@ import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepo
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
-import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.UserDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
 import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
@@ -29,12 +28,9 @@ import homes.banzzokee.domain.review.dto.ReviewRegisterRequest;
 import homes.banzzokee.domain.review.dto.ReviewResponse;
 import homes.banzzokee.domain.review.dto.ReviewSearchResponse;
 import homes.banzzokee.domain.review.dto.ReviewUpdateRequest;
-import homes.banzzokee.domain.review.elasticsearch.dao.ReviewDocumentRepository;
-import homes.banzzokee.domain.review.elasticsearch.document.ReviewDocument;
 import homes.banzzokee.domain.review.entity.Review;
 import homes.banzzokee.domain.review.exception.DeletedReviewException;
 import homes.banzzokee.domain.review.exception.OneReviewPerAdoptionException;
-import homes.banzzokee.domain.review.exception.ReviewDocumentNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewNotFoundException;
 import homes.banzzokee.domain.review.exception.ReviewPermissionException;
 import homes.banzzokee.domain.type.AdoptionStatus;
@@ -79,8 +75,6 @@ class ReviewServiceTest {
   @Mock
   private ReviewRepository reviewRepository;
   @Mock
-  private ReviewDocumentRepository reviewDocumentRepository;
-  @Mock
   private AdoptionSearchRepository adoptionSearchRepository;
   @Mock
   private AdoptionSearchQueryRepository adoptionSearchQueryRepository;
@@ -109,7 +103,6 @@ class ReviewServiceTest {
     //given
     User user = mock(User.class);
     Adoption adoption = Adoption.builder().user(user).build();
-    LocalDate now = LocalDate.now();
     adoption.updateStatusToFinish(AdoptionStatus.FINISHED, user);
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
 
@@ -124,7 +117,6 @@ class ReviewServiceTest {
         Optional.of(adoptionDocument));
     given(user.getId()).willReturn(1L);
     given(user.getNickname()).willReturn("방울이");
-    given(user.getCreatedAt()).willReturn(now.atStartOfDay());
 
     //when
     reviewService.registerReview(registerRequest, images, 1L);
@@ -132,11 +124,8 @@ class ReviewServiceTest {
     //then
     ArgumentCaptor<AdoptionDocument> adoptionDocumentCaptor = ArgumentCaptor.forClass(
         AdoptionDocument.class);
-    ArgumentCaptor<ReviewDocument> reviewDocumentCaptor = ArgumentCaptor.forClass(
-        ReviewDocument.class);
 
     verify(adoptionSearchRepository).save(adoptionDocumentCaptor.capture());
-    verify(reviewDocumentRepository).save(reviewDocumentCaptor.capture());
 
     assertEquals("강아지 입양", adoptionDocumentCaptor.getValue().getReview().getTitle());
     assertEquals("너무 귀여워요", adoptionDocumentCaptor.getValue().getReview().getContent());
@@ -145,20 +134,6 @@ class ReviewServiceTest {
     for (int i = 0; i < 4; i++) {
       assertEquals(fileDtoList.get(i).getUrl(),
           adoptionDocumentCaptor.getValue().getReview().getImages().get(i).getUrl());
-    }
-
-    assertEquals(1L, reviewDocumentCaptor.getValue().getAdoption().getUserId());
-    assertEquals("방울이", reviewDocumentCaptor.getValue().getAdoption().getUserNickname());
-    assertEquals("분양완료", reviewDocumentCaptor.getValue().getAdoption().getStatus());
-    assertEquals(now, reviewDocumentCaptor.getValue().getAdoption().getAdoptedAt());
-    assertEquals(now, reviewDocumentCaptor.getValue().getUser().getJoinedAt());
-    assertEquals(1L, reviewDocumentCaptor.getValue().getUser().getUserId());
-    assertEquals("방울이", reviewDocumentCaptor.getValue().getUser().getNickname());
-    assertEquals("강아지 입양", reviewDocumentCaptor.getValue().getTitle());
-    assertEquals("너무 귀여워요", reviewDocumentCaptor.getValue().getContent());
-    for (int i = 0; i < 4; i++) {
-      assertEquals(fileDtoList.get(i).getUrl(),
-          reviewDocumentCaptor.getValue().getImages().get(i).getUrl());
     }
   }
 
@@ -342,7 +317,6 @@ class ReviewServiceTest {
         .build());
     List<FileDto> fileDtoList = createFileDtoList(4);
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
-    ReviewDocument reviewDocument = ReviewDocument.builder().build();
 
     given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
     given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
@@ -354,8 +328,6 @@ class ReviewServiceTest {
     given(assignedUser.getCreatedAt()).willReturn(LocalDateTime.now());
     given(adoptionSearchRepository.findById(anyLong())).willReturn(
         Optional.of(adoptionDocument));
-    given(reviewDocumentRepository.findById(anyLong())).willReturn(
-        Optional.of(reviewDocument));
     given(review.getId()).willReturn(1L);
     given(assignedUser.getId()).willReturn(1L);
     given(assignedUser.getNickname()).willReturn("Happy");
@@ -468,42 +440,6 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("후기게시글 수정 - ES에 저장된 후기 게시글 정보가 존재하지 않을 경")
-  void updateReview_shouldThrowReviewDocumentNotFoundException_whenReviewDocumentIsNotExist() {
-    //given
-    User assignedUser = spy(User.builder().build());
-    User user = mock(User.class);
-    Adoption adoption = spy(Adoption.builder()
-        .user(user)
-        .build());
-    Review review = spy(Review.builder()
-        .user(assignedUser)
-        .adoption(adoption)
-        .build());
-    List<FileDto> fileDtoList = createFileDtoList(4);
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
-
-    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
-    given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
-    given(fileUploadService.uploadManyFile(images, FilePath.REVIEW)).willReturn(
-        fileDtoList);
-    given(reviewRepository.save(any(Review.class))).will(returnsFirstArg());
-    given(adoption.getId()).willReturn(1L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
-    given(reviewDocumentRepository.findById(anyLong())).willReturn(
-        Optional.empty());
-    given(review.getId()).willReturn(1L);
-    given(assignedUser.getId()).willReturn(1L);
-    given(assignedUser.getNickname()).willReturn("Happy");
-
-    //when & then
-    assertThrows(ReviewDocumentNotFoundException.class,
-        () -> reviewService.updateReview(1L, updateRequest, images, 1L));
-
-  }
-
-  @Test
   @DisplayName("후기 게시글 삭제 성공 테스트")
   void deleteReview_success() {
     // given
@@ -520,15 +456,12 @@ class ReviewServiceTest {
     AdoptionDocument adoptionDocument = AdoptionDocument.builder()
         .review(mock(ReviewDocumentVo.class))
         .build();
-    ReviewDocument reviewDocument = ReviewDocument.builder().build();
 
     given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
     given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
     given(adoption.getId()).willReturn(1L);
     given(adoptionSearchRepository.findById(anyLong())).willReturn(
         Optional.of(adoptionDocument));
-    given(reviewDocumentRepository.findById(anyLong())).willReturn(
-        Optional.of(reviewDocument));
 
     // when
     reviewService.deleteReview(1L, 1L);
@@ -537,15 +470,11 @@ class ReviewServiceTest {
     ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
         ArgumentCaptor.forClass(AdoptionDocument.class);
     ArgumentCaptor<Review> reviewArgumentCaptor = ArgumentCaptor.forClass(Review.class);
-    ArgumentCaptor<ReviewDocument> reviewDocumentArgumentCaptor =
-        ArgumentCaptor.forClass(ReviewDocument.class);
 
     verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
-    verify(reviewDocumentRepository).save(reviewDocumentArgumentCaptor.capture());
     verify(reviewRepository).save(reviewArgumentCaptor.capture());
 
     assertNull(adoptionDocumentArgumentCaptor.getValue().getReview());
-    assertNotNull(reviewDocumentArgumentCaptor.getValue().getDeletedAt());
     assertNotNull(reviewArgumentCaptor.getValue().getDeletedAt());
     assertTrue(reviewArgumentCaptor.getValue().getAdoption().getReview().isDeleted());
   }
@@ -631,36 +560,6 @@ class ReviewServiceTest {
 
     //when & then
     assertThrows(AdoptionDocumentNotFoundException.class,
-        () -> reviewService.deleteReview(1L, 1L));
-  }
-
-  @Test
-  @DisplayName("후기 게시글 삭제 - ES에 저장된 후기게시글 정보가 없는 경우")
-  void deleteReview_shouldThrowReviewDocumentNotFoundException_whenReviewDocumentIsNotExist() {
-    // given
-    User assignedUser = spy(User.builder().build());
-    User user = mock(User.class);
-    Adoption adoption = spy(Adoption.builder()
-        .user(user)
-        .build());
-    Review review = spy(Review.builder()
-        .user(assignedUser)
-        .adoption(adoption)
-        .build());
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder()
-        .review(mock(ReviewDocumentVo.class))
-        .build();
-
-    given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
-    given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
-    given(adoption.getId()).willReturn(1L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
-    given(reviewDocumentRepository.findById(anyLong())).willReturn(
-        Optional.empty());
-
-    //when & then
-    assertThrows(ReviewDocumentNotFoundException.class,
         () -> reviewService.deleteReview(1L, 1L));
   }
 

@@ -104,12 +104,11 @@ class BookmarkControllerTest {
   @DisplayName("[북마크 전체 조회] - 성공 검증")
   void findAllBookmark_when_valid_then_success() throws Exception {
     // given
-    S3Object s3Object1 = new S3Object("url1");
     Pageable pageable = PageRequest.of(0, 10);
     AdoptionDto adoptionDto1 = AdoptionDto.builder()
         .userNickname("반쪽이").adoptionId(1L)
         .title("반쪽이입니다.").content("분양합니다.")
-        .imageUrls(List.of(s3Object1)).breed(BreedType.POODLE)
+        .imageUrls(List.of("url1")).breed(BreedType.POODLE)
         .size(DogSize.SMALL).neutering(true).gender(DogGender.MALE)
         .age(1).healthChecked(true).registeredAt(LocalDate.of(2024, 2, 8))
         .status(AdoptionStatus.ADOPTING).adoptedAt(LocalDate.of(2024, 2, 8))
