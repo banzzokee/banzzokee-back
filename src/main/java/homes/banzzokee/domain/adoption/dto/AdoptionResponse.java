@@ -9,6 +9,7 @@ import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
+import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

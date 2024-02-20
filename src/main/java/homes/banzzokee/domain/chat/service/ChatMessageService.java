@@ -12,11 +12,13 @@ import homes.banzzokee.domain.room.exception.SocketRoomNotFoundException;
 import homes.banzzokee.domain.room.exception.SocketUserNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.event.ChatMessageSendEvent;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
 import homes.banzzokee.global.config.stomp.exception.SocketNoAuthorizedException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class ChatMessageService {
   private final UserRepository userRepository;
   private final ChatRoomRepository chatRoomRepository;
   private final ChatMessageRepository chatMessageRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * 채팅 전송
@@ -50,24 +53,23 @@ public class ChatMessageService {
     ChatRoom chatRoom = chatRoomRepository.findById(roomId)
         .orElseThrow(SocketRoomNotFoundException::new);
 
-    if ((chatRoom.getUser() == null || !chatRoom.getUser().equals(user))
-        && (chatRoom.getShelter() == null || !chatRoom.getShelter().getUser()
-        .equals(user))) {
+    if (!chatRoom.isParticipatedUser(user)) {
       throw new SocketNoAuthorizedException();
     }
 
     chatRoom.updateLastMessage(message.getMessage(), message.getMessageType(),
         LocalDateTime.now());
 
-    return MessageDto.fromEntity(
-        chatMessageRepository.save(ChatMessage.builder()
-            .room(chatRoom)
-            .user(user)
-            .message(message.getMessage())
-            .messageType(message.getMessageType())
-            .build()
-        )
-    );
+    ChatMessage chatMessage = ChatMessage.of(chatRoom,
+        user,
+        message.getMessage(),
+        message.getMessageType());
+
+    chatMessageRepository.save(chatMessage);
+
+    eventPublisher.publishEvent(ChatMessageSendEvent.from(chatMessage));
+
+    return MessageDto.fromEntity(chatMessage);
   }
 
   /**

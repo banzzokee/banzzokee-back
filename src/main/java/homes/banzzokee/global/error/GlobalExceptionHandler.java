@@ -3,8 +3,7 @@ package homes.banzzokee.global.error;
 import static homes.banzzokee.global.error.ErrorCode.HTTP_MESSAGE_NOT_READABLE;
 import static homes.banzzokee.global.error.ErrorCode.INTERNAL_ERROR;
 import static homes.banzzokee.global.error.ErrorCode.JSON_EOF_ERROR;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 import com.fasterxml.jackson.core.io.JsonEOFException;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
@@ -28,7 +27,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<ErrorResponse> handleCustomException(CustomException e,
-      HttpServletRequest request) {
+                                                             HttpServletRequest request) {
     log.error("[CustomException] {} is occurred. uri:{}", e.getErrorCode(),
         request.getRequestURI());
 

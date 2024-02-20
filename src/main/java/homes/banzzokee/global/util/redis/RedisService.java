@@ -11,15 +11,12 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisService {
 
+  private static final int BLACKLIST_TOKEN_EXPIRE = 86400;
+
   private final RedisTemplate<String, String> redisTemplate;
 
   public void setData(String key, String value, long duration) {
     redisTemplate.opsForValue().set(key, value, duration, TimeUnit.SECONDS);
-  }
-
-  public void setDataExpire(String key, String value, long duration) {
-    ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-    valueOperations.set(key, value, duration, TimeUnit.SECONDS);
   }
 
   public String getData(String key) {
@@ -39,16 +36,13 @@ public class RedisService {
     return redisTemplate.opsForValue().get(key);
   }
 
-  public void deleteRefreshToken(String key) {
-    redisTemplate.delete(key);
+  public void deleteRefreshToken(String email) {
+    redisTemplate.delete(email);
   }
 
   public void addToBlacklist(String token) {
-    redisTemplate.opsForValue().set(token, "blacklisted");
-  }
-
-  public boolean isBlacklisted(String token) {
-    return Boolean.TRUE.equals(redisTemplate.hasKey(token));
+    redisTemplate.opsForValue().set(token, "blacklisted", BLACKLIST_TOKEN_EXPIRE,
+        TimeUnit.SECONDS);
   }
 
   public boolean isRefreshTokenExist(String email, String token) {

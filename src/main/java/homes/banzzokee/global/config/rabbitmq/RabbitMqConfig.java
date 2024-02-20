@@ -73,7 +73,7 @@ public class RabbitMqConfig {
     return BindingBuilder
         .bind(syncEsAdoptionQueue())
         .to(exchange())
-        .with("adoption.#");
+        .with("adoption.*");
   }
 
   @Bean
@@ -90,6 +90,14 @@ public class RabbitMqConfig {
         .bind(notifyFcmAdoption())
         .to(exchange())
         .with("adoption.created");
+  }
+
+  @Bean
+  Binding notifyFcmAdoptionStatusBinding() {
+    return BindingBuilder
+        .bind(notifyFcmAdoption())
+        .to(exchange())
+        .with("adoption.status.changed");
   }
 
   @Bean

@@ -1,6 +1,5 @@
 package homes.banzzokee.global.security.jwt;
 
-import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.UserDetailsServiceImpl;
 import homes.banzzokee.global.security.exception.AccessTokenExpiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
@@ -12,9 +11,11 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
+  public static final int BEARER_LENGTH = 7;
+
   private final RedisService redisService;
   private final UserDetailsServiceImpl userDetailsService;
 
@@ -40,20 +43,21 @@ public class JwtTokenProvider {
   @Value("${jwt.refreshTokenExpire}")
   private long refreshTokenExpire;
 
-  public String createAccessToken(User user) {
-    return createToken(user, accessTokenExpire);
+  public String createAccessToken(String email) {
+    return createToken(email, accessTokenExpire);
   }
 
-  public String createRefreshToken(User user) {
-    return createToken(user, refreshTokenExpire);
+  public String createRefreshToken(String email) {
+    return createToken(email, refreshTokenExpire);
   }
 
-  private String createToken(User user, long validity) {
+  private String createToken(String email, long validity) {
+    Claims claims = Jwts.claims().setSubject(email);
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + validity);
-
     return Jwts.builder()
-        .setSubject(user.getEmail())
+        .setClaims(claims)
+        .setSubject(email)
         .setExpiration(expiryDate)
         .signWith(getSecretKey())
         .compact();
@@ -100,5 +104,9 @@ public class JwtTokenProvider {
     return new UsernamePasswordAuthenticationToken(
         userDetails, "", userDetails.getAuthorities()
     );
+  }
+
+  public String removeBearerFromToken(String token) {
+    return token.substring(BEARER_LENGTH);
   }
 }
