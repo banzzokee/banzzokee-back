@@ -1,11 +1,11 @@
 package homes.banzzokee.domain.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import homes.banzzokee.domain.shelter.dto.ShelterDto;
 import homes.banzzokee.domain.shelter.entity.Shelter;
+import homes.banzzokee.domain.user.entity.Follow;
 import homes.banzzokee.domain.user.entity.User;
-
 import java.time.LocalDate;
-
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
@@ -54,6 +54,25 @@ public class UserProfileDto {
    * 보호소
    */
   private final ShelterDto shelter;
+
+  /**
+   * 팔로우 여부
+   */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private final Boolean isFollowingUser;
+
+  public static UserProfileDto of(User user, Follow follow) {
+    return UserProfileDto.builder()
+        .userId(user.getId())
+        .email(user.getEmail())
+        .profileImgUrl(user.getProfileImageUrl())
+        .nickname(user.getNickname())
+        .introduce(user.getIntroduce())
+        .joinedAt(user.getCreatedAt().toLocalDate())
+        .shelter(getShelterDto(user.getShelter()))
+        .isFollowingUser(follow != null)
+        .build();
+  }
 
   public static UserProfileDto fromEntity(User user) {
     return UserProfileDto.builder()

@@ -58,6 +58,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("[사용자 프로필 조회] - 성공 검증")
+  @WithMockCustomUser
   void getUserProfile_when_validInput_then_success() throws Exception {
     // given
     ShelterDto shelter = ShelterDto.builder()
@@ -78,16 +79,17 @@ class UserControllerTest {
         .introduce("안녕하세요")
         .joinedAt(LocalDate.of(2024, 1, 1))
         .shelter(shelter)
+        .isFollowingUser(false)
         .build();
 
-    given(userService.getUserProfile(profile.getUserId()))
+    given(userService.getUserProfile(profile.getUserId(), 1L))
         .willReturn(profile);
 
     // when
     ResultActions resultActions = MockMvcUtil.performGet(mockMvc, "/api/users/1");
 
     // then
-    verify(userService).getUserProfile(profile.getUserId());
+    verify(userService).getUserProfile(profile.getUserId(), 1L);
 
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.userId").value(profile.getUserId()))
@@ -103,7 +105,8 @@ class UserControllerTest {
         .andExpect(jsonPath("$.shelter.tel").value(shelter.getTel()))
         .andExpect(jsonPath("$.shelter.address").value(shelter.getAddress()))
         .andExpect(jsonPath("$.shelter.registeredAt")
-            .value(shelter.getRegisteredAt().toString()));
+            .value(shelter.getRegisteredAt().toString()))
+        .andExpect(jsonPath("$.isFollowingUser").value(profile.getIsFollowingUser()));
   }
 
   @Test
@@ -131,14 +134,14 @@ class UserControllerTest {
         .shelter(shelter)
         .build();
 
-    given(userService.getUserProfile(profile.getUserId()))
+    given(userService.getUserProfile(profile.getUserId(), null))
         .willReturn(profile);
 
     // when
     ResultActions resultActions = MockMvcUtil.performGet(mockMvc, "/api/users/me");
 
     // then
-    verify(userService).getUserProfile(profile.getUserId());
+    verify(userService).getUserProfile(profile.getUserId(), null);
 
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.userId").value(profile.getUserId()))
