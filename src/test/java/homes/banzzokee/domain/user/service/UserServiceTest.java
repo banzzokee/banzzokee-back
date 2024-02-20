@@ -282,6 +282,7 @@ class UserServiceTest {
     // given
     User user = createMockUser();
     given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+    given(passwordEncoder.encode(anyString())).willReturn("encrypted-password");
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
@@ -294,8 +295,8 @@ class UserServiceTest {
     userService.changePassword(request, user.getId());
 
     // then
-    verify(user).changePassword(newPassword);
-    assertEquals(newPassword, user.getPassword());
+    verify(user).changePassword("encrypted-password");
+    assertEquals("encrypted-password", user.getPassword());
   }
 
   @Test

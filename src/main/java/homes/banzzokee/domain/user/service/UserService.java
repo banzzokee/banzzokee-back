@@ -141,7 +141,7 @@ public class UserService {
       long userId) {
     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     validateChangePasswordRequest(request, user);
-    user.changePassword(request.getNewPassword());
+    user.changePassword(passwordEncoder.encode(request.getNewPassword()));
     return PasswordChangeResponse.fromEntity(user);
   }
 
