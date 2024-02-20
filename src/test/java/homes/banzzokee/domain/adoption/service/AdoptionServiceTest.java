@@ -586,7 +586,6 @@ class AdoptionServiceTest {
         Optional.of(adoptionDocument));
     given(adoption.getId()).willReturn(2L);
     given(assignedUser.getId()).willReturn(5L);
-    given(assignedUser.getCreatedAt()).willReturn(now);
 
     //when
     adoptionService.changeAdoptionStatus(2L, request, 1L);
