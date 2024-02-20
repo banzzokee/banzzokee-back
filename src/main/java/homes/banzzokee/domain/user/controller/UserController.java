@@ -32,14 +32,15 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping("{userId}")
-  public UserProfileDto getUserProfile(@PathVariable long userId) {
-    return userService.getUserProfile(userId);
+  public UserProfileDto getUserProfile(@PathVariable long userId,
+      @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    return userService.getUserProfile(userId, userDetails.getUserId());
   }
 
   @GetMapping("me")
   public UserProfileDto getMyProfile(
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    return userService.getUserProfile(userDetails.getUserId());
+    return userService.getUserProfile(userDetails.getUserId(), null);
   }
 
   @PostMapping("me/withdraw")

@@ -46,8 +46,14 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
 
   @Transactional(readOnly = true)
-  public UserProfileDto getUserProfile(long userId) {
-    return UserProfileDto.fromEntity(findByUserIdOrThrow(userId));
+  public UserProfileDto getUserProfile(long userId, Long authenticatedUserId) {
+    Follow follow = null;
+    if (authenticatedUserId != null) {
+      follow = followRepository.findByFolloweeIdAndFollowerId(userId, authenticatedUserId)
+          .orElse(null);
+    }
+
+    return UserProfileDto.of(findByUserIdOrThrow(userId), follow);
   }
 
   @Transactional

@@ -112,7 +112,7 @@ class UserServiceTest {
 
     // when & then
     assertThrows(UserNotFoundException.class,
-        () -> userService.getUserProfile(0L));
+        () -> userService.getUserProfile(0L, null));
   }
 
   @Test
@@ -127,7 +127,7 @@ class UserServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    UserProfileDto profile = userService.getUserProfile(user.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId(), null);
 
     // then
     assertEquals(user.getId(), profile.getUserId());
@@ -154,7 +154,7 @@ class UserServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when
-    UserProfileDto profile = userService.getUserProfile(user.getId());
+    UserProfileDto profile = userService.getUserProfile(user.getId(), null);
 
     // then
     assertEquals(user.getId(), profile.getUserId());
