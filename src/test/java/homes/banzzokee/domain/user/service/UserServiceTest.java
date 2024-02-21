@@ -540,10 +540,10 @@ class UserServiceTest {
         .nickname("user2")
         .build());
     followList.add(Follow.builder()
-        .follower(user1)
+        .followee(user1)
         .build());
     followList.add(Follow.builder()
-        .follower(user2)
+        .followee(user2)
         .build());
 
     given(followRepository.findAllByFollowerId(anyLong(), any(Pageable.class)))
