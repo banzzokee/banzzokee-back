@@ -601,12 +601,13 @@ class AdoptionControllerTest {
         responses);
 
     given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
-        any(Pageable.class))).willReturn(searchResponses);
+        any(Pageable.class), anyLong())).willReturn(searchResponses);
     //when & then
     mockMvc.perform(get("/api/adoptions")
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
+            .param("userId", "1")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -615,7 +616,7 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request가 null인 경우 성공 테스트")
+  @DisplayName("분양 게시글 검색 - request와 userId가 null인 경우 성공 테스트")
   void getAdoptionList_shouldSuccess_whenRequestIsNull() throws Exception {
     //given
     AdoptionSearchRequest request = null;
@@ -626,7 +627,7 @@ class AdoptionControllerTest {
     SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
         responses);
 
-    given(adoptionService.getAdoptionList(request, pageRequest)).willReturn(
+    given(adoptionService.getAdoptionList(request, pageRequest, null)).willReturn(
         searchResponses);
     //when & then
     mockMvc.perform(get("/api/adoptions")
@@ -664,7 +665,7 @@ class AdoptionControllerTest {
         responses);
 
     given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
-        any(PageRequest.class))).willReturn(
+        any(PageRequest.class), anyLong())).willReturn(
         searchResponses);
 
     //when & then
@@ -672,6 +673,7 @@ class AdoptionControllerTest {
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
+            .param("userId", "1")
             .content(requestJson)
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
