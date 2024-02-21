@@ -1,9 +1,12 @@
 package homes.banzzokee.domain.adoption.elasticsearch.document;
 
+import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
-import homes.banzzokee.domain.review.dto.ReviewDto;
+import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
@@ -23,7 +26,7 @@ import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 @Getter
 @Builder
 @AllArgsConstructor
-@Document(indexName = "adoption", writeTypeHint = WriteTypeHint.FALSE)
+@Document(indexName = "adoptions", writeTypeHint = WriteTypeHint.FALSE)
 @Setting(settingPath = "/elasticsearch/setting.json")
 @Mapping(mappingPath = "/elasticsearch/adoption-mapping.json")
 public class AdoptionDocument {
@@ -31,40 +34,39 @@ public class AdoptionDocument {
   @Id
   private Long id;
 
+  private Long userId;
+
+  private String userNickname;
+
+  private Long assignedUserId;
+
   private String title;
 
   private String content;
 
-  private String status;
+  private List<S3Object> images;
 
-  private String breed;
+  private BreedType breed;
 
-  private String size;
+  private DogSize size;
 
   private boolean neutering;
 
-  private String gender;
+  private DogGender gender;
 
   private int age;
 
   private boolean healthChecked;
 
+  private AdoptionStatus status;
+
+  private ReviewDocumentVo review;
+
   @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private LocalDate registeredAt;
 
-  private List<S3Object> images;
-
   @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
   private LocalDate adoptedAt;
-
-  private UserProfileDto user;
-
-  private UserProfileDto assignedUser;
-
-  private ReviewDto review;
-
-  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-  private LocalDateTime deletedAt;
 
   @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private LocalDateTime createdAt;
@@ -72,36 +74,41 @@ public class AdoptionDocument {
   @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
   private LocalDateTime updatedAt;
 
+  @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
+  private LocalDateTime deletedAt;
+
   public static AdoptionDocument fromEntity(Adoption adoption) {
     return AdoptionDocument.builder()
         .id(adoption.getId())
+        .userId(adoption.getUser().getId())
+        .userNickname(adoption.getUser().getNickname())
+        .assignedUserId(registerAssignedUserId(adoption.getAssignedUser()))
         .title(adoption.getTitle())
         .content(adoption.getContent())
-        .status(adoption.getStatus().getStatus())
-        .breed(adoption.getBreed().getBreed())
-        .size(adoption.getSize().getSize())
+        .images(adoption.getImages())
+        .breed(adoption.getBreed())
+        .size(adoption.getSize())
         .neutering(adoption.isNeutering())
-        .gender(adoption.getGender().getGender())
+        .gender(adoption.getGender())
         .age(adoption.getAge())
         .healthChecked(adoption.isHealthChecked())
         .registeredAt(adoption.getRegisteredAt())
-        .images(adoption.getImages())
-        .user(getUserProfileDto(adoption.getUser()))
-        .assignedUser(getUserProfileDto(adoption.getAssignedUser()))
+        .status(adoption.getStatus())
+        .adoptedAt(adoption.getAdoptedAt())
+        .updatedAt(adoption.getUpdatedAt())
+        .createdAt(adoption.getCreatedAt())
         .review(getReview(adoption))
         .deletedAt(adoption.getDeletedAt())
-        .createdAt(adoption.getCreatedAt())
-        .updatedAt(adoption.getUpdatedAt())
         .build();
   }
 
   public void update(Adoption adoption) {
     this.title = adoption.getTitle();
     this.content = adoption.getContent();
-    this.breed = adoption.getBreed().getBreed();
-    this.size = adoption.getSize().getSize();
+    this.breed = adoption.getBreed();
+    this.size = adoption.getSize();
     this.neutering = adoption.isNeutering();
-    this.gender = adoption.getGender().getGender();
+    this.gender = adoption.getGender();
     this.age = adoption.getAge();
     this.healthChecked = adoption.isHealthChecked();
     this.registeredAt = adoption.getRegisteredAt();
@@ -110,28 +117,28 @@ public class AdoptionDocument {
   }
 
   public void updateStatus(Adoption adoption) {
-    this.status = adoption.getStatus().getStatus();
-    this.assignedUser = getUserProfileDto(adoption.getAssignedUser());
+    this.status = adoption.getStatus();
+    this.assignedUserId = registerAssignedUserId(adoption.getAssignedUser());
     this.adoptedAt = adoption.getAdoptedAt();
     this.updatedAt = adoption.getUpdatedAt();
   }
 
-  public void updateReview(ReviewDto review) {
+  public void updateReview(ReviewDocumentVo review) {
     this.review = review;
   }
 
-  private static UserProfileDto getUserProfileDto(User user) {
+  private static Long registerAssignedUserId(User user) {
     if (user == null) {
       return null;
     }
-    return UserProfileDto.fromEntity(user);
+    return user.getId();
   }
 
-  private static ReviewDto getReview(Adoption adoption) {
+  private static ReviewDocumentVo getReview(Adoption adoption) {
     if (adoption.getReview() == null) {
       return null;
     }
-    return ReviewDto.fromEntity(adoption.getReview());
+    return ReviewDocumentVo.fromEntity(adoption.getReview());
   }
 
   public void delete(Adoption adoption) {

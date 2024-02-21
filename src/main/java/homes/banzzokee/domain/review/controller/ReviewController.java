@@ -62,8 +62,10 @@ public class ReviewController {
   }
 
   @GetMapping
-  public Slice<ReviewSearchResponse> getReviewList(@RequestParam int page,
-      @RequestParam int size, @RequestParam String direction) {
+  public Slice<ReviewSearchResponse> getReviewList(
+      @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "10") int size,
+      @RequestParam(required = false, defaultValue = "desc") String direction) {
     PageRequest pageRequest = PageRequest.of(page, size,
         Sort.by(Direction.fromString(direction), "createdAt"));
     return reviewService.getReviewList(pageRequest);

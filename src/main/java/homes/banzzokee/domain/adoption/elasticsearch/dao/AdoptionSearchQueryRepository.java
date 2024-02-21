@@ -30,22 +30,36 @@ public class AdoptionSearchQueryRepository {
   private final ElasticsearchOperations operations;
 
   public List<AdoptionDocument> findByAdoptionSearchRequest(
-      AdoptionSearchRequest request, Pageable pageable) {
-    NativeQuery query = createAdoptionSearchQuery(request, pageable);
+      AdoptionSearchRequest request, Pageable pageable, Long userId) {
+    NativeQuery query = createAdoptionSearchQuery(request, pageable, userId);
+    return search(query);
+  }
+
+  public List<AdoptionDocument> findAllReview(Pageable pageable) {
+    NativeQuery query = createReviewSearchQuery(pageable);
+    return search(query);
+  }
+
+  private List<AdoptionDocument> search(NativeQuery query) {
     SearchHits<AdoptionDocument> search = operations.search(query,
         AdoptionDocument.class);
-
     return search.stream()
         .map(SearchHit::getContent)
         .collect(Collectors.toList());
   }
 
   private NativeQuery createAdoptionSearchQuery(AdoptionSearchRequest request,
-      Pageable pageable) {
+      Pageable pageable, Long userId) {
     NativeQueryBuilder query = new NativeQueryBuilder();
 
+    BoolQuery.Builder boolQueryBuilder = new Builder();
+
+    if (userId != null) {
+      boolQueryBuilder.must(
+          TermQuery.of(t -> t.field("userId").value(userId.toString()))._toQuery());
+    }
+
     if (request == null) {
-      BoolQuery.Builder boolQueryBuilder = new Builder();
       boolQueryBuilder.mustNot(ExistsQuery.of(e -> e.field("deletedAt"))._toQuery());
       return query
           .withQuery(boolQueryBuilder.build()._toQuery())
@@ -53,11 +67,9 @@ public class AdoptionSearchQueryRepository {
           .build();
     }
 
-    BoolQuery.Builder boolQueryBuilder = new Builder();
-
     if (request.getBreed() != null) {
       List<FieldValue> fieldValues = request.getBreed().stream()
-          .map(FieldValue::of)
+          .map(breedType -> FieldValue.of(breedType.toString()))
           .toList();
 
       Query breedQuery = TermsQuery.of(terms -> terms.field("breed")
@@ -66,7 +78,8 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getSize() != null) {
-      Query sizeQuery = TermQuery.of(t -> t.field("size").value(request.getSize()))
+      Query sizeQuery = TermQuery.of(
+              t -> t.field("size").value(request.getSize().toString()))
           ._toQuery();
       boolQueryBuilder.must(sizeQuery);
     }
@@ -84,7 +97,8 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getGender() != null) {
-      Query genderQuery = TermQuery.of(t -> t.field("gender").value(request.getGender()))
+      Query genderQuery = TermQuery.of(
+              t -> t.field("gender").value(request.getGender().toString()))
           ._toQuery();
       boolQueryBuilder.must(genderQuery);
     }
@@ -106,5 +120,17 @@ public class AdoptionSearchQueryRepository {
         .build();
   }
 
+  private NativeQuery createReviewSearchQuery(Pageable pageable) {
+    NativeQueryBuilder query = new NativeQueryBuilder();
+    BoolQuery.Builder boolQueryBuilder = new Builder();
+    boolQueryBuilder.must(ExistsQuery.of(e -> e.field("review"))._toQuery());
+    boolQueryBuilder.mustNot(
+        ExistsQuery.of(e -> e.field("review").field("deletedAt"))._toQuery());
+
+    return query
+        .withQuery(boolQueryBuilder.build()._toQuery())
+        .withPageable(pageable)
+        .build();
+  }
 
 }

@@ -1,5 +1,7 @@
 package homes.banzzokee.domain.type;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
@@ -10,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum BreedType {
+@JsonFormat(shape = Shape.OBJECT)
+public enum BreedType implements AdoptionEnum{
   SIBERIAN_HUSKY("시베리안 허스키"),
   POODLE("푸들"),
   SHEPHERD("셰퍼드"),
@@ -39,11 +42,11 @@ public enum BreedType {
   MIX("믹스"),
   ETC("기타");
 
-  private final String breed;
+  private final String value;
 
   private static final Map<String, BreedType> breedTypes = Collections.unmodifiableMap(
       Stream.of(values())
-          .collect(Collectors.toMap(BreedType::getBreed, Function.identity()))
+          .collect(Collectors.toMap(BreedType::getValue, Function.identity()))
   );
 
   public static BreedType findByString(String breed) {
@@ -52,5 +55,10 @@ public enum BreedType {
 
   public static boolean contains(String breed) {
     return breedTypes.containsKey(breed);
+  }
+
+  @Override
+  public String getKey() {
+    return name();
   }
 }

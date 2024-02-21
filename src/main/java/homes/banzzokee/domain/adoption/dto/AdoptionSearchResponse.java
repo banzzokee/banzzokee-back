@@ -1,6 +1,10 @@
 package homes.banzzokee.domain.adoption.dto;
 
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
+import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,13 +32,13 @@ public class AdoptionSearchResponse {
 
   private final List<String> imageUrls;
 
-  private final String breed;
+  private final BreedType breed;
 
-  private final String size;
+  private final DogSize size;
 
   private final boolean neutering;
 
-  private final String gender;
+  private final DogGender gender;
 
   private final int age;
 
@@ -42,7 +46,7 @@ public class AdoptionSearchResponse {
 
   private final LocalDate registeredAt;
 
-  private final String status;
+  private final AdoptionStatus status;
 
   private final LocalDate adoptedAt;
 
@@ -55,10 +59,10 @@ public class AdoptionSearchResponse {
   public static AdoptionSearchResponse fromDocument(AdoptionDocument document) {
     return AdoptionSearchResponse.builder()
         .adoptionId(document.getId())
-        .userId(document.getUser().getUserId())
-        .userNickname(document.getUser().getNickname())
-        .assignedUserId(document.getAssignedUser() == null ? null
-            : document.getAssignedUser().getUserId())
+        .userId(document.getUserId())
+        .userNickname(document.getUserNickname())
+        .assignedUserId(
+            document.getAssignedUserId() == null ? null : document.getAssignedUserId())
         .title(document.getTitle())
         .content(document.getContent())
         .imageUrls(document.getImages() == null ? null
@@ -74,7 +78,8 @@ public class AdoptionSearchResponse {
         .adoptedAt(document.getAdoptedAt() == null ? null : document.getAdoptedAt())
         .updatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt())
         .createdAt(document.getCreatedAt())
-        .reviewId(document.getReview() == null ? null : document.getReview().getReviewId())
+        .reviewId(
+            document.getReview() == null ? null : document.getReview().getReviewId())
         .build();
   }
 

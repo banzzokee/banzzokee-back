@@ -6,9 +6,11 @@ import static homes.banzzokee.domain.type.AdoptionStatus.RESERVING;
 import static homes.banzzokee.event.type.EntityAction.ADOPTION_CREATED;
 import static homes.banzzokee.event.type.EntityAction.ADOPTION_STATUS_CHANGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -37,19 +39,23 @@ import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionExceptio
 import homes.banzzokee.domain.adoption.exception.AssignedUserMustBeNullException;
 import homes.banzzokee.domain.adoption.exception.CurrentStatusIsSameToChangeException;
 import homes.banzzokee.domain.adoption.exception.MustInputAssignedUserInfoException;
+import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
+import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.shelter.exception.NotVerifiedShelterExistsException;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.FilePath;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.UserRepository;
-import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.EntityEvent;
 import homes.banzzokee.event.dto.EntityStatusDto;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
+import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
@@ -88,6 +94,8 @@ class AdoptionServiceTest {
   @Mock
   private AdoptionSearchQueryRepository queryRepository;
   @Mock
+  private BookmarkRepository bookmarkRepository;
+  @Mock
   private ApplicationEventPublisher eventPublisher;
   @InjectMocks
   private AdoptionService adoptionService;
@@ -95,10 +103,10 @@ class AdoptionServiceTest {
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -109,10 +117,10 @@ class AdoptionServiceTest {
   private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
       .title("강아지")
       .content("귀여운 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(10)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -132,6 +140,7 @@ class AdoptionServiceTest {
         .build());
     User user = spy(User.builder()
         .email("abcd@abcd.com")
+        .nickname("행복해")
         .shelter(shelter)
         .build());
 
@@ -143,8 +152,7 @@ class AdoptionServiceTest {
     given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
         .willReturn(fileDtoList);
     given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(user.getCreatedAt()).willReturn(LocalDateTime.now());
-    given(shelter.getCreatedAt()).willReturn(LocalDateTime.now());
+    given(user.getId()).willReturn(1L);
 
     //when
     adoptionService.registerAdoption(registerRequest, images, 1L);
@@ -163,9 +171,8 @@ class AdoptionServiceTest {
     verify(adoptionSearchRepository).save(adoptionDocumentCaptor.capture());
 
     // ES 저장되는 AdoptionDocument 객체 검증
-    assertEquals(user.getEmail(), adoptionDocumentCaptor.getValue().getUser().getEmail());
-    assertEquals(user.getShelter().getDescription(),
-        adoptionDocumentCaptor.getValue().getUser().getShelter().getDescription());
+    assertEquals(1L, adoptionDocumentCaptor.getValue().getUserId());
+    assertEquals("행복해", adoptionDocumentCaptor.getValue().getUserNickname());
     assertEquals(registerRequest.getTitle(),
         adoptionDocumentCaptor.getValue().getTitle());
     assertEquals(registerRequest.getContent(),
@@ -190,7 +197,7 @@ class AdoptionServiceTest {
         adoptionDocumentCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(fileDtoList.get(3).getUrl(),
         adoptionDocumentCaptor.getValue().getImages().get(3).getUrl());
-    assertEquals(ADOPTING.getStatus(), adoptionDocumentCaptor.getValue().getStatus());
+    assertEquals(ADOPTING, adoptionDocumentCaptor.getValue().getStatus());
   }
 
   @Test
@@ -257,8 +264,72 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 상세정보 조회 성공 테스트")
-  void successGetAdoption() {
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 해당 글 북마크 한 경우")
+  void successGetAdoption_whenLogInUserBookmarked() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build();
+    LocalDateTime now = LocalDateTime.now();
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    Bookmark bookmark = mock(Bookmark.class);
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getCreatedAt()).willReturn(now);
+    given(userDetails.getUserId()).willReturn(1L);
+    given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
+        .willReturn(Optional.of(bookmark));
+    given(user.getId()).willReturn(1L);
+
+    //when
+    AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
+    //then
+    assertEquals("강아지", response.getTitle());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
+    assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertTrue(response.isBookmarked());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저가 북마크하지 않았을 경우")
+  void successGetAdoption_whenLogInUserNotBookmarked() {
+    //given
+    User user = spy(User.builder()
+        .build());
+    Adoption adoption = Adoption.builder()
+        .title("강아지")
+        .breed(BreedType.findByString("포메라니안"))
+        .user(user)
+        .status(ADOPTING)
+        .build();
+    LocalDateTime now = LocalDateTime.now();
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+
+    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
+    given(user.getCreatedAt()).willReturn(now);
+    given(userDetails.getUserId()).willReturn(1L);
+    given(bookmarkRepository.findByUserIdAndAdoptionId(1L, 2L))
+        .willReturn(Optional.empty());
+
+    //when
+    AdoptionResponse response = adoptionService.getAdoption(2L, userDetails);
+    //then
+    assertEquals("강아지", response.getTitle());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
+    assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertFalse(response.isBookmarked());
+  }
+
+  @Test
+  @DisplayName("분양게시글 상세정보 조회 성공 테스트 - 로그인 한 유저 없을 경우")
+  void successGetAdoption_withAnonymous() {
     //given
     User user = spy(User.builder()
         .build());
@@ -272,13 +343,15 @@ class AdoptionServiceTest {
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getCreatedAt()).willReturn(now);
+
     //when
-    AdoptionResponse response = adoptionService.getAdoption(2L);
+    AdoptionResponse response = adoptionService.getAdoption(2L, null);
     //then
     assertEquals("강아지", response.getTitle());
-    assertEquals("포메라니안", response.getBreed());
-    assertEquals("분양중", response.getStatus());
+    assertEquals(BreedType.POMERANIAN, response.getBreed());
+    assertEquals(ADOPTING, response.getStatus());
     assertEquals(now.toLocalDate(), response.getUser().getJoinedAt());
+    assertFalse(response.isBookmarked());
   }
 
   @Test
@@ -288,7 +361,7 @@ class AdoptionServiceTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
     //when & then
     assertThrows(AdoptionNotFoundException.class,
-        () -> adoptionService.getAdoption(2L));
+        () -> adoptionService.getAdoption(2L, null));
   }
 
   @Test
@@ -307,7 +380,7 @@ class AdoptionServiceTest {
     given(adoption.getDeletedAt()).willReturn(LocalDateTime.now());
     //when & then
     assertThrows(AdoptionIsDeletedException.class,
-        () -> adoptionService.getAdoption(2L));
+        () -> adoptionService.getAdoption(2L, null));
   }
 
   @Test
@@ -559,7 +632,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_success_whenToChangeFinished() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(FINISHED)
         .assignedUserId(5L)
         .build();
     Shelter shelter = Shelter.builder()
@@ -576,7 +649,6 @@ class AdoptionServiceTest {
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
     AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
-    LocalDateTime now = LocalDateTime.now();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
@@ -586,7 +658,6 @@ class AdoptionServiceTest {
         Optional.of(adoptionDocument));
     given(adoption.getId()).willReturn(2L);
     given(assignedUser.getId()).willReturn(5L);
-    given(assignedUser.getCreatedAt()).willReturn(now);
 
     //when
     adoptionService.changeAdoptionStatus(2L, request, 1L);
@@ -600,9 +671,8 @@ class AdoptionServiceTest {
         adoptionDocumentArgumentCaptor.getValue().getStatus());
     assertNotNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
     assertEquals(5L,
-        adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getUserId());
-    assertEquals(now.toLocalDate(),
-        adoptionDocumentArgumentCaptor.getValue().getAssignedUser().getJoinedAt());
+        adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
+
 
     ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -619,7 +689,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_success_whenToChangeReserving() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -652,16 +722,15 @@ class AdoptionServiceTest {
     assertEquals(request.getStatus(),
         adoptionDocumentArgumentCaptor.getValue().getStatus());
     assertNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
-    assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUser());
+    assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
   }
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 분양완료로 변경하려는 경우 assignedUserId가 null인 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToFinishedWithAssignedUserIdNull() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(FINISHED)
         .assignedUserId(null)
         .build();
     // when & then
@@ -671,11 +740,10 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 예약중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToResulvingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -685,11 +753,10 @@ class AdoptionServiceTest {
 
   @Test
   @DisplayName("분양게시글 상태 변경 - 분양중으로 변경하려는 경우 assignedUserId가 존재하는 경우")
-  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId()
-      throws Exception {
+  void changeAdoptionStatus_shouldThrowValidationError_whenChangeToAdoptingWithAssignedUserId() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양중")
+        .status(ADOPTING)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -702,7 +769,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowAdoptionNotFound_whenAdoptionIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.empty());
@@ -717,7 +784,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowAdoptionIsDeleted_whenAdoptionIsDeleted() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
 
     Adoption adoption = spy(Adoption.builder()
@@ -739,7 +806,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_shouldThrowNoAuthorized_whenRequestUserIsNotAdoptionWriter() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -767,7 +834,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoAuthorized_whenShelterIsDeleted() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(true)
@@ -795,7 +862,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoAuthorized_whenShelterIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     User user = spy(User.builder().build());
     Adoption adoption = spy(Adoption.builder()
@@ -817,7 +884,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwNoVerifiedShelterExists_whenShelterIsNotVerified() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(false)
@@ -845,7 +912,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwCurrentStatusIsSameToChange_whenCurrentStatusIsSameToChange() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = spy(Shelter.builder()
         .verified(true)
@@ -873,7 +940,7 @@ class AdoptionServiceTest {
   void changeAdoptionStatus_throwAdoptionIsNotFound_whenAdoptionIsNotExist() {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("예약중")
+        .status(RESERVING)
         .build();
     Shelter shelter = Shelter.builder()
         .verified(true)
@@ -1022,11 +1089,11 @@ class AdoptionServiceTest {
     PageRequest pageRequest = PageRequest.of(0, 10,
         Sort.by(Direction.fromString("desc"), "createdAt"));
 
-    given(queryRepository.findByAdoptionSearchRequest(request, pageRequest))
+    given(queryRepository.findByAdoptionSearchRequest(request, pageRequest, 1L))
         .willReturn(createAdoptionDocumentList(4));
     //when
     Slice<AdoptionSearchResponse> responses = adoptionService.getAdoptionList(request,
-        pageRequest);
+        pageRequest, 1L);
     //then
     assertEquals(4, responses.getSize());
     assertEquals(1, responses.getContent().get(0).getAdoptionId());
@@ -1040,7 +1107,8 @@ class AdoptionServiceTest {
     for (int i = 1; i <= addNum; i++) {
       responses.add(AdoptionDocument.builder()
           .id(Integer.toUnsignedLong(i))
-          .user(mock(UserProfileDto.class))
+          .userId((long) i)
+          .userNickname("happy")
           .build());
     }
     return responses;

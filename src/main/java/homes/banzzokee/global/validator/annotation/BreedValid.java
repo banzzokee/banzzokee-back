@@ -1,7 +1,6 @@
 package homes.banzzokee.global.validator.annotation;
 
 import homes.banzzokee.global.validator.BreedValidator;
-import homes.banzzokee.global.validator.DateValidator;
 import jakarta.validation.Constraint;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

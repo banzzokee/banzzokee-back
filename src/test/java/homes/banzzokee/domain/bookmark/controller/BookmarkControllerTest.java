@@ -12,6 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import homes.banzzokee.domain.adoption.dto.AdoptionDto;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.service.BookmarkService;
+import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.security.WithMockCustomUser;
@@ -100,15 +104,14 @@ class BookmarkControllerTest {
   @DisplayName("[북마크 전체 조회] - 성공 검증")
   void findAllBookmark_when_valid_then_success() throws Exception {
     // given
-    S3Object s3Object1 = new S3Object("url1");
     Pageable pageable = PageRequest.of(0, 10);
     AdoptionDto adoptionDto1 = AdoptionDto.builder()
         .userNickname("반쪽이").adoptionId(1L)
         .title("반쪽이입니다.").content("분양합니다.")
-        .imageUrls(List.of(s3Object1)).breed("POODLE")
-        .size("SMALL").neutering(true).gender("MALE")
+        .imageUrls(List.of("url1")).breed(BreedType.POODLE)
+        .size(DogSize.SMALL).neutering(true).gender(DogGender.MALE)
         .age(1).healthChecked(true).registeredAt(LocalDate.of(2024, 2, 8))
-        .status("ADOPTING").adoptedAt(LocalDate.of(2024, 2, 8))
+        .status(AdoptionStatus.ADOPTING).adoptedAt(LocalDate.of(2024, 2, 8))
         .createdAt(LocalDateTime.of(2024, 2, 8, 1, 0))
         .updatedAt(LocalDateTime.of(2024, 2, 8, 1, 0))
         .build();
@@ -123,6 +126,7 @@ class BookmarkControllerTest {
     // then
     verify(bookmarkService).findAllBookmark(userDetailsMock, pageable);
     resultActions.andExpect(status().isOk())
+        .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(adoptionDtoList.size()))
@@ -131,15 +135,14 @@ class BookmarkControllerTest {
         .andExpect(jsonPath("$.content[0].adoptionId").value(adoptionDto1.getAdoptionId()))
         .andExpect(jsonPath("$.content[0].title").value(adoptionDto1.getTitle()))
         .andExpect(jsonPath("$.content[0].content").value(adoptionDto1.getContent()))
-        .andExpect(jsonPath("$.content[0].breed").value(adoptionDto1.getBreed()))
-        .andExpect(jsonPath("$.content[0].size").value(adoptionDto1.getSize()))
+        .andExpect(jsonPath("$.content[0].breed.value").value(adoptionDto1.getBreed().getValue()))
+        .andExpect(jsonPath("$.content[0].size.value").value(adoptionDto1.getSize().getValue()))
         .andExpect(jsonPath("$.content[0].neutering").value(adoptionDto1.isNeutering()))
-        .andExpect(jsonPath("$.content[0].gender").value(adoptionDto1.getGender()))
+        .andExpect(jsonPath("$.content[0].gender.value").value(adoptionDto1.getGender().getValue()))
         .andExpect(jsonPath("$.content[0].age").value(adoptionDto1.getAge()))
         .andExpect(jsonPath("$.content[0].healthChecked").value(adoptionDto1.isHealthChecked()))
         .andExpect(jsonPath("$.content[0].registeredAt").exists())
-        .andExpect(jsonPath("$.content[0].status").value(adoptionDto1.getStatus()))
-        .andExpect(jsonPath("$.content[0].status").value(adoptionDto1.getStatus()))
+        .andExpect(jsonPath("$.content[0].status.value").value(adoptionDto1.getStatus().getValue()))
         .andExpect(jsonPath("$.content[0].adoptedAt").exists())
         .andExpect(jsonPath("$.content[0].createdAt").exists())
         .andExpect(jsonPath("$.content[0].updatedAt").exists())

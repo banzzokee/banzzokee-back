@@ -21,12 +21,17 @@ import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.service.AdoptionService;
+import homes.banzzokee.domain.type.AdoptionStatus;
+import homes.banzzokee.domain.type.BreedType;
+import homes.banzzokee.domain.type.DogGender;
+import homes.banzzokee.domain.type.DogSize;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.security.UserDetailsImpl;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -79,10 +84,10 @@ class AdoptionControllerTest {
   private final AdoptionRegisterRequest registerRequest = AdoptionRegisterRequest.builder()
       .title("이쁜 우리 강아지")
       .content("우리 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(5)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -91,10 +96,10 @@ class AdoptionControllerTest {
   private final AdoptionUpdateRequest updateRequest = AdoptionUpdateRequest.builder()
       .title("이쁜 우리 강아지")
       .content("우리 강아지를 소개합니다.")
-      .breed("포메라니안")
-      .size("중형")
+      .breed(BreedType.POMERANIAN)
+      .size(DogSize.MEDIUM)
       .neutering(false)
-      .gender("수컷")
+      .gender(DogGender.MALE)
       .age(5)
       .healthChecked(true)
       .registeredAt("2024-01-01")
@@ -115,7 +120,22 @@ class AdoptionControllerTest {
   @DisplayName("분양게시글 등록 성공 테스트")
   void registerAdoption_success() throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
@@ -160,7 +180,22 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenFileHasDuplicateFilename()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile image = MockDataUtil.createMockMultipartFile("images",
@@ -184,7 +219,22 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenNumberOfFilesOver8()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder postWithoutImage = MockMvcRequestBuilders
@@ -204,7 +254,22 @@ class AdoptionControllerTest {
   void registerAdoption_shouldThrowValidationError_whenFileIsNotImage()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", registerRequest);
+    // 클라이언트에서 요청 시 enum타입을 String형태로 입력받아 json 포맷 생성하여 테스트 목적
+    String requestJson = """
+        {
+            "title": "이쁜 우리 강아지",
+            "content": "우리 강아지를 소개합니다.",
+            "breed": "POMERANIAN",
+            "size": "MEDIUM",
+            "neutering": false,
+            "gender": "MALE",
+            "age": 5,
+            "healthChecked": true,
+            "registeredAt": "2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile textFile = createMockTextFile();
@@ -244,10 +309,10 @@ class AdoptionControllerTest {
     AdoptionRegisterRequest request = AdoptionRegisterRequest.builder()
         .title(over50)  // 50자 이상
         .content(over500)  // 500자 이상
-        .breed("잘못된 견종")  // 유효한 견종 아님경
-        .size("기쁨형")  // 유효한 크기 아님
+        .breed(null)  // null
+        .size(null)  // null
         .neutering(false)
-        .gender("남성")  // 유효한 성별 아님
+        .gender(null)  // null
         .age(120)  // 100세 이상 입력 불가
         .healthChecked(true)
         .registeredAt("2024012301")  // 유효한 날짜 형식 아님
@@ -274,7 +339,8 @@ class AdoptionControllerTest {
         .adoptionId(1L)
         .title("강아지")
         .build();
-    given(adoptionService.getAdoption(anyLong())).willReturn(response);
+    given(adoptionService.getAdoption(anyLong(), any(UserDetailsImpl.class))).willReturn(
+        response);
     //when
     MockMvcUtil.performGet(mockMvc, "/api/adoptions/1")
         .andExpect(jsonPath("$.adoptionId").value(1))
@@ -285,7 +351,21 @@ class AdoptionControllerTest {
   @Test
   @DisplayName("분양게시글 수정 성공 테스트")
   void successUpdateAdoption() throws Exception {
-    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+    String requestJson = """
+        {
+            "title":"이쁜 우리 강아지",
+            "content":"우리 강아지를 소개합니다.",
+            "breed":"POMERANIAN",
+            "size":"MEDIUM",
+            "neutering":false,
+            "gender":"MALE",
+            "age":5,
+            "healthChecked":true,
+            "registeredAt":"2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder putWithoutImage = MockMvcRequestBuilders
@@ -321,7 +401,21 @@ class AdoptionControllerTest {
   void updateAdoption_shouldThrowValidationError_whenFileHasDuplicateFilename()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+    String requestJson = """
+        {
+            "title":"이쁜 우리 강아지",
+            "content":"우리 강아지를 소개합니다.",
+            "breed":"POMERANIAN",
+            "size":"MEDIUM",
+            "neutering":false,
+            "gender":"MALE",
+            "age":5,
+            "healthChecked":true,
+            "registeredAt":"2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile image = MockDataUtil.createMockMultipartFile("images",
@@ -345,7 +439,21 @@ class AdoptionControllerTest {
   void updateAdoption_shouldThrowValidationError_whenNumberOfFilesOver8()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+    String requestJson = """
+        {
+            "title":"이쁜 우리 강아지",
+            "content":"우리 강아지를 소개합니다.",
+            "breed":"POMERANIAN",
+            "size":"MEDIUM",
+            "neutering":false,
+            "gender":"MALE",
+            "age":5,
+            "healthChecked":true,
+            "registeredAt":"2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartHttpServletRequestBuilder putWithoutImage = MockMvcRequestBuilders
@@ -365,7 +473,21 @@ class AdoptionControllerTest {
   void updateAdoption_shouldThrowValidationError_whenFileIsNotImage()
       throws Exception {
     //given
-    MockPart mockPart = MockDataUtil.createMockPart("request", updateRequest);
+    String requestJson = """
+        {
+            "title":"이쁜 우리 강아지",
+            "content":"우리 강아지를 소개합니다.",
+            "breed":"POMERANIAN",
+            "size":"MEDIUM",
+            "neutering":false,
+            "gender":"MALE",
+            "age":5,
+            "healthChecked":true,
+            "registeredAt":"2024-01-01"
+        }""";
+    MockPart mockPart = new MockPart("request",
+        requestJson.getBytes(StandardCharsets.UTF_8));
+    mockPart.getHeaders().set("Content-Type", "application/json");
 
     //when
     MockMultipartFile textFile = createMockTextFile();
@@ -391,10 +513,10 @@ class AdoptionControllerTest {
     AdoptionUpdateRequest request = AdoptionUpdateRequest.builder()
         .title(over50)  // 50자 이상
         .content(over500)  // 500자 이상
-        .breed("잘못된 견종")  // 유효한 견종 아님경
-        .size("기쁨형")  // 유효한 크기 아님
+        .breed(null)  // null
+        .size(null)  // null
         .neutering(false)
-        .gender("남성")  // 유효한 성별 아님
+        .gender(null)  // null
         .age(120)  // 100세 이상 입력 불가
         .healthChecked(true)
         .registeredAt("2024012301")  // 유효한 날짜 형식 아님
@@ -419,12 +541,17 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양완료")
+        .status(AdoptionStatus.FINISHED)
         .assignedUserId(1L)
         .build();
+    String json = """
+        {
+            "assignedUserId": 1,
+            "status": "FINISHED"
+        }""";
     // when & then
     mockMvc.perform(patch("/api/adoptions/2/status")
-            .content(objectMapper.writeValueAsString(request))
+            .content(json)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -446,7 +573,7 @@ class AdoptionControllerTest {
       throws Exception {
     //given
     AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status("분양")
+        .status(null)
         .assignedUserId(1L)
         .build();
     // when & then
@@ -474,12 +601,13 @@ class AdoptionControllerTest {
         responses);
 
     given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
-        any(Pageable.class))).willReturn(searchResponses);
+        any(Pageable.class), anyLong())).willReturn(searchResponses);
     //when & then
     mockMvc.perform(get("/api/adoptions")
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
+            .param("userId", "1")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -488,7 +616,7 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request가 null인 경우 성공 테스트")
+  @DisplayName("분양 게시글 검색 - request와 userId가 null인 경우 성공 테스트")
   void getAdoptionList_shouldSuccess_whenRequestIsNull() throws Exception {
     //given
     AdoptionSearchRequest request = null;
@@ -499,7 +627,7 @@ class AdoptionControllerTest {
     SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
         responses);
 
-    given(adoptionService.getAdoptionList(request, pageRequest)).willReturn(
+    given(adoptionService.getAdoptionList(request, pageRequest, null)).willReturn(
         searchResponses);
     //when & then
     mockMvc.perform(get("/api/adoptions")
@@ -514,29 +642,43 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request 필드 유효한 값이 아닌 경우")
+  @DisplayName("분양 게시글 검색 - 성공테스트")
   void getAdoptionList_shouldThrowValidationError_whenFieldIsInvalidInRequest()
       throws Exception {
     //given
-    AdoptionSearchRequest request = AdoptionSearchRequest.builder()
-        .breed(List.of("잘못된 견종"))
-        .size("잘못된 사이즈")
-        .gender("잘못된 성별")
-        .build();
+    String requestJson = """
+        {
+            "breed":["POODLE", "MALTESE"],
+            "size": "MEDIUM",
+            "neutering": true,
+            "healthChecked": true,
+            "gender": "MALE",
+            "ageRange":{
+                "minAge": 2,
+                "maxAge": 3
+            }
+        }""";
+
+    List<AdoptionSearchResponse> responses = List.of(
+        AdoptionSearchResponse.builder().adoptionId(1L).build());
+    SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
+        responses);
+
+    given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
+        any(PageRequest.class), anyLong())).willReturn(
+        searchResponses);
 
     //when & then
     mockMvc.perform(get("/api/adoptions")
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
-            .content(objectMapper.writeValueAsString(request))
+            .param("userId", "1")
+            .content(requestJson)
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errors[*][0:1].reason").isNotEmpty())
-        .andExpect(jsonPath("$.errors[*][1:2].reason").isNotEmpty())
-        .andExpect(jsonPath("$.errors[*][2:3].reason").isNotEmpty());
-
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0:1].adoptionId").value(1));
   }
 
 }
