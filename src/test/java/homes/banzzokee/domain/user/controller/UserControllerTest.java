@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,6 +28,8 @@ import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
 import homes.banzzokee.global.util.MockDataUtil;
 import homes.banzzokee.global.util.MockMvcUtil;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
 import org.springframework.test.web.servlet.MockMvc;
@@ -305,5 +311,32 @@ class UserControllerTest {
         .andExpect(jsonPath("$.profileImgUrl").value(response.getProfileImgUrl()))
         .andExpect(jsonPath("$.nickname").value(response.getNickname()))
         .andExpect(jsonPath("$.introduce").value(response.getIntroduce()));
+  }
+
+  @Test
+  @DisplayName("[사용자 팔로워 목록 반환] - 성공 검증")
+  @WithMockCustomUser
+  void getMyFollowers_success() throws Exception {
+    // given
+    List<FollowUserDto> myFollowers = new ArrayList<>();
+    for (int i = 1; i <= 3; i++) {
+      myFollowers.add(FollowUserDto.builder()
+          .userId((long) i)
+          .nickname("user" + i)
+          .build());
+    }
+    Slice<FollowUserDto> response = new SliceImpl<>(myFollowers);
+
+    given(userService.getMyFollowers(anyLong(), any(Pageable.class))).willReturn(response);
+
+    // when
+    mockMvc.perform(get("/api/users/me/followers"))
+        .andDo(print())
+        .andExpect(jsonPath("$.content[0:1].userId").value(1))
+        .andExpect(jsonPath("$.content[0:1].nickname").value("user1"))
+        .andExpect(jsonPath("$.content[1:2].userId").value(2))
+        .andExpect(jsonPath("$.content[1:2].nickname").value("user2"))
+        .andExpect(jsonPath("$.content[2:3].userId").value(3))
+        .andExpect(jsonPath("$.content[2:3].nickname").value("user3"));
   }
 }
