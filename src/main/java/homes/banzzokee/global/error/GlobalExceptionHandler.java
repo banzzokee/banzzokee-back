@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
   }
 
   @MessageExceptionHandler  // 메세지 전송 에러 핸들러
-  @SendToUser(destinations = "/queue/error", broadcast = false) // 특정 유저에게 메세지 전송 ->
+  @SendToUser(destinations = "/topic/error", broadcast = false) // 특정 유저에게 메세지 전송 ->
   // "/user/queue/error" 구독한 유저
   public ResponseEntity<ErrorResponse> handleMessageException(
       SocketException e) {
