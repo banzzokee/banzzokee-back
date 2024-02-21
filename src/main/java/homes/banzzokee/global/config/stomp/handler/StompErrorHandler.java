@@ -43,8 +43,8 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
 
     try {
       // 에러코드가 SocketException 일때
-      if (cause instanceof SocketException) {
-        log.error("[SocketException 발생]");
+      if (cause instanceof SocketException se) {
+        log.error("{} is occurred.", cause.getClass().getSimpleName(), se);
         return prepareErrorMessage(
             clientMessage,
             Objects.requireNonNull(
@@ -54,7 +54,6 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
         );
       }
     } catch (Exception e) {
-      e.printStackTrace();
       return super.handleClientMessageProcessingError(clientMessage, e);
     }
 

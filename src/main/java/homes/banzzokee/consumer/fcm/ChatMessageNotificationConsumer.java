@@ -41,6 +41,11 @@ public class ChatMessageNotificationConsumer {
 
     try {
       MultiMessage message = createMultiMessage(notification, chatMessage);
+      assert message != null;
+      if (message.getTokens().isEmpty()) {
+        log.info("message receiver's token is empty. this message will not send to fcm.");
+        return;
+      }
       BatchResponse batchResponse = fcmService.sendMultiMessage(message);
       log.info("send message success, successCount={}, failureCount={}",
           batchResponse.getSuccessCount(),

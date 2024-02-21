@@ -151,9 +151,6 @@ public class ChatRoomService {
     );
 
     // template.convertToSend 로 메세지 보내기 확인
-    template.convertAndSend("/queue/chats/rooms/" + roomId, message);
-
+    template.convertAndSend("/topic/chats.rooms." + roomId, message);
   }
-
-
 }
