@@ -31,7 +31,7 @@ public class MessageController {
    */
   @MessageMapping("/chats/rooms/{roomId}")
   // /api/chats/rooms/{roomId} 로 메세지 전송 요청
-  @SendTo("/queue/chats/rooms/{roomId}")  // subscribe destination
+  @SendTo("/topic/chats.rooms.{roomId}")  // subscribe destination
   public MessageDto sendMessage(
       Principal principal,
       @DestinationVariable("roomId") Long roomId,
