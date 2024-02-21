@@ -200,9 +200,9 @@ public class AdoptionService {
   }
 
   public Slice<AdoptionSearchResponse> getAdoptionList(AdoptionSearchRequest request,
-      Pageable pageable) {
+      Pageable pageable, Long userId) {
     List<AdoptionSearchResponse> responses = queryRepository.findByAdoptionSearchRequest(
-            request, pageable).stream()
+            request, pageable, userId).stream()
         .map(AdoptionSearchResponse::fromDocument)
         .toList();
     return new SliceImpl<>(responses);

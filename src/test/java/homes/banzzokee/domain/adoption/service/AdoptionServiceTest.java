@@ -1089,11 +1089,11 @@ class AdoptionServiceTest {
     PageRequest pageRequest = PageRequest.of(0, 10,
         Sort.by(Direction.fromString("desc"), "createdAt"));
 
-    given(queryRepository.findByAdoptionSearchRequest(request, pageRequest))
+    given(queryRepository.findByAdoptionSearchRequest(request, pageRequest, 1L))
         .willReturn(createAdoptionDocumentList(4));
     //when
     Slice<AdoptionSearchResponse> responses = adoptionService.getAdoptionList(request,
-        pageRequest);
+        pageRequest, 1L);
     //then
     assertEquals(4, responses.getSize());
     assertEquals(1, responses.getContent().get(0).getAdoptionId());

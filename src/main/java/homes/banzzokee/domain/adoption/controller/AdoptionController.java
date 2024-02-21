@@ -77,6 +77,7 @@ public class AdoptionController {
 
   @GetMapping
   public Slice<AdoptionSearchResponse> getAdoptionList(
+      @RequestParam(required = false) Long userId,
       @Valid @RequestBody(required = false) AdoptionSearchRequest request,
       @RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "10") int size,
@@ -84,7 +85,7 @@ public class AdoptionController {
 
     PageRequest pageRequest = PageRequest.of(page, size,
         Sort.by(Direction.fromString(direction), "createdAt"));
-    return adoptionService.getAdoptionList(request, pageRequest);
+    return adoptionService.getAdoptionList(request, pageRequest, userId);
   }
 
 }
