@@ -1,6 +1,5 @@
 package homes.banzzokee.global.config.stomp;
 
-import homes.banzzokee.global.config.stomp.handler.CustomHandshakeHandler;
 import homes.banzzokee.global.config.stomp.handler.StompErrorHandler;
 import homes.banzzokee.global.config.stomp.handler.StompPreHandler;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private final StompPreHandler stompPreHandler;
   private final StompErrorHandler stompErrorHandler;
-  private final CustomHandshakeHandler customHandshakeHandler;
 
   @Value("${spring.rabbitmq.host}")
   private String externalBrokerHost;
@@ -38,7 +36,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     registry.addEndpoint("/ws-stomp")
         // ws://localhost:8080/ws-stomp 로 연결
         .setAllowedOriginPatterns("*")
-        .setHandshakeHandler(customHandshakeHandler) // Websocket hand-shake
         .withSockJS(); // SockJs 사용 가능 설정
     // http://localhost:8080/ws-stomp 로 연결 가능
     registry.setErrorHandler(stompErrorHandler);
