@@ -1,8 +1,13 @@
 package homes.banzzokee.global.config.stomp.handler;
 
-import homes.banzzokee.domain.chat.service.ChatMessageService;
+import static org.springframework.messaging.simp.stomp.StompCommand.CONNECT;
+import static org.springframework.messaging.simp.stomp.StompCommand.DISCONNECT;
+import static org.springframework.messaging.simp.stomp.StompCommand.SUBSCRIBE;
+import static org.springframework.messaging.simp.stomp.StompCommand.UNSUBSCRIBE;
+
 import homes.banzzokee.global.config.stomp.exception.SocketAccessTokenExpiredException;
 import homes.banzzokee.global.config.stomp.exception.SocketTokenInvalidException;
+import homes.banzzokee.global.config.stomp.exception.SocketTokenRequiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -14,7 +19,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
@@ -32,47 +36,60 @@ import org.springframework.util.StringUtils;
 public class StompPreHandler implements ChannelInterceptor {
 
   private static final String BEARER = "Bearer ";
-  private static final int TOKEN_SPLIT_DEFAULT_VALUE = 7;
+  private static final int TOKEN_SPLIT_DEFAULT_VALUE = BEARER.length();
 
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
-
-    log.info("[preSend] STOMP 연결 확인");
     StompHeaderAccessor headerAccessor =
         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
     // 웹소켓 연결시 호출
-    if (StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
-      log.info("[messagePreSend] connected");
+    if (CONNECT.equals(headerAccessor.getCommand())) {
+      log.info("[preSend] request for stomp connection. sessionId : {}",
+          headerAccessor.getSessionId());
 
       String token = resolveToken(headerAccessor.getFirstNativeHeader("Authorization"));
-
-      try {
-        if (token != null) {  // token 이 null 인지 만료되지는 않았는지 확인
-          jwtTokenProvider.validateToken(token); // 유효성 체크
-          Authentication authentication = jwtTokenProvider.getAuthentication(token); // 만료되지 않았다면 권한 목록 추출
-          SecurityContextHolder.getContext().setAuthentication(authentication); // SpringSecurity 에 권한 목록 넘겨줌
-          log.info("[doFilterInternal] token 값 유효성 체크 완료");
-
-          // WS Header에 유저 저장
-          headerAccessor.setUser(authentication);
-        }
-      } catch (ExpiredJwtException e) {
-        // accessToken 이 만료되었을때
-        log.error("[doFilterInternal] accessToken 만료");
-
-        throw new SocketAccessTokenExpiredException();
-      } catch (JwtException | IllegalArgumentException e) {
-        // 토큰의 타입이 잘못된 타입이면,
-        log.error("[doFilterInternal] 잘못된 타입의 토큰 에러");
-
-        throw new SocketTokenInvalidException();
+      if (token == null) {
+        throw new SocketTokenRequiredException();
       }
 
-      log.info("[preSendConnected] user : {}", Objects.requireNonNull(
-          headerAccessor.getUser()).getName());
+      try {
+        // 유효성 체크
+        jwtTokenProvider.validateToken(token);
+
+        // 만료되지 않았다면 권한 목록 추출
+        Authentication authentication = jwtTokenProvider.getAuthentication(token);
+
+        // SpringSecurity 에 권한 목록 넘겨줌
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // WS Header에 유저 저장
+        headerAccessor.setUser(authentication);
+        log.info("[preSend] success stomp connection. user : {}, sessionId : {}",
+            Objects.requireNonNull(headerAccessor.getUser()).getName(),
+            headerAccessor.getSessionId());
+      } catch (ExpiredJwtException e) {
+        throw new SocketAccessTokenExpiredException();
+      } catch (JwtException | IllegalArgumentException e) {
+        throw new SocketTokenInvalidException();
+      }
+    } else if (DISCONNECT.equals(headerAccessor.getCommand())) {
+      // TODO: DISCONNECT 두번 처리 되는 증상이 확인 됨
+      log.info("[preSend] stomp disconnect. user: {}, sessionId : {}",
+          Objects.requireNonNull(headerAccessor.getUser()).getName(),
+          headerAccessor.getSessionId());
+    } else if (SUBSCRIBE.equals(headerAccessor.getCommand())) {
+      log.info("[preSend] stomp subscribe. destination: {}, user: {}, sessionId : {}",
+          headerAccessor.getDestination(),
+          Objects.requireNonNull(headerAccessor.getUser()).getName(),
+          headerAccessor.getSessionId());
+    } else if (UNSUBSCRIBE.equals(headerAccessor.getCommand())) {
+      log.info("[preSend] stomp unsubscribe. destination: {}, user: {}, sessionId : {}",
+          headerAccessor.getDestination(),
+          Objects.requireNonNull(headerAccessor.getUser()).getName(),
+          headerAccessor.getSessionId());
     }
 
     return message;
@@ -84,5 +101,4 @@ public class StompPreHandler implements ChannelInterceptor {
     }
     return null;
   }
-
 }
