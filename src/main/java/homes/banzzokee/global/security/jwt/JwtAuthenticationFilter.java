@@ -1,20 +1,19 @@
 package homes.banzzokee.global.security.jwt;
 
-import static homes.banzzokee.global.error.ErrorCode.ACCESS_TOKEN_EXPIRED;
-import static homes.banzzokee.global.error.ErrorCode.INTERNAL_ERROR;
-import static homes.banzzokee.global.error.ErrorCode.INVALID_TOKEN;
-import static homes.banzzokee.global.error.ErrorCode.NO_AUTHORIZED;
-import static homes.banzzokee.global.error.ErrorCode.REFRESH_TOKEN_EXPIRED;
-
 import homes.banzzokee.global.security.UserDetailsServiceImpl;
+import homes.banzzokee.global.security.exception.AccessTokenBlackListedException;
+import homes.banzzokee.global.security.exception.AccessTokenRequiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
 import homes.banzzokee.global.security.exception.TokenInvalidException;
+import homes.banzzokee.global.security.oauth2.service.OAuth2UserDetailsServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import static homes.banzzokee.global.error.ErrorCode.*;
 import static homes.banzzokee.global.security.jwt.JwtTokenProvider.BEARER_LENGTH;
 
 @Slf4j
@@ -38,35 +38,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsServiceImpl userDetailsService;
+  private final OAuth2UserDetailsServiceImpl oAuth2UserDetailsService;
 
   /**
    * 요청에서 토큰을 추출하고 유효성을 확인한 후, 해당 토큰과 연결된 사용자를 인증합니다.
    */
   @Override
   protected void doFilterInternal(HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+                                  HttpServletResponse response,
+                                  FilterChain filterChain) throws ServletException, IOException {
     String token = resolveToken(request);
 
-    if (token != null) {
-      try {
+    try {
+      if (token != null) {
         getAuthenticate(token);
-
-      } catch (ExpiredJwtException e) {
-        request.setAttribute("exception", ACCESS_TOKEN_EXPIRED);
-
-      } catch (TokenInvalidException e) {
-        request.setAttribute("exception", INVALID_TOKEN);
-
-      } catch (RefreshTokenExpiredException e) {
-        request.setAttribute("exception", REFRESH_TOKEN_EXPIRED);
-
-      } catch (AccessDeniedException e) {
-        request.setAttribute("exception", NO_AUTHORIZED);
-
-      } catch (Exception e) {
-        request.setAttribute("exception", INTERNAL_ERROR);
+      } else {
+        if (request.getRequestURI().contains("/MyPage") ||
+            request.getRequestURI().contains("/favicon.ico")) {
+          return;
+        } else {
+          request.setAttribute("exception", NO_AUTHORIZED);
+        }
       }
+    } catch (ExpiredJwtException e) {
+      request.setAttribute("exception", ACCESS_TOKEN_EXPIRED);
+
+    } catch (TokenInvalidException e) {
+      request.setAttribute("exception", INVALID_TOKEN);
+
+    } catch (RefreshTokenExpiredException e) {
+      request.setAttribute("exception", REFRESH_TOKEN_EXPIRED);
+
+    } catch (AccessDeniedException e) {
+      request.setAttribute("exception", NO_AUTHORIZED);
+
+    } catch (AccessTokenRequiredException e) {
+      request.setAttribute("exception", ACCESS_TOKEN_REQUIRED);
+
+    } catch (AccessTokenBlackListedException e) {
+      request.setAttribute("exception", ACCESS_TOKEN_IS_BLACKLIST);
+
+    } catch (Exception e) {
+      request.setAttribute("exception", INTERNAL_ERROR);
     }
 
     filterChain.doFilter(request, response);
@@ -94,5 +107,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     Authentication authentication = new UsernamePasswordAuthenticationToken(
         userDetails, null, userDetails.getAuthorities());
     SecurityContextHolder.getContext().setAuthentication(authentication);
+  }
+
+  private boolean isOauth2Login(HttpServletRequest request) {
+    String requestUrl = request.getRequestURI();
+    return requestUrl.equals("/oauth2/authorization/google");
   }
 }
