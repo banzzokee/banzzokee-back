@@ -1,17 +1,21 @@
 package homes.banzzokee.domain.notification.service;
 
 import homes.banzzokee.domain.notification.dao.FcmTokenRepository;
+import homes.banzzokee.domain.notification.dao.NotificationRepository;
 import homes.banzzokee.domain.notification.dto.FcmTokenDto;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
+import homes.banzzokee.domain.notification.dto.NotificationDto;
 import homes.banzzokee.domain.notification.entity.FcmToken;
-import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
 
   private final FcmTokenRepository fcmTokenRepository;
+  private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -41,6 +46,41 @@ public class NotificationService {
     } else {
       saveFcmTokenAndPublishEvent(request, user, userAgent);
     }
+  }
+
+
+  /**
+   * 알림 목록 조회
+   *
+   * @param pageRequest 페이지 요청
+   * @param userId      사용자 아이디
+   * @return
+   */
+  @Transactional(readOnly = true)
+  public Slice<NotificationDto> getNotificationList(PageRequest pageRequest,
+      Boolean checked, Long userId) {
+    return notificationRepository.getNotificationList(pageRequest, checked, userId);
+  }
+
+  /**
+   * 알림 확인
+   *
+   * @param notificationId 알림 아이디
+   * @param userId         사용자 아이디
+   */
+  @Transactional
+  public void checkNotification(Long notificationId, Long userId) {
+    notificationRepository.checkNotification(notificationId, userId);
+  }
+
+  /**
+   * 모든 알림 확인
+   *
+   * @param userId 사용자 아이디
+   */
+  @Transactional
+  public void checkAllNotifications(Long userId) {
+    notificationRepository.checkAllNotifications(userId);
   }
 
   /**
