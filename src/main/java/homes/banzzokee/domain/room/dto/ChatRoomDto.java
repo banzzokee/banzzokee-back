@@ -26,7 +26,12 @@ public class ChatRoomDto {
   private final ChatAdoptionDto adoption;
 
   /**
-   * 조회하는 유저
+   * 참여 보호소
+   */
+  private final ChatShelterDto shelter;
+
+  /**
+   * 본인
    */
   private final ChatUserDto user;
 
@@ -51,6 +56,7 @@ public class ChatRoomDto {
     return ChatRoomDto.builder()
         .roomId(chatRoom.getId())
         .adoption(ChatAdoptionDto.fromEntity(chatRoom.getAdoption()))
+        .shelter(ChatShelterDto.fromEntity(chatRoom.getShelter()))
         .user(ChatUserDto.fromEntity(chatRoom.getUser()))
         .lastMessage(chatRoom.getLastMessage())
         .lastMessageType(chatRoom.getLastMessageType())

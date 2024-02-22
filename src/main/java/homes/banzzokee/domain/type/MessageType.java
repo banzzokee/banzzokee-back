@@ -5,6 +5,5 @@ package homes.banzzokee.domain.type;
  */
 public enum MessageType {
   EXIT,
-  TEXT,
-  PHOTO
+  TEXT
 }

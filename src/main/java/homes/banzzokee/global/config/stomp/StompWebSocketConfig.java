@@ -35,9 +35,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws-stomp")
         // ws://localhost:8080/ws-stomp 로 연결
-        .setAllowedOriginPatterns("*")
-        .withSockJS(); // SockJs 사용 가능 설정
-    // http://localhost:8080/ws-stomp 로 연결 가능
+        .setAllowedOriginPatterns("*");
     registry.setErrorHandler(stompErrorHandler);
   }
 
