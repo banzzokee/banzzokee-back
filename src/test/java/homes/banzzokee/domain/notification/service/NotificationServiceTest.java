@@ -6,18 +6,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import homes.banzzokee.domain.notification.dao.FcmTokenRepository;
+import homes.banzzokee.domain.notification.dao.NotificationRepository;
 import homes.banzzokee.domain.notification.dto.FcmTokenRegisterRequest;
 import homes.banzzokee.domain.notification.entity.FcmToken;
-import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
+import homes.banzzokee.event.FcmTokenRegisteredEvent;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -41,6 +44,9 @@ class NotificationServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private NotificationRepository notificationRepository;
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
@@ -155,5 +161,41 @@ class NotificationServiceTest {
     FcmTokenRegisteredEvent event = eventCaptor.getValue();
     assertEquals(TOKEN_REGISTER_REQUEST.getToken(), event.getPayload().getToken());
     assertEquals(user.getId(), event.getPayload().getUserId());
+  }
+
+  @Test
+  @DisplayName("[알림 목록 조회] - 호출 검증")
+  void getNotificationList_when_success_then_verify() {
+    // when
+    PageRequest request = PageRequest.of(0, 5);
+    notificationService.getNotificationList(request, false, 1L);
+
+    // then
+    ArgumentCaptor<PageRequest> pageRequestCaptor =
+        ArgumentCaptor.forClass(PageRequest.class);
+    verify(notificationRepository).getNotificationList(pageRequestCaptor.capture(),
+        eq(false), eq(1L));
+    assertEquals(0, pageRequestCaptor.getValue().getPageNumber());
+    assertEquals(5, pageRequestCaptor.getValue().getPageSize());
+  }
+
+  @Test
+  @DisplayName("[알림 읽음] - 호출 검증")
+  void checkNotification_when_success_then_verify() {
+    // when
+    notificationService.checkNotification(1L, 1L);
+
+    // then
+    verify(notificationRepository).checkNotification(1L, 1L);
+  }
+
+  @Test
+  @DisplayName("[알림 모두 읽음] - 호출 검증")
+  void checkAllNotifications_when_success_then_verify() {
+    // when
+    notificationService.checkAllNotifications(1L);
+
+    // then
+    verify(notificationRepository).checkAllNotifications(1L);
   }
 }
