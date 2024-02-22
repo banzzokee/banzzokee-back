@@ -21,8 +21,8 @@ import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
+import homes.banzzokee.domain.bookmark.exception.BookmarkAdoptionNotExistException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
-import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
 import homes.banzzokee.domain.type.DogSize;
@@ -34,12 +34,14 @@ import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.event.dto.FcmTopicStatusDto;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.security.UserDetailsImpl;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -239,7 +241,7 @@ class BookmarkServiceTest {
         .user(user)
         .adoption(adoption)
         .build();
-    given(bookmarkRepository.findById(1L)).willReturn(Optional.of(bookmark));
+    given(bookmarkRepository.findByAdoptionId(1L)).willReturn(Optional.of(bookmark));
 
     UserDetailsImpl userDetails = new UserDetailsImpl(user, Collections
         .singletonList(new SimpleGrantedAuthority("ROLE_USER")));
@@ -264,8 +266,8 @@ class BookmarkServiceTest {
   }
 
   @Test
-  @DisplayName("[북마크 삭제] - 저장된 북마크가 없는 경우 BookmarkNotFoundException 발생")
-  void deleteBookmark_when_bookmarkNotFound_then_BookmarkNotFoundException() {
+  @DisplayName("[북마크 삭제] - 북마크에 저장된 게시물 없는 경우 BookmarkAdoptionNotExistException 발생")
+  void deleteBookmark_when_verify_then_BookmarkAdoptionNotExistException() {
     // given
     long bookmarkId = 1L;
     User user = User.builder()
@@ -274,13 +276,13 @@ class BookmarkServiceTest {
         .role(Collections.singleton(ROLE_USER))
         .loginType(LoginType.EMAIL)
         .build();
-    given(bookmarkRepository.findById(bookmarkId)).willReturn(Optional.empty());
+    given(bookmarkRepository.findByAdoptionId(bookmarkId)).willReturn(Optional.empty());
 
     UserDetailsImpl userDetails = new UserDetailsImpl(user,
         Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
 
     // when & then
-    assertThrows(BookmarkNotFoundException.class, () ->
+    assertThrows(BookmarkAdoptionNotExistException.class, () ->
         bookmarkService.deleteBookmark(userDetails, bookmarkId));
   }
 
@@ -288,14 +290,14 @@ class BookmarkServiceTest {
   @DisplayName("[북마크 삭제] - 권한 정보가 없는 경우 NoAuthorizedException 발생")
   void deleteBookmark_when_noAuthorized_then_NoAuthorizedException() {
     // given
-    long bookmarkId = 1L;
+    long adoptionId = 1L;
     User user = mock(User.class);
     given(user.getId()).willReturn(2L);
 
     Bookmark bookmark = Bookmark.builder()
         .user(user)
         .build();
-    given(bookmarkRepository.findById(bookmarkId)).willReturn(Optional.of(bookmark));
+    given(bookmarkRepository.findByAdoptionId(adoptionId)).willReturn(Optional.of(bookmark));
 
     // when
     User mockUser = mock(User.class);
