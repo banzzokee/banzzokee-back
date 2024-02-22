@@ -5,7 +5,6 @@ import homes.banzzokee.global.security.exception.AccessTokenBlackListedException
 import homes.banzzokee.global.security.exception.AccessTokenRequiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
 import homes.banzzokee.global.security.exception.TokenInvalidException;
-import homes.banzzokee.global.security.oauth2.service.OAuth2UserDetailsServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -38,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsServiceImpl userDetailsService;
-  private final OAuth2UserDetailsServiceImpl oAuth2UserDetailsService;
 
   /**
    * 요청에서 토큰을 추출하고 유효성을 확인한 후, 해당 토큰과 연결된 사용자를 인증합니다.
