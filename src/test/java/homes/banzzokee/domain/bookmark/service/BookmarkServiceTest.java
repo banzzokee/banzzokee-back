@@ -32,7 +32,6 @@ import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.event.dto.FcmTopicStatusDto;
-import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.security.UserDetailsImpl;
 
 import java.time.LocalDate;
@@ -232,16 +231,17 @@ class BookmarkServiceTest {
   void deleteBookmark_when_success_then_verify() {
     // given
     User user = mock(User.class);
-    when(user.getId()).thenReturn(1L);
+    given(user.getId()).willReturn(1L);
 
     Adoption adoption = mock(Adoption.class);
-    when(adoption.getId()).thenReturn(1L);
+    given(adoption.getId()).willReturn(1L);
 
     Bookmark bookmark = Bookmark.builder()
         .user(user)
         .adoption(adoption)
         .build();
-    given(bookmarkRepository.findByAdoptionId(1L)).willReturn(Optional.of(bookmark));
+    given(bookmarkRepository.findByUserIdAndAdoptionId(user.getId(), adoption.getId()))
+        .willReturn(Optional.of(bookmark));
 
     UserDetailsImpl userDetails = new UserDetailsImpl(user, Collections
         .singletonList(new SimpleGrantedAuthority("ROLE_USER")));
@@ -270,13 +270,9 @@ class BookmarkServiceTest {
   void deleteBookmark_when_verify_then_BookmarkAdoptionNotExistException() {
     // given
     long bookmarkId = 1L;
-    User user = User.builder()
-        .email("test@gmail.com")
-        .nickname("반쪽이")
-        .role(Collections.singleton(ROLE_USER))
-        .loginType(LoginType.EMAIL)
-        .build();
-    given(bookmarkRepository.findByAdoptionId(bookmarkId)).willReturn(Optional.empty());
+    User user = mock(User.class);
+    given(user.getId()).willReturn(1L);
+    given(bookmarkRepository.findByUserIdAndAdoptionId(user.getId(), bookmarkId)).willReturn(Optional.empty());
 
     UserDetailsImpl userDetails = new UserDetailsImpl(user,
         Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
@@ -284,30 +280,6 @@ class BookmarkServiceTest {
     // when & then
     assertThrows(BookmarkAdoptionNotExistException.class, () ->
         bookmarkService.deleteBookmark(userDetails, bookmarkId));
-  }
-
-  @Test
-  @DisplayName("[북마크 삭제] - 권한 정보가 없는 경우 NoAuthorizedException 발생")
-  void deleteBookmark_when_noAuthorized_then_NoAuthorizedException() {
-    // given
-    long adoptionId = 1L;
-    User user = mock(User.class);
-    given(user.getId()).willReturn(2L);
-
-    Bookmark bookmark = Bookmark.builder()
-        .user(user)
-        .build();
-    given(bookmarkRepository.findByAdoptionId(adoptionId)).willReturn(Optional.of(bookmark));
-
-    // when
-    User mockUser = mock(User.class);
-    given(mockUser.getId()).willReturn(1L);
-    UserDetailsImpl userDetails = new UserDetailsImpl(mockUser,
-        Collections.singletonList(new SimpleGrantedAuthority("USER_ROLE")));
-
-    // then
-    assertThrows(NoAuthorizedException.class, () ->
-        bookmarkService.deleteBookmark(userDetails, 1L));
   }
 
   @Test
