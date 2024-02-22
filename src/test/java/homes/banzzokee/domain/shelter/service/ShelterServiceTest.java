@@ -235,28 +235,11 @@ class ShelterServiceTest {
     User user = mock(User.class);
     given(user.getRole()).willReturn(getRoles(ROLE_ADMIN));
     given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-    given(shelterRepository.findById(1L)).willReturn(Optional.empty());
+    given(shelterRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
     // when & then
     assertThrows(ShelterNotFoundException.class,
         () -> shelterService.verifyShelter(1L, anyLong()));
-  }
-
-  @Test
-  @DisplayName("[보호소 승인] - 삭제된 보호소이면 ShelterNotFoundException 발생")
-  void verifyShelter_when_shelterIsDeleted_then_throwShelterNotFoundException() {
-    // given
-    User user = mock(User.class);
-    given(user.getRole()).willReturn(getRoles(ROLE_ADMIN));
-    given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-
-    Shelter shelter = mock(Shelter.class);
-    given(shelter.isDeleted()).willReturn(true);
-    given(shelterRepository.findById(1L)).willReturn(Optional.of(shelter));
-
-    // when & then
-    assertThrows(ShelterNotFoundException.class,
-        () -> shelterService.verifyShelter(1L, user.getId()));
   }
 
   @Test
@@ -269,7 +252,7 @@ class ShelterServiceTest {
 
     Shelter shelter = mock(Shelter.class);
     given(shelter.isVerified()).willReturn(true);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     // when & then
     assertThrows(ShelterAlreadyVerifiedException.class,
@@ -288,7 +271,7 @@ class ShelterServiceTest {
 
     Shelter shelter = spy(Shelter.builder().user(user).build());
     given(shelter.getId()).willReturn(1L);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     // when
     shelterService.verifyShelter(shelter.getId(), user.getId());
@@ -307,7 +290,7 @@ class ShelterServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     Shelter shelter = mock(Shelter.class);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.empty());
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.empty());
 
     // when & then
     assertThrows(ShelterNotFoundException.class,
@@ -323,7 +306,7 @@ class ShelterServiceTest {
     // given
     Shelter shelter = mock(Shelter.class);
     given(shelter.getUser()).willReturn(mock(User.class));
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     User user = mock(User.class);
     given(user.getId()).willReturn(1L);
@@ -349,7 +332,7 @@ class ShelterServiceTest {
     Shelter shelter = mock(Shelter.class);
     given(shelter.getUser()).willReturn(user);
     given(shelter.getShelterImage()).willReturn(oldShelterImage);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     // when
     shelterService.updateShelter(shelter.getId(),
@@ -370,7 +353,7 @@ class ShelterServiceTest {
 
     Shelter shelter = mock(Shelter.class);
     given(shelter.getUser()).willReturn(user);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     // when
     shelterService.updateShelter(shelter.getId(),
@@ -394,7 +377,7 @@ class ShelterServiceTest {
         .build());
     given(shelter.getId()).willReturn(1L);
     given(shelter.getUser()).willReturn(user);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     given(s3Service.uploadOneFile(mockFile, FilePath.SHELTER)).willReturn(image);
 
@@ -420,7 +403,7 @@ class ShelterServiceTest {
     // given
     User user = mock(User.class);
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-    given(shelterRepository.findById(anyLong())).willReturn(Optional.empty());
+    given(shelterRepository.findByIdAndDeletedAtIsNull(anyLong())).willReturn(Optional.empty());
 
     // when & then
     assertThrows(ShelterNotFoundException.class,
@@ -440,7 +423,7 @@ class ShelterServiceTest {
 
     Shelter shelter = mock(Shelter.class);
     given(shelter.getUser()).willReturn(user2);
-    given(shelterRepository.findById(anyLong())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(anyLong())).willReturn(Optional.of(shelter));
 
     // when & then
     assertThrows(NoAuthorizedException.class,
@@ -455,7 +438,7 @@ class ShelterServiceTest {
         .user(User.builder().build())
         .build());
     given(shelter.getId()).willReturn(1L);
-    given(shelterRepository.findById(shelter.getId())).willReturn(Optional.of(shelter));
+    given(shelterRepository.findByIdAndDeletedAtIsNull(shelter.getId())).willReturn(Optional.of(shelter));
 
     User user = spy(User.builder()
         .role(getRoles(ROLE_USER, ROLE_SHELTER))

@@ -46,7 +46,7 @@ public class ShelterService {
    */
   @Transactional
   public void registerShelter(ShelterRegisterRequest request, MultipartFile shelterImg,
-                              long userId) {
+      long userId) {
     User user = findByUserIdOrThrow(userId);
 
     throwIfUserAlreadyRegisterShelter(user);
@@ -84,7 +84,7 @@ public class ShelterService {
    */
   @Transactional
   public ShelterUpdateResponse updateShelter(long shelterId, ShelterUpdateRequest request,
-                                             MultipartFile shelterImage, long userId) {
+      MultipartFile shelterImage, long userId) {
     User user = findByUserIdOrThrow(userId);
     Shelter shelter = findByShelterIdOrThrow(shelterId);
 
@@ -196,14 +196,10 @@ public class ShelterService {
    * @return 보호소
    */
   private Shelter findByShelterIdOrThrow(long shelterId) {
-    Shelter shelter = shelterRepository.findById(shelterId)
-        .orElseThrow(() -> new ShelterNotFoundException(shelterId));
 
-    if (shelter.isDeleted()) {
-      throw new ShelterNotFoundException(shelterId);
-    }
+    return shelterRepository.findByIdAndDeletedAtIsNull(shelterId)
+        .orElseThrow(ShelterNotFoundException::new);
 
-    return shelter;
   }
 
   /**
@@ -214,7 +210,7 @@ public class ShelterService {
    * @param shelterImage 보호소 이미지
    */
   private void registerOrRestoreShelter(User user, ShelterRegisterRequest request,
-                                        S3Object shelterImage) {
+      S3Object shelterImage) {
     Shelter shelter = user.getShelter();
     String imageUrl = shelterImage == null ? null : shelterImage.getUrl();
 
