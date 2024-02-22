@@ -14,6 +14,7 @@ import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.room.exception.AdoptionWriterException;
 import homes.banzzokee.domain.room.exception.AlreadyExistsChatRoomException;
 import homes.banzzokee.domain.room.exception.RoomNotFoundException;
+import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.MessageType;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatRoomService {
 
+  private final ShelterRepository shelterRepository;
   private final ChatMessageRepository chatMessageRepository;
   private final AdoptionRepository adoptionRepository;
   private final ChatRoomRepository chatRoomRepository;
@@ -93,8 +95,10 @@ public class ChatRoomService {
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
+    Shelter shelter = shelterRepository.getByUser(user);
+
     Slice<ChatRoom> chatRooms = chatRoomRepository
-        .findAllByUserOrderByLastMessageCreatedAtDesc(user, pageable);
+        .findAllByUserOrShelterOrderByLastMessageCreatedAtDesc(user, shelter, pageable);
 
     return new SliceImpl<>(
         chatRooms.stream()

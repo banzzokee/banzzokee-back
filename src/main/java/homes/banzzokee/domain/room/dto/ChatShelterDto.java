@@ -18,11 +18,15 @@ public class ChatShelterDto {
   private final String shelterImgUrl;
 
   private final String name;
+
+  private ChatUserDto user;
+
   public static ChatShelterDto fromEntity(Shelter shelter) {
     return ChatShelterDto.builder()
         .shelterId(shelter.getId())
         .shelterImgUrl(shelter.getShelterImageUrl())
         .name(shelter.getName())
+        .user(ChatUserDto.fromEntity(shelter.getUser()))
         .build();
   }
 
