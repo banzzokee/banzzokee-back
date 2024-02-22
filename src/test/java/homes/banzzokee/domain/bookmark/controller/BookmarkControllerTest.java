@@ -32,6 +32,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -82,7 +84,8 @@ class BookmarkControllerTest {
     verify(bookmarkService).registerBookmark(
         any(UserDetailsImpl.class), any(BookmarkRegisterRequest.class));
     resultActions.andExpect(status().isCreated())
-        .andExpect(header().string("Location", containsString("/api/bookmarks/" + bookmarkId)));
+        .andExpect(
+            header().string("Location", containsString("/api/bookmarks/" + bookmarkId)));
   }
 
   @Test
@@ -93,7 +96,8 @@ class BookmarkControllerTest {
     long bookmarkId = 1L;
 
     // when & then
-    ResultActions resultActions = mockMvc.perform(delete("/api/bookmarks/{bookmarkId}", bookmarkId));
+    ResultActions resultActions = mockMvc.perform(
+        delete("/api/bookmarks/{bookmarkId}", bookmarkId));
 
     resultActions.andExpect(status().isOk());
     verify(bookmarkService).deleteBookmark(any(UserDetailsImpl.class), eq(bookmarkId));
@@ -104,7 +108,8 @@ class BookmarkControllerTest {
   @DisplayName("[북마크 전체 조회] - 성공 검증")
   void findAllBookmark_when_valid_then_success() throws Exception {
     // given
-    Pageable pageable = PageRequest.of(0, 10);
+    Pageable pageable = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
     AdoptionDto adoptionDto1 = AdoptionDto.builder()
         .userNickname("반쪽이").adoptionId(1L)
         .title("반쪽이입니다.").content("분양합니다.")
@@ -117,8 +122,10 @@ class BookmarkControllerTest {
         .build();
     List<AdoptionDto> adoptionDtoList = Collections.singletonList(adoptionDto1);
     Slice<AdoptionDto> adoptionsSlice = new SliceImpl<>(adoptionDtoList, pageable, true);
-    UserDetailsImpl userDetailsMock = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    given(bookmarkService.findAllBookmark(any(UserDetailsImpl.class), eq(pageable))).willReturn(adoptionsSlice);
+    UserDetailsImpl userDetailsMock = (UserDetailsImpl) SecurityContextHolder.getContext()
+        .getAuthentication().getPrincipal();
+    given(bookmarkService.findAllBookmark(any(UserDetailsImpl.class),
+        eq(pageable))).willReturn(adoptionsSlice);
 
     // when
     ResultActions resultActions = mockMvc.perform(get("/api/bookmarks/adoptions"));
@@ -131,18 +138,25 @@ class BookmarkControllerTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(adoptionDtoList.size()))
         .andExpect(jsonPath("$.content[0].userId").value(adoptionDto1.getUserId()))
-        .andExpect(jsonPath("$.content[0].userNickname").value(adoptionDto1.getUserNickname()))
-        .andExpect(jsonPath("$.content[0].adoptionId").value(adoptionDto1.getAdoptionId()))
+        .andExpect(
+            jsonPath("$.content[0].userNickname").value(adoptionDto1.getUserNickname()))
+        .andExpect(
+            jsonPath("$.content[0].adoptionId").value(adoptionDto1.getAdoptionId()))
         .andExpect(jsonPath("$.content[0].title").value(adoptionDto1.getTitle()))
         .andExpect(jsonPath("$.content[0].content").value(adoptionDto1.getContent()))
-        .andExpect(jsonPath("$.content[0].breed.value").value(adoptionDto1.getBreed().getValue()))
-        .andExpect(jsonPath("$.content[0].size.value").value(adoptionDto1.getSize().getValue()))
+        .andExpect(jsonPath("$.content[0].breed.value").value(
+            adoptionDto1.getBreed().getValue()))
+        .andExpect(
+            jsonPath("$.content[0].size.value").value(adoptionDto1.getSize().getValue()))
         .andExpect(jsonPath("$.content[0].neutering").value(adoptionDto1.isNeutering()))
-        .andExpect(jsonPath("$.content[0].gender.value").value(adoptionDto1.getGender().getValue()))
+        .andExpect(jsonPath("$.content[0].gender.value").value(
+            adoptionDto1.getGender().getValue()))
         .andExpect(jsonPath("$.content[0].age").value(adoptionDto1.getAge()))
-        .andExpect(jsonPath("$.content[0].healthChecked").value(adoptionDto1.isHealthChecked()))
+        .andExpect(
+            jsonPath("$.content[0].healthChecked").value(adoptionDto1.isHealthChecked()))
         .andExpect(jsonPath("$.content[0].registeredAt").exists())
-        .andExpect(jsonPath("$.content[0].status.value").value(adoptionDto1.getStatus().getValue()))
+        .andExpect(jsonPath("$.content[0].status.value").value(
+            adoptionDto1.getStatus().getValue()))
         .andExpect(jsonPath("$.content[0].adoptedAt").exists())
         .andExpect(jsonPath("$.content[0].createdAt").exists())
         .andExpect(jsonPath("$.content[0].updatedAt").exists())

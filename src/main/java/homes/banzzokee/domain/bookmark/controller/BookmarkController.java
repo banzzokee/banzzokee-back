@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,8 +36,9 @@ public class BookmarkController {
   private final BookmarkService bookmarkService;
 
   @PostMapping
-  public ResponseEntity<Void> registerBookmark(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                               @Valid @RequestBody BookmarkRegisterRequest bookmarkRegisterRequest) {
+  public ResponseEntity<Void> registerBookmark(
+      @AuthenticationPrincipal UserDetailsImpl userDetails,
+      @Valid @RequestBody BookmarkRegisterRequest bookmarkRegisterRequest) {
     bookmarkService.registerBookmark(userDetails, bookmarkRegisterRequest);
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
         .path("/{adoptionId}")
@@ -45,8 +48,9 @@ public class BookmarkController {
   }
 
   @DeleteMapping("/{bookmarkId}")
-  public ResponseEntity<Void> deleteBookmark(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                             @PathVariable long bookmarkId) {
+  public ResponseEntity<Void> deleteBookmark(
+      @AuthenticationPrincipal UserDetailsImpl userDetails,
+      @PathVariable long bookmarkId) {
     bookmarkService.deleteBookmark(userDetails, bookmarkId);
     return ResponseEntity.ok().build();
   }
@@ -55,8 +59,10 @@ public class BookmarkController {
   public ResponseEntity<Slice<AdoptionDto>> findAllBookmark(
       @AuthenticationPrincipal UserDetailsImpl userDetails,
       @RequestParam(required = false, defaultValue = PAGE_DEFAULT_VALUE) int page,
-      @RequestParam(required = false, defaultValue = SIZE_DEFAULT_VALUE) int size) {
-    Pageable pageable = PageRequest.of(page, size);
+      @RequestParam(required = false, defaultValue = SIZE_DEFAULT_VALUE) int size,
+      @RequestParam(required = false, defaultValue = "desc") String direction) {
+    Pageable pageable = PageRequest.of(page, size,
+        Sort.by(Direction.fromString(direction), "createdAt"));
     return ResponseEntity.ok(bookmarkService.findAllBookmark(userDetails, pageable));
   }
 }

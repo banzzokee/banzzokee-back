@@ -1,6 +1,8 @@
 package homes.banzzokee.domain.adoption.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.bookmark.entity.Bookmark;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
 import homes.banzzokee.domain.type.DogGender;
@@ -17,6 +19,9 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 public class AdoptionDto {
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private final Long bookmarkId;
 
   private final Long adoptionId;
 
@@ -54,6 +59,29 @@ public class AdoptionDto {
 
   public static AdoptionDto fromEntity(Adoption adoption) {
     return AdoptionDto.builder()
+        .adoptionId(adoption.getId())
+        .userId(adoption.getUser().getId())
+        .userNickname(adoption.getUser().getNickname())
+        .title(adoption.getTitle())
+        .content(adoption.getContent())
+        .imageUrls(getImageUrlList(adoption))
+        .status(adoption.getStatus())
+        .breed(adoption.getBreed())
+        .size(adoption.getSize())
+        .neutering(adoption.isNeutering())
+        .gender(adoption.getGender())
+        .age(adoption.getAge())
+        .healthChecked(adoption.isHealthChecked())
+        .registeredAt(adoption.getRegisteredAt())
+        .adoptedAt(adoption.getAdoptedAt())
+        .createdAt(adoption.getCreatedAt())
+        .updatedAt(adoption.getUpdatedAt())
+        .build();
+  }
+
+  public static AdoptionDto of(Adoption adoption, Bookmark bookmark) {
+    return AdoptionDto.builder()
+        .bookmarkId(bookmark.getId())
         .adoptionId(adoption.getId())
         .userId(adoption.getUser().getId())
         .userNickname(adoption.getUser().getNickname())

@@ -10,6 +10,7 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.PasswordChangeResponse;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
@@ -26,9 +27,13 @@ import homes.banzzokee.domain.user.exception.UserAlreadyWithdrawnException;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.FcmTopicStatusChangeEvent;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -207,5 +212,13 @@ public class UserService {
       // TODO: 삭제 못한 이미지에 대한 예외 처리
       log.error("delete profile image failed. file={}", oldProfileImage, e);
     }
+  }
+
+  public Slice<FollowUserDto> getMyFollowers(long userId, Pageable pageable) {
+    List<Follow> myFollowers = followRepository.findAllByFollowerId(userId, pageable);
+    return new SliceImpl<>(myFollowers.stream().map(follow -> FollowUserDto.builder()
+        .userId(follow.getFollowee().getId())
+        .nickname(follow.getFollowee().getNickname())
+        .build()).toList());
   }
 }
