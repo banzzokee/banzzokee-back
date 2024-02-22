@@ -108,9 +108,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         userDetails, null, userDetails.getAuthorities());
     SecurityContextHolder.getContext().setAuthentication(authentication);
   }
-
-  private boolean isOauth2Login(HttpServletRequest request) {
-    String requestUrl = request.getRequestURI();
-    return requestUrl.equals("/oauth2/authorization/google");
-  }
 }
