@@ -56,6 +56,7 @@ public enum ErrorCode {
   ASSIGNED_USER_MUST_BE_NULL(BAD_REQUEST, "분양중 또는 예약중으로 상태변경하기 위해서는 입양자 정보가 필요없습니다."),
   BOOKMARK_ALREADY_EXISTS(BAD_REQUEST, "이미 저장된 북마크 입니다."),
   BOOKMARK_NOT_FOUND(NOT_FOUND, "북마크를 찾을 수 없습니다."),
+  BOOKMARKED_ADOPTION_NOT_EXIST(NOT_FOUND, "북마크에 등록된 게시물을 찾을 수 없습니다."),
   NO_SOCIAL_LOGIN_AUTHORIZED(FORBIDDEN, "잘못된 접근 방법입니다."),
   EMAIL_EXIST_DIFFERENT_LOGIN(BAD_REQUEST, "등록된 이메일이 있습니다. 다른 방식으로 로그인 해주세요."),
   REVIEW_CAN_BE_WRITE_BY_ASSIGNED_USER(UNAUTHORIZED, "후기 게시글은 입양자만 작성 가능합니다."),

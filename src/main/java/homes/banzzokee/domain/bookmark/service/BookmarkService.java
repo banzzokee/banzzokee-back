@@ -10,6 +10,7 @@ import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
+import homes.banzzokee.domain.bookmark.exception.BookmarkAdoptionNotExistException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -60,9 +61,9 @@ public class BookmarkService {
   }
 
   @Transactional
-  public void deleteBookmark(UserDetailsImpl userDetails, long bookmarkId) {
-    Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
-        .orElseThrow(BookmarkNotFoundException::new);
+  public void deleteBookmark(UserDetailsImpl userDetails, long adoptionId) {
+    Bookmark bookmark = bookmarkRepository.findByAdoptionId(adoptionId)
+        .orElseThrow(BookmarkAdoptionNotExistException::new);
     if (!userDetails.getUserId().equals(bookmark.getUser().getId())) {
       throw new NoAuthorizedException();
     }
