@@ -1,6 +1,7 @@
 package homes.banzzokee.domain.bookmark.entity;
 
 import homes.banzzokee.domain.adoption.entity.Adoption;
+import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
-public class Bookmark {
+public class Bookmark extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

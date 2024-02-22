@@ -27,6 +27,7 @@ import homes.banzzokee.domain.type.S3Object;
 import homes.banzzokee.domain.user.dao.FollowRepository;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.dto.FollowDto;
+import homes.banzzokee.domain.user.dto.FollowDto.FollowUserDto;
 import homes.banzzokee.domain.user.dto.PasswordChangeRequest;
 import homes.banzzokee.domain.user.dto.UserProfileDto;
 import homes.banzzokee.domain.user.dto.UserProfileUpdateRequest;
@@ -46,7 +47,9 @@ import homes.banzzokee.infra.fileupload.dto.FileDto;
 import homes.banzzokee.infra.fileupload.service.FileUploadService;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +59,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -519,6 +527,42 @@ class UserServiceTest {
     // then
     verify(s3Service).deleteFile(file.getUrl());
   }
+
+  @Test
+  @DisplayName("[사용자 팔로워 목록 반환] - 성공검증")
+  void getMyFollowers_success() {
+    // given
+    List<Follow> followList = new ArrayList<>();
+    User user1 = spy(User.builder()
+        .nickname("user1")
+        .build());
+    User user2 = spy(User.builder()
+        .nickname("user2")
+        .build());
+    followList.add(Follow.builder()
+        .followee(user1)
+        .build());
+    followList.add(Follow.builder()
+        .followee(user2)
+        .build());
+
+    given(followRepository.findAllByFollowerId(anyLong(), any(Pageable.class)))
+        .willReturn(followList);
+    given(user1.getId()).willReturn(1L);
+    given(user2.getId()).willReturn(2L);
+
+    // when
+    PageRequest pageRequest = PageRequest.of(0, 10,
+        Sort.by(Direction.fromString("desc"), "createdAt"));
+    Slice<FollowUserDto> myFollowers = userService.getMyFollowers(1L, pageRequest);
+
+    // then
+    assertEquals(1L, myFollowers.getContent().get(0).getUserId());
+    assertEquals(2L, myFollowers.getContent().get(1).getUserId());
+    assertEquals("user1", myFollowers.getContent().get(0).getNickname());
+    assertEquals("user2", myFollowers.getContent().get(1).getNickname());
+  }
+
 
   private static Shelter createMockShelter() {
     Shelter shelter = spy(Shelter.builder()
