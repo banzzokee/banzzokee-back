@@ -58,6 +58,8 @@ public class ChatRoomService {
    */
   public RoomCreateResponse createChatRoom(String email, Long adoptionId) {
 
+    log.info("[createChatRoom] 채팅방 생성 - 유저 : {}, 입양글 : {}", email, adoptionId);
+
     // 삭제되지 않은 유저
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
@@ -72,6 +74,7 @@ public class ChatRoomService {
     Shelter shelter = adoption.getUser().getShelter();
 
     if (chatRoomRepository.existsByUserAndAdoption(user, adoption)) {
+      log.error("[createChatRoom] 이미 생성된 채팅방");
       throw new AlreadyExistsChatRoomException();
     }
 
@@ -93,6 +96,9 @@ public class ChatRoomService {
    * @return
    */
   public Slice<ChatRoomDto> getChatRooms(String email, Pageable pageable) {
+
+    log.info("[getChatRooms] 채팅방 목록 조회 - 유저 : {}", email);
+
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
@@ -116,6 +122,8 @@ public class ChatRoomService {
    */
   @Transactional
   public void exitChatRoom(String email, Long roomId) {
+
+    log.info("[exitChatRoom] 채팅방 나가기 유저 : {}, 채팅방 : {}", email, roomId);
     // email 로 유저 받아오기
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
