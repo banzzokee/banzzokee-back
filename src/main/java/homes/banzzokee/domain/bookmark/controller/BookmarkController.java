@@ -47,11 +47,10 @@ public class BookmarkController {
         .location(location).build();
   }
 
-  @DeleteMapping("/{bookmarkId}")
-  public ResponseEntity<Void> deleteBookmark(
-      @AuthenticationPrincipal UserDetailsImpl userDetails,
-      @PathVariable long bookmarkId) {
-    bookmarkService.deleteBookmark(userDetails, bookmarkId);
+  @DeleteMapping("/{adoptionId}")
+  public ResponseEntity<Void> deleteBookmark(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                             @PathVariable long adoptionId) {
+    bookmarkService.deleteBookmark(userDetails, adoptionId);
     return ResponseEntity.ok().build();
   }
 

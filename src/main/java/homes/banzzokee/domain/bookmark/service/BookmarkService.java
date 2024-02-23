@@ -10,17 +10,19 @@ import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.bookmark.dao.BookmarkRepository;
 import homes.banzzokee.domain.bookmark.dto.BookmarkRegisterRequest;
 import homes.banzzokee.domain.bookmark.entity.Bookmark;
+import homes.banzzokee.domain.bookmark.exception.BookmarkAdoptionNotExistException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkAlreadyExistsException;
 import homes.banzzokee.domain.bookmark.exception.BookmarkNotFoundException;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.event.FcmTopicStatusChangeEvent;
-import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import homes.banzzokee.global.security.UserDetailsImpl;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,7 +44,7 @@ public class BookmarkService {
 
   @Transactional
   public void registerBookmark(UserDetailsImpl userDetails,
-      BookmarkRegisterRequest request) {
+                               BookmarkRegisterRequest request) {
     User user = userRepository.findById(userDetails.getUserId())
         .orElseThrow(UserNotFoundException::new);
     Adoption adoption = adoptionRepository.findById(request.getAdoptionId())
@@ -60,19 +62,17 @@ public class BookmarkService {
   }
 
   @Transactional
-  public void deleteBookmark(UserDetailsImpl userDetails, long bookmarkId) {
-    Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
-        .orElseThrow(BookmarkNotFoundException::new);
-    if (!userDetails.getUserId().equals(bookmark.getUser().getId())) {
-      throw new NoAuthorizedException();
-    }
+  public void deleteBookmark(UserDetailsImpl userDetails, Long adoptionId) {
+    Bookmark bookmark = bookmarkRepository.findByUserIdAndAdoptionId(
+            userDetails.getUserId(), adoptionId)
+        .orElseThrow(BookmarkAdoptionNotExistException::new);
     bookmarkRepository.delete(bookmark);
     eventPublisher.publishEvent(FcmTopicStatusChangeEvent.of(UNSUBSCRIBE, bookmark));
   }
 
   @Transactional(readOnly = true)
   public Slice<AdoptionDto> findAllBookmark(UserDetailsImpl userDetails,
-      Pageable pageable) {
+                                            Pageable pageable) {
     Slice<Bookmark> bookmarks = bookmarkRepository.findByUserId(userDetails.getUserId(),
         pageable);
     if (!bookmarks.hasContent()) {

@@ -14,5 +14,4 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
   Optional<Bookmark> findByUserIdAndAdoptionId(Long userId, Long adoptionId);
 
   Slice<Bookmark> findByUserId(Long userId, Pageable pageable);
-
 }

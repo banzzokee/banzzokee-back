@@ -56,15 +56,16 @@ public enum ErrorCode {
   ASSIGNED_USER_MUST_BE_NULL(BAD_REQUEST, "분양중 또는 예약중으로 상태변경하기 위해서는 입양자 정보가 필요없습니다."),
   BOOKMARK_ALREADY_EXISTS(BAD_REQUEST, "이미 저장된 북마크 입니다."),
   BOOKMARK_NOT_FOUND(NOT_FOUND, "북마크를 찾을 수 없습니다."),
+  BOOKMARKED_ADOPTION_NOT_EXIST(NOT_FOUND, "북마크에 등록된 게시물을 찾을 수 없습니다."),
   NO_SOCIAL_LOGIN_AUTHORIZED(FORBIDDEN, "잘못된 접근 방법입니다."),
   EMAIL_EXIST_DIFFERENT_LOGIN(BAD_REQUEST, "등록된 이메일이 있습니다. 다른 방식으로 로그인 해주세요."),
   REVIEW_CAN_BE_WRITE_BY_ASSIGNED_USER(UNAUTHORIZED, "후기 게시글은 입양자만 작성 가능합니다."),
   ONLY_ONE_REVIEW_ALLOWED_PER_ADOPTION(BAD_REQUEST, "후기 게시글은 분양 게시글 당 하나만 작성 가능합니다."),
   REVIEW_NOT_FOUND(NOT_FOUND, "후기 게시글이 존재하지 않습니다."),
   REVIEW_DOCUMENT_NOT_FOUND(NOT_FOUND, "ElasticSearch에 저장된 후기게시글을 찾을 수가 없습니다."),
-  REVIEW_IS_DELETED(NO_CONTENT, "삭제된 후기 게시글입니다.")
-  ;
-
+  REVIEW_IS_DELETED(NO_CONTENT, "삭제된 후기 게시글입니다."),
+  ACCESS_TOKEN_REQUIRED(UNAUTHORIZED, "엑세스 토큰으로 요청해주세요."),
+  ACCESS_TOKEN_IS_BLACKLIST(UNAUTHORIZED, "블랙리스트로 등록된 엑세스 토큰입니다.");
 
   private final HttpStatus httpStatus;
   private final String message;
