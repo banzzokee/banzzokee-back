@@ -23,6 +23,7 @@ import homes.banzzokee.domain.user.exception.UserNotFoundException;
 import homes.banzzokee.global.error.exception.NoAuthorizedException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,8 @@ public class ChatRoomService {
    */
   public RoomCreateResponse createChatRoom(String email, Long adoptionId) {
 
+    log.info("[createChatRoom] 채팅방 생성 - 유저 : {}, 입양글 : {}", email, adoptionId);
+
     // 삭제되지 않은 유저
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
@@ -71,6 +74,7 @@ public class ChatRoomService {
     Shelter shelter = adoption.getUser().getShelter();
 
     if (chatRoomRepository.existsByUserAndAdoption(user, adoption)) {
+      log.error("[createChatRoom] 이미 생성된 채팅방");
       throw new AlreadyExistsChatRoomException();
     }
 
@@ -92,6 +96,9 @@ public class ChatRoomService {
    * @return
    */
   public Slice<ChatRoomDto> getChatRooms(String email, Pageable pageable) {
+
+    log.info("[getChatRooms] 채팅방 목록 조회 - 유저 : {}", email);
+
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
@@ -115,28 +122,35 @@ public class ChatRoomService {
    */
   @Transactional
   public void exitChatRoom(String email, Long roomId) {
+
+    log.info("[exitChatRoom] 채팅방 나가기 유저 : {}, 채팅방 : {}", email, roomId);
     // email 로 유저 받아오기
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
-    ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+    ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
         .orElseThrow(RoomNotFoundException::new);
 
-    // 본인이 속한 채팅방이 아닐 때
-    if ((chatRoom.getUser() == null || !chatRoom.getUser().equals(user))
-        && (chatRoom.getShelter() == null || !chatRoom.getShelter().getUser()
-        .equals(user))) {
+    if (!chatRoom.isParticipatedUser(user)) {
+      log.error("[exitChatRoom] 권한이 없는 유저");
       throw new NoAuthorizedException();
     }
 
     // 해당 방에서 유저 삭제
-    if (chatRoom.getShelter() != null && user.equals(
-        chatRoom.getShelter().getUser())) { // 쉘터의 유저일때 Shelter 삭제
+    if (chatRoom.getShelter() != null &&
+        Objects.equals(user.getId(),
+            chatRoom.getShelter().getUser().getId())) { // 쉘터의 유저일때 Shelter 삭제
       log.info("[exitChatRoom] 보호소 퇴장");
       chatRoom.leaveShelter();
-    } else if (user.equals(chatRoom.getUser())) {  // 그냥 유저일때 User 삭제
+    } else if (Objects.equals(user.getId(),
+        chatRoom.getUser().getId())) {  // 그냥 유저일때 User 삭제
       log.info("[exitChatRoom] 일반 유저 퇴장");
       chatRoom.leaveUser();
+    }
+
+    if (chatRoom.getShelter() == null && chatRoom.getUser() == null) {
+      log.info("[exitChatRoom] 채팅방 삭제 처리");
+      chatRoom.deleteChatRoom();
     }
 
     MessageDto message = MessageDto.builder()
