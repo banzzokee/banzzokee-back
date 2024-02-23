@@ -16,6 +16,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class MessageDto {
 
+  private final Long chatId;
+
   private final ChatUserDto user;
 
   private final String message;
@@ -26,6 +28,7 @@ public class MessageDto {
 
   public static MessageDto fromEntity(ChatMessage chatMessage) {
     return MessageDto.builder()
+        .chatId(chatMessage.getId())
         .user(ChatUserDto.fromEntity(chatMessage.getUser()))
         .message(chatMessage.getMessage())
         .messageType(chatMessage.getMessageType())

@@ -46,6 +46,7 @@ public class StompPreHandler implements ChannelInterceptor {
   private final UserRepository userRepository;
   private final ChatRoomRepository chatRoomRepository;
 
+  private static final String CHAT_ERROR_CHANNEL = "/user/topic/error";
   private static final String BEARER = "Bearer ";
   private static final int TOKEN_SPLIT_DEFAULT_VALUE = BEARER.length();
 
@@ -101,18 +102,20 @@ public class StompPreHandler implements ChannelInterceptor {
           Objects.requireNonNull(headerAccessor.getUser()).getName(),
           headerAccessor.getSessionId());
 
-      Long roomId = getRoomIdFromDestination(
-          Objects.requireNonNull(headerAccessor.getDestination()));
-      String email = headerAccessor.getUser().getName();
+      if (!Objects.equals(headerAccessor.getDestination(), CHAT_ERROR_CHANNEL)) {
+        Long roomId = getRoomIdFromDestination(
+            Objects.requireNonNull(headerAccessor.getDestination()));
+        String email = headerAccessor.getUser().getName();
 
-      User user = userRepository.findByEmailAndDeletedAtNull(email)
-          .orElseThrow(SocketUserNotFoundException::new);
-      ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
-          .orElseThrow(SocketRoomNotFoundException::new);
+        User user = userRepository.findByEmailAndDeletedAtNull(email)
+            .orElseThrow(SocketUserNotFoundException::new);
+        ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
+            .orElseThrow(SocketRoomNotFoundException::new);
 
-      if (!chatRoom.isParticipatedUser(user)) {
-        log.error("[preSend] failed subscribe. no participant");
-        throw new SocketNoAuthorizedException();
+        if (!chatRoom.isParticipatedUser(user)) {
+          log.error("[preSend] failed subscribe. no participant");
+          throw new SocketNoAuthorizedException();
+        }
       }
 
       log.info("[preSend] success subscribe. destination: {}, user: {}, sessionId : {}",
