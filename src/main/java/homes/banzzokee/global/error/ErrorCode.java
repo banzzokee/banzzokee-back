@@ -63,9 +63,9 @@ public enum ErrorCode {
   ONLY_ONE_REVIEW_ALLOWED_PER_ADOPTION(BAD_REQUEST, "후기 게시글은 분양 게시글 당 하나만 작성 가능합니다."),
   REVIEW_NOT_FOUND(NOT_FOUND, "후기 게시글이 존재하지 않습니다."),
   REVIEW_DOCUMENT_NOT_FOUND(NOT_FOUND, "ElasticSearch에 저장된 후기게시글을 찾을 수가 없습니다."),
-  REVIEW_IS_DELETED(NO_CONTENT, "삭제된 후기 게시글입니다.")
-  ;
-
+  REVIEW_IS_DELETED(NO_CONTENT, "삭제된 후기 게시글입니다."),
+  ACCESS_TOKEN_REQUIRED(UNAUTHORIZED, "엑세스 토큰으로 요청해주세요."),
+  ACCESS_TOKEN_IS_BLACKLIST(UNAUTHORIZED, "블랙리스트로 등록된 엑세스 토큰입니다.");
 
   private final HttpStatus httpStatus;
   private final String message;
