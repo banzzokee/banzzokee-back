@@ -1,9 +1,7 @@
 package homes.banzzokee.global.security.jwt;
 
 import homes.banzzokee.global.security.UserDetailsServiceImpl;
-import homes.banzzokee.global.security.exception.AccessTokenExpiredException;
-import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
-import homes.banzzokee.global.security.exception.TokenInvalidException;
+import homes.banzzokee.global.security.exception.*;
 import homes.banzzokee.global.util.redis.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -65,6 +63,12 @@ public class JwtTokenProvider {
 
   public void validateToken(String token) {
     try {
+      if (token.equals(redisService.getRefreshToken(getUserEmailFromToken(token)))) {
+        throw new AccessTokenRequiredException();
+      }
+      if ("blacklisted".equals(redisService.getBlackListToken(token))) {
+        throw new AccessTokenBlackListedException();
+      }
       Jwts.parserBuilder().setSigningKey(getSecretKey()).build().parseClaimsJws(token);
     } catch (ExpiredJwtException e) {
       if (!isRefreshToken(token)) {

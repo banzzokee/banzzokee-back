@@ -48,4 +48,8 @@ public class RedisService {
   public boolean isRefreshTokenExist(String email, String token) {
     return this.getRefreshToken(email) != null && this.getRefreshToken(email).equals(token);
   }
+
+  public String getBlackListToken(String token) {
+    return redisTemplate.opsForValue().get(token);
+  }
 }

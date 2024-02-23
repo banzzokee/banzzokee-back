@@ -24,6 +24,7 @@ import homes.banzzokee.domain.room.dto.ChatUserDto;
 import homes.banzzokee.domain.room.entity.ChatRoom;
 import homes.banzzokee.domain.room.exception.AdoptionWriterException;
 import homes.banzzokee.domain.room.exception.AlreadyExistsChatRoomException;
+import homes.banzzokee.domain.shelter.dao.ShelterRepository;
 import homes.banzzokee.domain.shelter.entity.Shelter;
 import homes.banzzokee.domain.type.AdoptionStatus;
 import homes.banzzokee.domain.type.BreedType;
@@ -60,6 +61,9 @@ class ChatRoomServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ShelterRepository shelterRepository;
 
   @Mock
   private AdoptionRepository adoptionRepository;
@@ -122,6 +126,9 @@ class ChatRoomServiceTest {
         .loginType(LoginType.EMAIL)
         .shelter(null)
         .build();
+    Shelter shelter = Shelter.builder()
+        .user(User.builder().build())
+        .build();
 
     Adoption adoption1 = Adoption.builder()
         .title("테스트_입양글_제목_1")
@@ -145,18 +152,22 @@ class ChatRoomServiceTest {
 
     ChatRoom room1 = ChatRoom.builder()
         .user(GENERAL_USER)
+        .shelter(shelter)
         .adoption(adoption1)
         .build();
     ChatRoom room2 = ChatRoom.builder()
         .user(GENERAL_USER)
+        .shelter(shelter)
         .adoption(adoption2)
         .build();
     ChatRoom room3 = ChatRoom.builder()
         .user(GENERAL_USER)
+        .shelter(shelter)
         .adoption(adoption3)
         .build();
     ChatRoom room4 = ChatRoom.builder()
         .user(GENERAL_USER)
+        .shelter(shelter)
         .adoption(adoption4)
         .build();
 
@@ -167,9 +178,12 @@ class ChatRoomServiceTest {
 
     given(userRepository.findByEmailAndDeletedAtNull(anyString()))
         .willReturn(Optional.of(user));
-    given(chatRoomRepository.findAllByUserOrderByLastMessageCreatedAtDesc(any(User.class),
-        any(
-            Pageable.class)))
+    given(shelterRepository.getByUser(any(User.class)))
+        .willReturn(Shelter.builder()
+            .user(User.builder().build())
+            .build());
+    given(chatRoomRepository.findAllByUserOrShelterOrderByLastMessageCreatedAtDesc(
+        any(User.class), any(Shelter.class), any(Pageable.class)))
         .willReturn(new PageImpl<>(chatRoomList, pageRequest, chatRoomList.size()));
 
     //when
@@ -209,6 +223,7 @@ class ChatRoomServiceTest {
     given(adoption.getUser()).willReturn(otherUser);
     given(otherUser.getShelter()).willReturn(shelter);
     given(shelter.getId()).willReturn(1L);
+    given(shelter.getUser()).willReturn(otherUser);
 
     given(userRepository.findByEmailAndDeletedAtNull(eq(GENERAL_USER_EMAIL)))
         .willReturn(Optional.of(GENERAL_USER));

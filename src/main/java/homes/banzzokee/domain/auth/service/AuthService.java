@@ -123,8 +123,8 @@ public class AuthService {
 
   public void logout(String token) {
     String cleanedToken = jwtTokenProvider.removeBearerFromToken(token);
-    jwtTokenProvider.validateToken(cleanedToken);
     redisService.addToBlacklist(cleanedToken);
+    jwtTokenProvider.validateToken(cleanedToken);
     redisService.deleteRefreshToken(jwtTokenProvider.getUserEmailFromToken(cleanedToken));
   }
 

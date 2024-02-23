@@ -50,7 +50,7 @@ public class ChatMessageService {
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(SocketUserNotFoundException::new);
 
-    ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+    ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
         .orElseThrow(SocketRoomNotFoundException::new);
 
     if (!chatRoom.isParticipatedUser(user)) {
@@ -81,7 +81,7 @@ public class ChatMessageService {
   @Transactional(readOnly = true)
   public Slice<MessageDto> getChatList(Long roomId, Pageable pageable) {
 
-    ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+    ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
         .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));
 
     return chatMessageRepository.findAllByRoom(chatRoom, pageable)

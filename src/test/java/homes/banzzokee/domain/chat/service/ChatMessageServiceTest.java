@@ -68,7 +68,7 @@ class ChatMessageServiceTest {
         .user(user)
         .build();
 
-    given(chatRoomRepository.findById(eq(1L)))
+    given(chatRoomRepository.findByIdAndDeletedAtIsNull(eq(1L)))
         .willReturn(Optional.of(chatRoom));
 
     given(userRepository.findByEmailAndDeletedAtNull(eq("IncludedUser")))
@@ -133,7 +133,7 @@ class ChatMessageServiceTest {
             )
         );
 
-    given(chatRoomRepository.findById(eq(1L)))
+    given(chatRoomRepository.findByIdAndDeletedAtIsNull(eq(1L)))
         .willReturn(Optional.empty());
 
     //when
@@ -159,7 +159,7 @@ class ChatMessageServiceTest {
             )
         );
 
-    given(chatRoomRepository.findById(eq(1L)))
+    given(chatRoomRepository.findByIdAndDeletedAtIsNull(eq(1L)))
         .willReturn(Optional.of(
                 ChatRoom.builder()
                     .user(user)

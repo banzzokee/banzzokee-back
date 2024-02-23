@@ -46,6 +46,7 @@ public class StompPreHandler implements ChannelInterceptor {
         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
     // 웹소켓 연결시 호출
+    assert headerAccessor != null;
     if (CONNECT.equals(headerAccessor.getCommand())) {
       log.info("[preSend] request for stomp connection. sessionId : {}",
           headerAccessor.getSessionId());
@@ -56,20 +57,23 @@ public class StompPreHandler implements ChannelInterceptor {
       }
 
       try {
-        // 유효성 체크
-        jwtTokenProvider.validateToken(token);
+        if (token != null) {
+          // 유효성 체크
+          jwtTokenProvider.validateToken(token);
 
-        // 만료되지 않았다면 권한 목록 추출
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
+          // 만료되지 않았다면 권한 목록 추출
+          Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
-        // SpringSecurity 에 권한 목록 넘겨줌
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+          // SpringSecurity 에 권한 목록 넘겨줌
+          SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // WS Header에 유저 저장
-        headerAccessor.setUser(authentication);
-        log.info("[preSend] success stomp connection. user : {}, sessionId : {}",
-            Objects.requireNonNull(headerAccessor.getUser()).getName(),
-            headerAccessor.getSessionId());
+          // WS Header에 유저 저장
+          headerAccessor.setUser(authentication);
+          log.info("[preSend] success stomp connection. user : {}, sessionId : {}",
+              Objects.requireNonNull(headerAccessor.getUser()).getName(),
+              headerAccessor.getSessionId());
+        }
+
       } catch (ExpiredJwtException e) {
         throw new SocketAccessTokenExpiredException();
       } catch (JwtException | IllegalArgumentException e) {

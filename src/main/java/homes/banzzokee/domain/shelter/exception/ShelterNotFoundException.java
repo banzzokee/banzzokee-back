@@ -8,10 +8,7 @@ import lombok.Getter;
 @Getter
 public class ShelterNotFoundException extends CustomException {
 
-  private final Long shelterId;
-
-  public ShelterNotFoundException(Long shelterId) {
+  public ShelterNotFoundException() {
     super(SHELTER_NOT_FOUND);
-    this.shelterId = shelterId;
   }
 }
