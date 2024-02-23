@@ -20,6 +20,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
   @Modifying
   @Query("DELETE FROM Bookmark WHERE adoption = :adoption")
-  void deleteByAdoptionId(@Param("adoption") Adoption adoption);
+  void deleteByAdoption(@Param("adoption") Adoption adoption);
 
 }

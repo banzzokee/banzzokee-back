@@ -193,7 +193,7 @@ public class AdoptionService {
     adoptionDocument.delete(adoption);
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
-    bookmarkRepository.deleteByAdoptionId(savedAdoption);
+    bookmarkRepository.deleteByAdoption(savedAdoption);
     eventPublisher.publishEvent(EntityEvent.of(adoption.getId(), ADOPTION_DELETED));
 
     // TODO: consumer에서 처리
