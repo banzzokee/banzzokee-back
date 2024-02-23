@@ -51,11 +51,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (token != null) {
         getAuthenticate(token);
       } else {
+        request.setAttribute("exception", NO_AUTHORIZED);
         if (request.getRequestURI().contains("/MyPage") ||
             request.getRequestURI().contains("/favicon.ico")) {
           return;
-        } else {
-          request.setAttribute("exception", NO_AUTHORIZED);
         }
       }
     } catch (ExpiredJwtException e) {
