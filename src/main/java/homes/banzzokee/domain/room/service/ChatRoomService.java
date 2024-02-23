@@ -120,10 +120,11 @@ public class ChatRoomService {
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(UserNotFoundException::new);
 
-    ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+    ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
         .orElseThrow(RoomNotFoundException::new);
 
     if (!chatRoom.isParticipatedUser(user)) {
+      log.error("[exitChatRoom] 권한이 없는 유저");
       throw new NoAuthorizedException();
     }
 
