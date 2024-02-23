@@ -66,7 +66,7 @@ public class JwtTokenProvider {
       if (token.equals(redisService.getRefreshToken(getUserEmailFromToken(token)))) {
         throw new AccessTokenRequiredException();
       }
-      if (redisService.getBlackListToken(token).equals("blacklisted")) {
+      if ("blacklisted".equals(redisService.getBlackListToken(token))) {
         throw new AccessTokenBlackListedException();
       }
       Jwts.parserBuilder().setSigningKey(getSecretKey()).build().parseClaimsJws(token);
