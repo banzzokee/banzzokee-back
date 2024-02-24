@@ -3,7 +3,8 @@ package homes.banzzokee.global.error;
 import static homes.banzzokee.global.error.ErrorCode.HTTP_MESSAGE_NOT_READABLE;
 import static homes.banzzokee.global.error.ErrorCode.INTERNAL_ERROR;
 import static homes.banzzokee.global.error.ErrorCode.JSON_EOF_ERROR;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.fasterxml.jackson.core.io.JsonEOFException;
 import homes.banzzokee.global.config.stomp.exception.SocketException;
@@ -27,7 +28,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<ErrorResponse> handleCustomException(CustomException e,
-                                                             HttpServletRequest request) {
+      HttpServletRequest request) {
     log.error("[CustomException] {} is occurred. uri:{}", e.getErrorCode(),
         request.getRequestURI());
 
@@ -40,9 +41,10 @@ public class GlobalExceptionHandler {
 
   @MessageExceptionHandler  // 메세지 전송 에러 핸들러
   @SendToUser(destinations = "/topic/error", broadcast = false) // 특정 유저에게 메세지 전송 ->
-  // "/user/queue/error" 구독한 유저
+  // "/user/topic/error" 구독한 유저
   public ResponseEntity<ErrorResponse> handleMessageException(
       SocketException e) {
+    log.error("[MessageException] {} is occurred", e.getErrorCode());
 
     return ResponseEntity
         .status(e.getErrorCode().getHttpStatus())

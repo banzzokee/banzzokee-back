@@ -352,7 +352,7 @@ class ChatRoomServiceTest {
         .shelter(shelter)
         .build();
 
-    given(chatRoomRepository.findById(eq(1L)))
+    given(chatRoomRepository.findByIdAndDeletedAtIsNull(eq(1L)))
         .willReturn(Optional.of(chatRoom));
 
     given(chatMessageRepository.save(any(ChatMessage.class)))
@@ -374,21 +374,21 @@ class ChatRoomServiceTest {
   @DisplayName("[채팅방 나가기 실패] - 본인이 속한방이 아님")
   void exitChatRoom_when_notIncludeChatRoom_then_throwNoAuthorizedException() {
     //given
-    User otherUser = mock(User.class);
+    User user = mock(User.class);
     User shelterUser = mock(User.class);
     Shelter shelter = mock(Shelter.class);
 
     given(shelter.getUser()).willReturn(shelterUser);
 
     given(userRepository.findByEmailAndDeletedAtNull(eq("otherUserEmail")))
-        .willReturn(Optional.of(otherUser));
+        .willReturn(Optional.of(User.builder().build()));
 
     ChatRoom chatRoom = ChatRoom.builder()
-        .user(GENERAL_USER)
+        .user(user)
         .shelter(shelter)
         .build();
 
-    given(chatRoomRepository.findById(eq(1L)))
+    given(chatRoomRepository.findByIdAndDeletedAtIsNull(eq(1L)))
         .willReturn(Optional.of(chatRoom));
 
     //when

@@ -47,6 +47,8 @@ public class ChatMessageService {
   @Transactional
   public MessageDto sendMessage(String email, Long roomId, ChatSendDto message) {
 
+    log.info("[sendMessage] 채팅 메세지 전송 유저 : {}, 채팅방 : {}", email, roomId);
+
     User user = userRepository.findByEmailAndDeletedAtNull(email)
         .orElseThrow(SocketUserNotFoundException::new);
 
@@ -80,6 +82,8 @@ public class ChatMessageService {
    */
   @Transactional(readOnly = true)
   public Slice<MessageDto> getChatList(Long roomId, Pageable pageable) {
+
+    log.info("[getChatList] 채팅방 채팅 목록 조회 - 채팅방 : {}", roomId);
 
     ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
         .orElseThrow(() -> new SocketException(ROOM_NOT_FOUND));

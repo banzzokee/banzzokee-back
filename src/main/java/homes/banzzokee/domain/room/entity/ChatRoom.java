@@ -101,4 +101,8 @@ public class ChatRoom {
             && this.shelter.getUser() != null
             && Objects.equals(this.shelter.getUser().getId(), user.getId()));
   }
+
+  public void deleteChatRoom() {
+    this.deletedAt = LocalDateTime.now();
+  }
 }

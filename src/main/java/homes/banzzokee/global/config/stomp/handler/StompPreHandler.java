@@ -5,7 +5,14 @@ import static org.springframework.messaging.simp.stomp.StompCommand.DISCONNECT;
 import static org.springframework.messaging.simp.stomp.StompCommand.SUBSCRIBE;
 import static org.springframework.messaging.simp.stomp.StompCommand.UNSUBSCRIBE;
 
+import homes.banzzokee.domain.room.dao.ChatRoomRepository;
+import homes.banzzokee.domain.room.entity.ChatRoom;
+import homes.banzzokee.domain.room.exception.SocketRoomNotFoundException;
+import homes.banzzokee.domain.room.exception.SocketUserNotFoundException;
+import homes.banzzokee.domain.user.dao.UserRepository;
+import homes.banzzokee.domain.user.entity.User;
 import homes.banzzokee.global.config.stomp.exception.SocketAccessTokenExpiredException;
+import homes.banzzokee.global.config.stomp.exception.SocketNoAuthorizedException;
 import homes.banzzokee.global.config.stomp.exception.SocketTokenInvalidException;
 import homes.banzzokee.global.config.stomp.exception.SocketTokenRequiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
@@ -24,6 +31,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,12 +43,17 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class StompPreHandler implements ChannelInterceptor {
 
+  private final UserRepository userRepository;
+  private final ChatRoomRepository chatRoomRepository;
+
+  private static final String CHAT_ERROR_CHANNEL = "/user/topic/error";
   private static final String BEARER = "Bearer ";
   private static final int TOKEN_SPLIT_DEFAULT_VALUE = BEARER.length();
 
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override
+  @Transactional(readOnly = true)
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor headerAccessor =
         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
@@ -80,7 +93,6 @@ public class StompPreHandler implements ChannelInterceptor {
         throw new SocketTokenInvalidException();
       }
     } else if (DISCONNECT.equals(headerAccessor.getCommand())) {
-      // TODO: DISCONNECT 두번 처리 되는 증상이 확인 됨
       log.info("[preSend] stomp disconnect. user: {}, sessionId : {}",
           Objects.requireNonNull(headerAccessor.getUser()).getName(),
           headerAccessor.getSessionId());
@@ -89,6 +101,28 @@ public class StompPreHandler implements ChannelInterceptor {
           headerAccessor.getDestination(),
           Objects.requireNonNull(headerAccessor.getUser()).getName(),
           headerAccessor.getSessionId());
+
+      if (!Objects.equals(headerAccessor.getDestination(), CHAT_ERROR_CHANNEL)) {
+        Long roomId = getRoomIdFromDestination(
+            Objects.requireNonNull(headerAccessor.getDestination()));
+        String email = headerAccessor.getUser().getName();
+
+        User user = userRepository.findByEmailAndDeletedAtNull(email)
+            .orElseThrow(SocketUserNotFoundException::new);
+        ChatRoom chatRoom = chatRoomRepository.findByIdAndDeletedAtIsNull(roomId)
+            .orElseThrow(SocketRoomNotFoundException::new);
+
+        if (!chatRoom.isParticipatedUser(user)) {
+          log.error("[preSend] failed subscribe. no participant");
+          throw new SocketNoAuthorizedException();
+        }
+      }
+
+      log.info("[preSend] success subscribe. destination: {}, user: {}, sessionId : {}",
+          headerAccessor.getDestination(),
+          Objects.requireNonNull(headerAccessor.getUser()).getName(),
+          headerAccessor.getSessionId());
+
     } else if (UNSUBSCRIBE.equals(headerAccessor.getCommand())) {
       log.info("[preSend] stomp unsubscribe. destination: {}, user: {}, sessionId : {}",
           headerAccessor.getDestination(),
@@ -104,5 +138,9 @@ public class StompPreHandler implements ChannelInterceptor {
       return bearerToken.substring(TOKEN_SPLIT_DEFAULT_VALUE);
     }
     return null;
+  }
+
+  private Long getRoomIdFromDestination(String destination) {
+    return Long.parseLong(destination.substring(destination.lastIndexOf(".") + 1));
   }
 }
