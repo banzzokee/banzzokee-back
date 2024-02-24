@@ -2,6 +2,8 @@ package homes.banzzokee.domain.auth.controller;
 
 import homes.banzzokee.domain.auth.dto.*;
 import homes.banzzokee.domain.auth.service.AuthService;
+import homes.banzzokee.global.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final AuthService authService;
+  private final JwtTokenProvider jwtTokenProvider;
 
   @PostMapping("/sign-up")
   public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest signupRequest) {
@@ -45,14 +48,13 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
-    authService.logout(token);
+  public ResponseEntity<Void> logout(HttpServletRequest request) {
+    authService.logout(request.getHeader("Authorization"));
     return ResponseEntity.ok().build();
   }
 
   @PostMapping("/token/reissue")
-  public ResponseEntity<TokenResponse> reissueAccessToken(@RequestHeader("Authorization")
-                                                            String refreshToken) {
-    return ResponseEntity.ok(authService.reissueAccessToken(refreshToken));
+  public ResponseEntity<TokenResponse> reissueAccessToken(HttpServletRequest request) {
+    return ResponseEntity.ok(authService.reissueAccessToken(request.getHeader("Authorization")));
   }
 }
