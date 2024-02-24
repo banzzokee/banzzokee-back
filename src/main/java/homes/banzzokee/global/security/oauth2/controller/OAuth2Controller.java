@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class OAuth2Controller {
 
   private final Oauth2Service oauth2Service;
-  private final JwtTokenProvider jwtTokenProvider;
 
   @PostMapping("/sign-up")
   public ResponseEntity<TokenResponse> signup(@RequestHeader("Authorization") String token,
