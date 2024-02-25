@@ -46,7 +46,7 @@ public class SecurityConfig {
 
         .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/error").permitAll()
-            .requestMatchers("/oauth2/**").permitAll()
+            .requestMatchers("/api/oauth2/**").permitAll()
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/users/**").hasAnyRole("USER")
             .requestMatchers("/api/shelters/{shelterId}/verify").hasAnyRole("ADMIN")
