@@ -18,6 +18,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+  public static final String SUCCESS_URI = "/MyPage";
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisService redisService;
 
@@ -31,10 +32,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     String refreshToken = jwtTokenProvider.createRefreshToken(oauth2User.getUsername());
     redisService.setRefreshToken(
         oauth2User.getUsername(), refreshToken, jwtTokenProvider.getRefreshTokenExpire());
-
-    request.getSession().setAttribute("accessToken", accessToken);
-    request.getSession().setAttribute("refreshToken", refreshToken);
-    request.getSession().setAttribute("isFirstLogin", oauth2User.isFirstLogin());
-    getRedirectStrategy().sendRedirect(request, response, "/api/oauth2/success");
+    String redirectUrl;
+    redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken +
+        "&isFirstLogin=" + oauth2User.isFirstLogin();
+    getRedirectStrategy().sendRedirect(request, response, redirectUrl);
   }
 }
