@@ -67,7 +67,7 @@ public class AdoptionSearchQueryRepository {
           .build();
     }
 
-    if (request.getBreed() != null) {
+    if (request.getBreed() != null && !request.getBreed().isEmpty()) {
       List<FieldValue> fieldValues = request.getBreed().stream()
           .map(breedType -> FieldValue.of(breedType.toString()))
           .toList();
