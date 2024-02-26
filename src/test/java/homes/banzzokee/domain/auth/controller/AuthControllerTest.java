@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import homes.banzzokee.domain.auth.dto.*;
 import homes.banzzokee.domain.auth.service.AuthService;
 import homes.banzzokee.global.security.jwt.JwtAuthenticationFilter;
+import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,9 @@ class AuthControllerTest {
 
   @MockBean
   private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+  @MockBean
+  private JwtTokenProvider jwtTokenProvider;
 
   @Test
   @DisplayName("[이메일 전송] - 성공 검증")

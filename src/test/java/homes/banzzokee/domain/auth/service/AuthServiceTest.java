@@ -5,7 +5,9 @@ import homes.banzzokee.domain.auth.exception.*;
 import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.type.Role;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.global.security.exception.AccessTokenRequiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
+import homes.banzzokee.global.security.exception.TokenRequiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
 import homes.banzzokee.domain.user.dao.UserRepository;
@@ -304,7 +306,6 @@ class AuthServiceTest {
 
     // when
     given(jwtTokenProvider.removeBearerFromToken(token)).willReturn(cleanedToken);
-    doNothing().when(jwtTokenProvider).validateToken(cleanedToken);
     doNothing().when(redisService).addToBlacklist(cleanedToken);
     given(jwtTokenProvider.getUserEmailFromToken(cleanedToken)).willReturn(email);
     doNothing().when(redisService).deleteRefreshToken(email);
@@ -313,11 +314,37 @@ class AuthServiceTest {
     authService.logout(token);
 
     verify(jwtTokenProvider).removeBearerFromToken("testToken");
-    verify(jwtTokenProvider).validateToken("cleanedTestToken");
     verify(redisService).addToBlacklist("cleanedTestToken");
     verify(jwtTokenProvider).getUserEmailFromToken("cleanedTestToken");
     verify(redisService).deleteRefreshToken("testEmail");
   }
+
+  @Test
+  @DisplayName("[로그아웃] - 토큰 없이 요청한 경우 TokenRequiredException 발생")
+  public void logout_when_verify_then_TokenRequiredException() {
+    // given
+    String token = null;
+
+    // when & then
+    assertThrows(TokenRequiredException.class, () -> authService.logout(token));
+  }
+
+  @Test
+  @DisplayName("[로그아웃] - 리프레시 토큰으로 요청한 경우 AccessTokenRequiredException 발생")
+  public void logout_when_verify_then_AccessTokenRequiredException() {
+    // given
+    String token = "Bearer testToken";
+    String email = "testEmail";
+    String cleanedToken = "cleanedTestToken";
+
+    given(jwtTokenProvider.removeBearerFromToken(token)).willReturn(cleanedToken);
+    given(jwtTokenProvider.getUserEmailFromToken(cleanedToken)).willReturn(email);
+    given(redisService.getRefreshToken(email)).willReturn(cleanedToken);
+
+    // when & then
+    assertThrows(AccessTokenRequiredException.class, () -> authService.logout(token));
+  }
+
 
   @Test
   @DisplayName("[토큰 재발급] - 성공 검증")
@@ -338,6 +365,16 @@ class AuthServiceTest {
     // then
     assertEquals(result.getAccessToken(), accessToken);
     assertEquals(result.getRefreshToken(), refreshToken);
+  }
+
+  @Test
+  @DisplayName("[토큰 재발급] - 토큰 없이 요청한 경우 TokenRequiredException 발생")
+  void tokenReissue_when_verify_then_TokenRequiredException() {
+    // given
+    String token = null;
+
+    // when & then
+    assertThrows(TokenRequiredException.class, () -> authService.reissueAccessToken(token));
   }
 
   @Test
