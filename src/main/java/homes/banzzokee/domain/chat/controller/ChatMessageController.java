@@ -43,7 +43,7 @@ public class ChatMessageController {
 
     return chatMessageService.getChatList(
         roomId,
-        PageRequest.of(page, size, Sort.by(Direction.ASC, "createdAt"))
+        PageRequest.of(page, size, Sort.by(Direction.DESC, "createdAt"))
     );
 
   }
