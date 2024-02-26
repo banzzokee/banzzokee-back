@@ -104,10 +104,14 @@ public class AdoptionSearchQueryRepository {
     }
 
     if (request.getAgeRange() != null) {
-      JsonData minAge = JsonData.of(request.getAgeRange().getMinAge());
-      JsonData maxAge = JsonData.of(request.getAgeRange().getMaxAge());
+      int minAge = request.getAgeRange().getMinAge() == null ? 0
+          : request.getAgeRange().getMinAge();
+      int maxAge = request.getAgeRange().getMaxAge() == null ? 100
+          : request.getAgeRange().getMaxAge();
+      JsonData jsonMinAge = JsonData.of(minAge);
+      JsonData jsonMaxAge = JsonData.of(maxAge);
       Query ageRangeQuery = RangeQuery.of(
-              r -> r.field("age").lte(maxAge).gte(minAge))
+              r -> r.field("age").lte(jsonMaxAge).gte(jsonMinAge))
           ._toQuery();
       boolQueryBuilder.must(ageRangeQuery);
     }

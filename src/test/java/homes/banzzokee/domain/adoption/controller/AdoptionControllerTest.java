@@ -49,8 +49,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -129,7 +127,7 @@ class AdoptionControllerTest {
             "size": "MEDIUM",
             "neutering": false,
             "gender": "MALE",
-            "age": 5,
+            "age": 5,경
             "healthChecked": true,
             "registeredAt": "2024-01-01"
         }""";
@@ -591,10 +589,9 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request의 필드가 null인 경우 성공 테스트")
+  @DisplayName("분양 게시글 검색 - 검색 파라미터 전부 null인 경우 성공 테스트")
   void getAdoptionList_shouldSuccess_whenAllFieldIsNullInRequest() throws Exception {
     //given
-    AdoptionSearchRequest request = AdoptionSearchRequest.builder().build();
     List<AdoptionSearchResponse> responses = List.of(
         AdoptionSearchResponse.builder().adoptionId(1L).build());
     SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
@@ -608,7 +605,6 @@ class AdoptionControllerTest {
             .param("size", Integer.toString(10))
             .param("direction", "desc")
             .param("userId", "1")
-            .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
@@ -616,25 +612,21 @@ class AdoptionControllerTest {
   }
 
   @Test
-  @DisplayName("분양 게시글 검색 - request와 userId가 null인 경우 성공 테스트")
+  @DisplayName("분양 게시글 검색 - 검색 파라미터와 userId가 null인 경우 성공 테스트")
   void getAdoptionList_shouldSuccess_whenRequestIsNull() throws Exception {
     //given
-    AdoptionSearchRequest request = null;
-    PageRequest pageRequest = PageRequest.of(0, 10,
-        Sort.by(Direction.fromString("desc"), "createdAt"));
     List<AdoptionSearchResponse> responses = List.of(
         AdoptionSearchResponse.builder().adoptionId(1L).build());
     SliceImpl<AdoptionSearchResponse> searchResponses = new SliceImpl<>(
         responses);
 
-    given(adoptionService.getAdoptionList(request, pageRequest, null)).willReturn(
-        searchResponses);
+    given(adoptionService.getAdoptionList(any(AdoptionSearchRequest.class),
+            any(PageRequest.class), any())).willReturn(searchResponses);
     //when & then
     mockMvc.perform(get("/api/adoptions")
             .param("page", Integer.toString(0))
             .param("size", Integer.toString(10))
             .param("direction", "desc")
-            .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
