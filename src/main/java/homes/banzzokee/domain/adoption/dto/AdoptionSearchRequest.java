@@ -33,9 +33,24 @@ public class AdoptionSearchRequest {
   @Getter
   @AllArgsConstructor
   public static class AgeRange {
-    @Min(0) @Max(100)
-    private final int minAge;
-    @Min(0) @Max(100)
-    private final int maxAge;
+
+    @Min(0)
+    @Max(100)
+    private final Integer minAge;
+    @Min(0)
+    @Max(100)
+    private final Integer maxAge;
+  }
+
+  public static AdoptionSearchRequest of(List<BreedType> breed, DogSize size,
+      Boolean neutering, Boolean healthChecked, DogGender gender, AgeRange ageRange) {
+    return AdoptionSearchRequest.builder()
+        .breed(breed)
+        .size(size)
+        .neutering(neutering)
+        .healthChecked(healthChecked)
+        .gender(gender)
+        .ageRange(ageRange)
+        .build();
   }
 }
