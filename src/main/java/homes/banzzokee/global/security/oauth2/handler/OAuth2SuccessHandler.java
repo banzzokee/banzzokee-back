@@ -35,6 +35,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     String redirectUrl;
     redirectUrl = SUCCESS_URI + "?accessToken=" + accessToken +
         "&isFirstLogin=" + oauth2User.isFirstLogin();
-    getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+    getRedirectStrategy().sendRedirect(request, response, "http://localhost:5178" + redirectUrl);
   }
 }
