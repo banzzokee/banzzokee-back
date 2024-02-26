@@ -18,7 +18,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  public static final String SUCCESS_URI = "/MyPage";
+  public static final String SUCCESS_URI = "/LoginCallback";
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisService redisService;
 
