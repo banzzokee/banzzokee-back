@@ -26,6 +26,10 @@ public class ShelterDto {
 
   private final LocalDate registeredAt;
 
+  private final Double latitude;
+
+  private final Double longitude;
+
   public static ShelterDto fromEntity(Shelter shelter) {
     return ShelterDto.builder()
         .shelterId(shelter.getId())
@@ -35,6 +39,8 @@ public class ShelterDto {
         .tel(shelter.getTel())
         .address(shelter.getAddress())
         .registeredAt(shelter.getCreatedAt().toLocalDate())
+        .latitude(shelter.getLatitude())
+        .longitude(shelter.getLongitude())
         .build();
   }
 }

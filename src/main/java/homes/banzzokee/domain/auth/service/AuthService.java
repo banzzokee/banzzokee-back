@@ -17,11 +17,14 @@ import homes.banzzokee.domain.auth.exception.PasswordUnmatchedException;
 import homes.banzzokee.domain.type.LoginType;
 import homes.banzzokee.domain.user.dao.UserRepository;
 import homes.banzzokee.domain.user.entity.User;
+import homes.banzzokee.global.security.exception.AccessTokenRequiredException;
 import homes.banzzokee.global.security.exception.RefreshTokenExpiredException;
+import homes.banzzokee.global.security.exception.TokenRequiredException;
 import homes.banzzokee.global.security.jwt.JwtTokenProvider;
 import homes.banzzokee.global.util.redis.RedisService;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -122,14 +125,21 @@ public class AuthService {
   }
 
   public void logout(String token) {
+    Optional.ofNullable(token).filter(t -> !t.isBlank())
+        .orElseThrow(TokenRequiredException::new);
     String cleanedToken = jwtTokenProvider.removeBearerFromToken(token);
+    String email = jwtTokenProvider.getUserEmailFromToken(cleanedToken);
+    if (cleanedToken.equals(redisService.getRefreshToken(email))) {
+      throw new AccessTokenRequiredException();
+    }
     redisService.addToBlacklist(cleanedToken);
-    jwtTokenProvider.validateToken(cleanedToken);
-    redisService.deleteRefreshToken(jwtTokenProvider.getUserEmailFromToken(cleanedToken));
+    redisService.deleteRefreshToken(email);
   }
 
-  public TokenResponse reissueAccessToken(String refreshToken) {
-    String removeBearerFromToken = jwtTokenProvider.removeBearerFromToken(refreshToken);
+  public TokenResponse reissueAccessToken(String token) {
+    Optional.ofNullable(token).filter(t -> !t.isBlank())
+        .orElseThrow(TokenRequiredException::new);
+    String removeBearerFromToken = jwtTokenProvider.removeBearerFromToken(token);
     String email = jwtTokenProvider.getUserEmailFromToken(removeBearerFromToken);
     if (!redisService.isRefreshTokenExist(email, removeBearerFromToken)) {
       throw new RefreshTokenExpiredException();

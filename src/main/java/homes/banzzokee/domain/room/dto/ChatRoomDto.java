@@ -53,11 +53,16 @@ public class ChatRoomDto {
   public static ChatRoomDto fromEntity(
       ChatRoom chatRoom) {
 
+    ChatShelterDto joinShelter = chatRoom.getShelter() == null ?
+        null : ChatShelterDto.fromEntity(chatRoom.getShelter());
+    ChatUserDto joinUser = chatRoom.getUser() == null ?
+        null : ChatUserDto.fromEntity(chatRoom.getUser());
+
     return ChatRoomDto.builder()
         .roomId(chatRoom.getId())
         .adoption(ChatAdoptionDto.fromEntity(chatRoom.getAdoption()))
-        .shelter(ChatShelterDto.fromEntity(chatRoom.getShelter()))
-        .user(ChatUserDto.fromEntity(chatRoom.getUser()))
+        .shelter(joinShelter)
+        .user(joinUser)
         .lastMessage(chatRoom.getLastMessage())
         .lastMessageType(chatRoom.getLastMessageType())
         .lastMessageCreatedAt(chatRoom.getLastMessageCreatedAt())
