@@ -127,7 +127,7 @@ class AdoptionControllerTest {
             "size": "MEDIUM",
             "neutering": false,
             "gender": "MALE",
-            "age": 5,경
+            "age": 5,
             "healthChecked": true,
             "registeredAt": "2024-01-01"
         }""";
