@@ -32,7 +32,6 @@ import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepo
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
-import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
@@ -166,38 +165,37 @@ class AdoptionServiceTest {
     // TODO: id 검증을 못함
 //    assertEquals(adoption.getId(), event.getPayload().getId());
 
-    ArgumentCaptor<AdoptionDocument> adoptionDocumentCaptor = ArgumentCaptor.forClass(
-        AdoptionDocument.class);
-    verify(adoptionSearchRepository).save(adoptionDocumentCaptor.capture());
+    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(
+        Adoption.class);
+    verify(adoptionRepository).save(adoptionCaptor.capture());
 
-    // ES 저장되는 AdoptionDocument 객체 검증
-    assertEquals(1L, adoptionDocumentCaptor.getValue().getUserId());
-    assertEquals("행복해", adoptionDocumentCaptor.getValue().getUserNickname());
+    assertEquals(1L, adoptionCaptor.getValue().getUser().getId());
+    assertEquals("행복해", adoptionCaptor.getValue().getUser().getNickname());
     assertEquals(registerRequest.getTitle(),
-        adoptionDocumentCaptor.getValue().getTitle());
+        adoptionCaptor.getValue().getTitle());
     assertEquals(registerRequest.getContent(),
-        adoptionDocumentCaptor.getValue().getContent());
+        adoptionCaptor.getValue().getContent());
     assertEquals(registerRequest.getBreed(),
-        adoptionDocumentCaptor.getValue().getBreed());
-    assertEquals(registerRequest.getSize(), adoptionDocumentCaptor.getValue().getSize());
+        adoptionCaptor.getValue().getBreed());
+    assertEquals(registerRequest.getSize(), adoptionCaptor.getValue().getSize());
     assertEquals(registerRequest.isNeutering(),
-        adoptionDocumentCaptor.getValue().isNeutering());
+        adoptionCaptor.getValue().isNeutering());
     assertEquals(registerRequest.getGender(),
-        adoptionDocumentCaptor.getValue().getGender());
-    assertEquals(registerRequest.getAge(), adoptionDocumentCaptor.getValue().getAge());
+        adoptionCaptor.getValue().getGender());
+    assertEquals(registerRequest.getAge(), adoptionCaptor.getValue().getAge());
     assertEquals(registerRequest.isHealthChecked(),
-        adoptionDocumentCaptor.getValue().isHealthChecked());
+        adoptionCaptor.getValue().isHealthChecked());
     assertEquals(fileDtoList.size(),
-        adoptionDocumentCaptor.getValue().getImages().size());
+        adoptionCaptor.getValue().getImages().size());
     assertEquals(fileDtoList.get(0).getUrl(),
-        adoptionDocumentCaptor.getValue().getImages().get(0).getUrl());
+        adoptionCaptor.getValue().getImages().get(0).getUrl());
     assertEquals(fileDtoList.get(1).getUrl(),
-        adoptionDocumentCaptor.getValue().getImages().get(1).getUrl());
+        adoptionCaptor.getValue().getImages().get(1).getUrl());
     assertEquals(fileDtoList.get(2).getUrl(),
-        adoptionDocumentCaptor.getValue().getImages().get(2).getUrl());
+        adoptionCaptor.getValue().getImages().get(2).getUrl());
     assertEquals(fileDtoList.get(3).getUrl(),
-        adoptionDocumentCaptor.getValue().getImages().get(3).getUrl());
-    assertEquals(ADOPTING, adoptionDocumentCaptor.getValue().getStatus());
+        adoptionCaptor.getValue().getImages().get(3).getUrl());
+    assertEquals(ADOPTING, adoptionCaptor.getValue().getStatus());
   }
 
   @Test
@@ -399,7 +397,7 @@ class AdoptionServiceTest {
         .status(RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
+
     List<FileDto> uploadedImages = createFileDtoList(4);
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
@@ -407,47 +405,33 @@ class AdoptionServiceTest {
         .willReturn(uploadedImages);
     given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
     given(adoption.getId()).willReturn(1L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
 
     //when
     adoptionService.updateAdoption(1L, updateRequest, images, 1L);
     //then
-    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor = ArgumentCaptor.forClass(
-        AdoptionDocument.class);
+    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(
+        Adoption.class);
     ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
 
-    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
+    verify(adoptionRepository).save(adoptionCaptor.capture());
     verify(fileUploadService, times(2)).deleteFile(stringCaptor.capture());
 
-    assertEquals(updateRequest.getTitle(),
-        adoptionDocumentArgumentCaptor.getValue().getTitle());
-    assertEquals(updateRequest.getContent(),
-        adoptionDocumentArgumentCaptor.getValue().getContent());
-    assertEquals(updateRequest.getBreed(),
-        adoptionDocumentArgumentCaptor.getValue().getBreed());
-    assertEquals(updateRequest.getSize(),
-        adoptionDocumentArgumentCaptor.getValue().getSize());
-    assertEquals(updateRequest.isNeutering(),
-        adoptionDocumentArgumentCaptor.getValue().isNeutering());
-    assertEquals(updateRequest.getGender(),
-        adoptionDocumentArgumentCaptor.getValue().getGender());
-    assertEquals(updateRequest.getAge(),
-        adoptionDocumentArgumentCaptor.getValue().getAge());
-    assertEquals(updateRequest.isHealthChecked(),
-        adoptionDocumentArgumentCaptor.getValue().isHealthChecked());
+    Adoption captorValue = adoptionCaptor.getValue();
+    assertEquals(updateRequest.getTitle(), captorValue.getTitle());
+    assertEquals(updateRequest.getContent(), captorValue.getContent());
+    assertEquals(updateRequest.getBreed(), captorValue.getBreed());
+    assertEquals(updateRequest.getSize(), captorValue.getSize());
+    assertEquals(updateRequest.isNeutering(), captorValue.isNeutering());
+    assertEquals(updateRequest.getGender(), captorValue.getGender());
+    assertEquals(updateRequest.getAge(), captorValue.getAge());
+    assertEquals(updateRequest.isHealthChecked(), captorValue.isHealthChecked());
     assertEquals(LocalDate.parse(updateRequest.getRegisteredAt()),
-        adoptionDocumentArgumentCaptor.getValue().getRegisteredAt());
-    assertEquals(uploadedImages.size(),
-        adoptionDocumentArgumentCaptor.getValue().getImages().size());
-    assertEquals(uploadedImages.get(0).getUrl(),
-        adoptionDocumentArgumentCaptor.getValue().getImages().get(0).getUrl());
-    assertEquals(uploadedImages.get(1).getUrl(),
-        adoptionDocumentArgumentCaptor.getValue().getImages().get(1).getUrl());
-    assertEquals(uploadedImages.get(2).getUrl(),
-        adoptionDocumentArgumentCaptor.getValue().getImages().get(2).getUrl());
-    assertEquals(uploadedImages.get(3).getUrl(),
-        adoptionDocumentArgumentCaptor.getValue().getImages().get(3).getUrl());
+        captorValue.getRegisteredAt());
+    assertEquals(uploadedImages.size(), captorValue.getImages().size());
+    assertEquals(uploadedImages.get(0).getUrl(), captorValue.getImages().get(0).getUrl());
+    assertEquals(uploadedImages.get(1).getUrl(), captorValue.getImages().get(1).getUrl());
+    assertEquals(uploadedImages.get(2).getUrl(), captorValue.getImages().get(2).getUrl());
+    assertEquals(uploadedImages.get(3).getUrl(), captorValue.getImages().get(3).getUrl());
 
     assertEquals("url1", stringCaptor.getAllValues().get(0));
     assertEquals("url2", stringCaptor.getAllValues().get(1));
@@ -595,39 +579,6 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 수정 - ES에 저장된 adoptionDcoument가 없을 경우")
-  void updateAdoption_shouldThrowAdoptionDocumentNotFoundException_whenAdoptionDocumentIsNotExist() {
-    //given
-    Shelter shelter = Shelter.builder()
-        .verified(true)
-        .user(mock(User.class))
-        .build();
-    User user = spy(User.builder()
-        .shelter(shelter)
-        .build());
-    Adoption adoption = spy(Adoption.builder()
-        .user(user)
-        .status(RESERVING)
-        .images(List.of(new S3Object("url1"), new S3Object("url2")))
-        .build());
-
-    List<FileDto> uploadedImages = createFileDtoList(4);
-    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
-    given(user.getId()).willReturn(1L);
-    given(fileUploadService.uploadManyFile(anyList(), any(FilePath.class)))
-        .willReturn(uploadedImages);
-    given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(adoption.getId()).willReturn(1L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.empty());
-
-    //when & then
-    assertThrows(AdoptionDocumentNotFoundException.class,
-        () -> adoptionService.updateAdoption(1L, updateRequest, images, 1L));
-
-  }
-
-  @Test
   @DisplayName("분양게시글 상태 분양완료로 변경 성공 테스트")
   void changeAdoptionStatus_success_whenToChangeFinished() {
     //given
@@ -648,14 +599,11 @@ class AdoptionServiceTest {
         .status(AdoptionStatus.RESERVING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
     given(userRepository.findById(anyLong())).willReturn(Optional.of(assignedUser));
     given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
     given(adoption.getId()).willReturn(2L);
     given(assignedUser.getId()).willReturn(5L);
 
@@ -663,16 +611,11 @@ class AdoptionServiceTest {
     adoptionService.changeAdoptionStatus(2L, request, 1L);
 
     //then
-    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
-        ArgumentCaptor.forClass(AdoptionDocument.class);
-    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
-
-    assertEquals(request.getStatus(),
-        adoptionDocumentArgumentCaptor.getValue().getStatus());
-    assertNotNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
-    assertEquals(5L,
-        adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
-
+    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(Adoption.class);
+    verify(adoptionRepository).save(adoptionCaptor.capture());
+    assertEquals(request.getStatus(), adoptionCaptor.getValue().getStatus());
+    assertEquals(request.getAssignedUserId(),
+        adoptionCaptor.getValue().getAssignedUser().getId());
 
     ArgumentCaptor<EntityEvent> eventCaptor = ArgumentCaptor.forClass(EntityEvent.class);
     verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -703,26 +646,23 @@ class AdoptionServiceTest {
         .status(ADOPTING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(1L);
     given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
     given(adoption.getId()).willReturn(2L);
+
     //when
     adoptionService.changeAdoptionStatus(2L, request, 1L);
 
     //then
-    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
-        ArgumentCaptor.forClass(AdoptionDocument.class);
-    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
+    ArgumentCaptor<Adoption> adoptionCaptor = ArgumentCaptor.forClass(Adoption.class);
+    verify(adoptionRepository).save(adoptionCaptor.capture());
 
     assertEquals(request.getStatus(),
-        adoptionDocumentArgumentCaptor.getValue().getStatus());
-    assertNull(adoptionDocumentArgumentCaptor.getValue().getAdoptedAt());
-    assertNull(adoptionDocumentArgumentCaptor.getValue().getAssignedUserId());
+        adoptionCaptor.getValue().getStatus());
+    assertNull(adoptionCaptor.getValue().getAdoptedAt());
+    assertNull(adoptionCaptor.getValue().getAssignedUser());
   }
 
   @Test
@@ -936,38 +876,6 @@ class AdoptionServiceTest {
   }
 
   @Test
-  @DisplayName("분양게시글 상태 변경 - AdoptionDocument가 존재하지 않을 경우")
-  void changeAdoptionStatus_throwAdoptionIsNotFound_whenAdoptionIsNotExist() {
-    //given
-    AdoptionStatusChangeRequest request = AdoptionStatusChangeRequest.builder()
-        .status(RESERVING)
-        .build();
-    Shelter shelter = Shelter.builder()
-        .verified(true)
-        .user(mock(User.class))
-        .build();
-    User user = spy(User.builder()
-        .shelter(shelter)
-        .build());
-    Adoption adoption = spy(Adoption.builder()
-        .user(user)
-        .status(ADOPTING)
-        .images(List.of(new S3Object("url1"), new S3Object("url2")))
-        .build());
-
-    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
-    given(user.getId()).willReturn(1L);
-    given(adoptionRepository.save(any(Adoption.class))).will(returnsFirstArg());
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.empty());
-    given(adoption.getId()).willReturn(2L);
-
-    //when & then
-    assertThrows(AdoptionDocumentNotFoundException.class,
-        () -> adoptionService.changeAdoptionStatus(1L, request, 1L));
-  }
-
-  @Test
   @DisplayName("분양게시글 삭제 성공 테스트")
   void deleteAdoption_success() {
     //given
@@ -977,28 +885,19 @@ class AdoptionServiceTest {
         .status(ADOPTING)
         .images(List.of(new S3Object("url1"), new S3Object("url2")))
         .build());
-    AdoptionDocument adoptionDocument = AdoptionDocument.builder().build();
 
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
     given(user.getId()).willReturn(3L);
     given(adoption.getId()).willReturn(2L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(
-        Optional.of(adoptionDocument));
 
     //when
     adoptionService.deleteAdoption(1L, 3L);
+
     //then
     ArgumentCaptor<Adoption> adoptionArgumentCaptor = ArgumentCaptor.forClass(
         Adoption.class);
-    ArgumentCaptor<AdoptionDocument> adoptionDocumentArgumentCaptor =
-        ArgumentCaptor.forClass(AdoptionDocument.class);
-
     verify(adoptionRepository).save(adoptionArgumentCaptor.capture());
-    verify(adoptionSearchRepository).save(adoptionDocumentArgumentCaptor.capture());
-
     assertNotNull(adoptionArgumentCaptor.getValue().getDeletedAt());
-    assertNotNull(adoptionDocumentArgumentCaptor.getValue().getDeletedAt());
-
   }
 
   @Test
@@ -1059,26 +958,6 @@ class AdoptionServiceTest {
     //when & then
     assertThrows(NoAuthorizedException.class,
         () -> adoptionService.deleteAdoption(1L, 2L));
-  }
-
-  @Test
-  @DisplayName("분양 게시글 삭제 - ES에 저장된 분양 게시글 정보가 없는 경우")
-  void deleteAdoption_shouldThrowAdoptionDocumentNotFound_whenAdoptionDocumentIsNotExist() {
-    //given
-    User user = spy(User.builder().build());
-    Adoption adoption = spy(Adoption.builder()
-        .user(user)
-        .status(ADOPTING)
-        .images(List.of(new S3Object("url1"), new S3Object("url2")))
-        .build());
-
-    given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
-    given(user.getId()).willReturn(3L);
-    given(adoption.getId()).willReturn(1L);
-    given(adoptionSearchRepository.findById(anyLong())).willReturn(Optional.empty());
-    //when & then
-    assertThrows(AdoptionDocumentNotFoundException.class,
-        () -> adoptionService.deleteAdoption(1L, 3L));
   }
 
   @Test

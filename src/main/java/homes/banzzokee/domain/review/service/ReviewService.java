@@ -1,14 +1,13 @@
 package homes.banzzokee.domain.review.service;
 
 import static homes.banzzokee.event.type.EntityAction.REVIEW_CREATED;
+import static homes.banzzokee.event.type.EntityAction.REVIEW_DELETED;
+import static homes.banzzokee.event.type.EntityAction.REVIEW_UPDATED;
 
 import homes.banzzokee.domain.adoption.dao.AdoptionRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
-import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
 import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
-import homes.banzzokee.domain.adoption.elasticsearch.document.subclass.ReviewDocumentVo;
 import homes.banzzokee.domain.adoption.entity.Adoption;
-import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.review.dao.ReviewRepository;
@@ -51,7 +50,6 @@ public class ReviewService {
   private final AdoptionRepository adoptionRepository;
   private final FileUploadService fileUploadService;
   private final ReviewRepository reviewRepository;
-  private final AdoptionSearchRepository adoptionSearchRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final AdoptionSearchQueryRepository adoptionSearchQueryRepository;
 
@@ -78,8 +76,6 @@ public class ReviewService {
 
     Review savedReview = registerOrRestoreReviewToDataBase(request, adoption, user,
         uploadedReviewImages);
-
-    registerReviewInAdoptionDocument(savedReview, request.getAdoptionId());
 
     eventPublisher.publishEvent(EntityEvent.of(savedReview.getId(), REVIEW_CREATED));
   }
@@ -115,7 +111,7 @@ public class ReviewService {
     review.update(request.getTitle(), request.getContent(), uploadedReviewImages);
     Review savedReview = reviewRepository.save(review);
 
-    registerReviewInAdoptionDocument(savedReview, savedReview.getAdoption().getId());
+    eventPublisher.publishEvent(EntityEvent.of(savedReview.getId(), REVIEW_UPDATED));
 
     deleteOldImages(oldImages);
     return ReviewResponse.fromEntity(savedReview);
@@ -135,11 +131,9 @@ public class ReviewService {
       throw new NoAuthorizedException();
     }
 
-    deleteReviewInAdoptionDocument(review.getAdoption().getId());
-
-    LocalDateTime now = LocalDateTime.now();
-    review.delete(now);
+    review.delete(LocalDateTime.now());
     reviewRepository.save(review);
+    eventPublisher.publishEvent(EntityEvent.of(review.getId(), REVIEW_DELETED));
   }
 
   public Slice<ReviewSearchResponse> getReviewList(Pageable pageable) {
@@ -149,24 +143,6 @@ public class ReviewService {
         .map(ReviewSearchResponse::fromDocument)
         .toList());
   }
-
-  private void deleteReviewInAdoptionDocument(long adoptionId) {
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
-        .orElseThrow(AdoptionDocumentNotFoundException::new);
-    adoptionDocument.deleteReview();
-    adoptionSearchRepository.save(adoptionDocument);
-  }
-
-  private void registerReviewInAdoptionDocument(Review savedReview,
-      long adoptionId) {
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(adoptionId)
-        .orElseThrow(AdoptionDocumentNotFoundException::new);
-
-    adoptionDocument.updateReview(ReviewDocumentVo.fromEntity(savedReview));
-
-    adoptionSearchRepository.save(adoptionDocument);
-  }
-
 
   private List<S3Object> uploadReviewImages(List<MultipartFile> images) {
     if (images == null) {

@@ -11,7 +11,9 @@ public enum EntityAction {
   ADOPTION_DELETED("adoption.deleted"),
   ADOPTION_STATUS_CHANGED("adoption.status.changed"),
 
-  REVIEW_CREATED("review.created");
+  REVIEW_CREATED("review.created"),
+  REVIEW_UPDATED("review.updated"),
+  REVIEW_DELETED("review.deleted");
 
   private final String routingKey;
 }
