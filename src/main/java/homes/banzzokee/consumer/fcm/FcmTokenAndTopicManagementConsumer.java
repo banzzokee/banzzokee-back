@@ -21,7 +21,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +39,14 @@ public class FcmTokenAndTopicManagementConsumer {
   private final FcmService fcmService;
 
   @Transactional
-  @RabbitListener(queues = "queue.manage.fcm.token", errorHandler = "customErrorHandler")
-  public void handleFcmTokenRegisteredEvent(FcmTokenRegisteredEvent event) {
+  @RabbitListener(queues = {
+      "queue.manage.fcm.token",
+      "dlq.manage.fcm.token"
+  }, errorHandler = "customErrorHandler")
+  public void handleFcmTokenRegisteredEvent(@Payload FcmTokenRegisteredEvent event,
+      @Header(required = false, name = "x-death") Map<String, Object> xDeath,
+      Message mqMessage
+  ) {
     FcmTokenDto payload = event.getPayload();
 
     String token = payload.getToken();
@@ -52,8 +61,13 @@ public class FcmTokenAndTopicManagementConsumer {
   }
 
   @Transactional
-  @RabbitListener(queues = "queue.manage.fcm.topic", errorHandler = "customErrorHandler")
-  public void handleFcmTopicStatusChangeEvent(FcmTopicStatusChangeEvent event) {
+  @RabbitListener(queues = {
+      "queue.manage.fcm.topic",
+      "dlq.manage.fcm.topic"
+  }, errorHandler = "customErrorHandler")
+  public void handleFcmTopicStatusChangeEvent(@Payload FcmTopicStatusChangeEvent event,
+      @Header(required = false, name = "x-death") Map<String, Object> xDeath,
+      Message mqMessage) {
     FcmTopicStatusDto payload = event.getPayload();
 
     Long userId = payload.getUserId();
