@@ -22,7 +22,10 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +43,14 @@ public class FcmNotificationConsumer {
   @Transactional
   @RabbitListener(queues = {
       "queue.notify.fcm.adoption",
-      "queue.notify.fcm.review"
+      "queue.notify.fcm.review",
+      "dlq.notify.fcm.adoption",
+      "dlq.notify.fcm.review"
   }, errorHandler = "customErrorHandler")
-  public void handleEvent(EntityEvent event) {
+  public void handleEvent(@Payload EntityEvent event,
+      @Header(required = false, name = "x-death") Map<String, Object> xDeath,
+      Message mqMessage) {
+
     TopicMessage message = createTopicMessage(event.getPayload());
 
     try {

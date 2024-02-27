@@ -76,7 +76,7 @@ class FcmTokenAndTopicManagementConsumerTest {
         .build();
 
     assertThrows(TokenNotFoundException.class,
-        () -> consumer.handleFcmTokenRegisteredEvent(event));
+        () -> consumer.handleFcmTokenRegisteredEvent(event, null, null));
   }
 
   @Test
@@ -109,7 +109,7 @@ class FcmTokenAndTopicManagementConsumerTest {
         .payload(FcmTokenDto.fromEntity(fcmToken))
         .build();
 
-    consumer.handleFcmTokenRegisteredEvent(event);
+    consumer.handleFcmTokenRegisteredEvent(event, null, null);
 
     // then
     verify(fcmService, times(2)).subscribeToTopic(anyList(), anyString());
@@ -148,7 +148,7 @@ class FcmTokenAndTopicManagementConsumerTest {
             .build())
         .build();
 
-    consumer.handleFcmTopicStatusChangeEvent(event);
+    consumer.handleFcmTopicStatusChangeEvent(event, null, null);
 
     // then
     ArgumentCaptor<List<String>> tokensCaptor = ArgumentCaptor.forClass(List.class);
@@ -195,7 +195,7 @@ class FcmTokenAndTopicManagementConsumerTest {
             .build())
         .build();
 
-    consumer.handleFcmTopicStatusChangeEvent(event);
+    consumer.handleFcmTopicStatusChangeEvent(event, null, null);
 
     // then
     ArgumentCaptor<List<String>> tokensCaptor = ArgumentCaptor.forClass(List.class);

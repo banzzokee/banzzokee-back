@@ -92,7 +92,7 @@ class FcmNotificationConsumerTest {
 
     // when & then
     assertThrows(AdoptionNotFoundException.class,
-        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_CREATED)));
+        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_CREATED), null, null));
   }
 
   @Test
@@ -109,7 +109,7 @@ class FcmNotificationConsumerTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
 
     // when
-    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_CREATED));
+    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_CREATED), null, null);
 
     // then
     // 메시지 전송 검증
@@ -143,7 +143,7 @@ class FcmNotificationConsumerTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
 
     // when
-    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED));
+    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED), null, null);
 
     // then
     // 메시지 전송 검증
@@ -177,7 +177,7 @@ class FcmNotificationConsumerTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
 
     // when
-    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED));
+    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED), null, null);
 
     // then
     // 메시지 전송 검증
@@ -211,7 +211,7 @@ class FcmNotificationConsumerTest {
     given(adoptionRepository.findById(anyLong())).willReturn(Optional.of(adoption));
 
     // when
-    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED));
+    consumer.handleEvent(EntityEvent.of(1L, ADOPTION_STATUS_CHANGED), null, null);
 
     // then
     // 메시지 전송 검증
@@ -241,10 +241,10 @@ class FcmNotificationConsumerTest {
   void handleEvent_when_actionInvalid_then_throwBusinessException() {
     // when & then
     assertThrows(BusinessException.class,
-        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_DELETED)));
+        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_DELETED), null, null));
 
     assertThrows(BusinessException.class,
-        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_UPDATED)));
+        () -> consumer.handleEvent(EntityEvent.of(1L, ADOPTION_UPDATED), null, null));
   }
 
   @Test
@@ -255,7 +255,7 @@ class FcmNotificationConsumerTest {
 
     // when & then
     assertThrows(ReviewNotFoundException.class,
-        () -> consumer.handleEvent(EntityEvent.of(1L, REVIEW_CREATED)));
+        () -> consumer.handleEvent(EntityEvent.of(1L, REVIEW_CREATED), null, null));
   }
 
   @Test
@@ -268,7 +268,7 @@ class FcmNotificationConsumerTest {
     given(reviewRepository.findById(anyLong())).willReturn(Optional.of(review));
 
     // when
-    consumer.handleEvent(EntityEvent.of(1L, REVIEW_CREATED));
+    consumer.handleEvent(EntityEvent.of(1L, REVIEW_CREATED), null, null);
 
     // then
     // 메시지 전송 검증

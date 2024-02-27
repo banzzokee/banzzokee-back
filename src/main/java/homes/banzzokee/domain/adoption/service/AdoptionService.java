@@ -13,10 +13,7 @@ import homes.banzzokee.domain.adoption.dto.AdoptionSearchResponse;
 import homes.banzzokee.domain.adoption.dto.AdoptionStatusChangeRequest;
 import homes.banzzokee.domain.adoption.dto.AdoptionUpdateRequest;
 import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchQueryRepository;
-import homes.banzzokee.domain.adoption.elasticsearch.dao.AdoptionSearchRepository;
-import homes.banzzokee.domain.adoption.elasticsearch.document.AdoptionDocument;
 import homes.banzzokee.domain.adoption.entity.Adoption;
-import homes.banzzokee.domain.adoption.exception.AdoptionDocumentNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AdoptionIsDeletedException;
 import homes.banzzokee.domain.adoption.exception.AdoptionNotFoundException;
 import homes.banzzokee.domain.adoption.exception.AlreadyFinishedAdoptionException;
@@ -57,7 +54,6 @@ public class AdoptionService {
   private final UserRepository userRepository;
   private final FileUploadService fileUploadService;
   private final AdoptionRepository adoptionRepository;
-  private final AdoptionSearchRepository adoptionSearchRepository;
   private final AdoptionSearchQueryRepository queryRepository;
   private final BookmarkRepository bookmarkRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -73,9 +69,6 @@ public class AdoptionService {
 
     Adoption savedAdoption = registerAdoptionToDataBase(request, user, uploadedImages);
     eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_CREATED));
-
-    // TODO: consumer에서 처리
-    registerAdoptionToElasticSearch(savedAdoption);
   }
 
   public AdoptionResponse getAdoption(long adoptionId, UserDetailsImpl userDetails) {
@@ -121,12 +114,6 @@ public class AdoptionService {
     Adoption savedAdoption = adoptionRepository.save(adoption);
     eventPublisher.publishEvent(EntityEvent.of(savedAdoption.getId(), ADOPTION_UPDATED));
 
-    // TODO: consumer에서 처리
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
-        savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
-    adoptionDocument.update(savedAdoption);
-    adoptionSearchRepository.save(adoptionDocument);
-
     deleteOldImages(oldImages);
   }
 
@@ -167,12 +154,6 @@ public class AdoptionService {
     }
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
-
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
-        savedAdoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
-    adoptionDocument.updateStatus(savedAdoption);
-    adoptionSearchRepository.save(adoptionDocument);
-
     eventPublisher.publishEvent(
         EntityEvent.of(savedAdoption.getId(), ADOPTION_STATUS_CHANGED));
   }
@@ -186,18 +167,11 @@ public class AdoptionService {
     }
     throwIfRequestUserIsNotMatchedAdoptionWriter(adoption, userId);
 
-    AdoptionDocument adoptionDocument = adoptionSearchRepository.findById(
-        adoption.getId()).orElseThrow(AdoptionDocumentNotFoundException::new);
-
     adoption.delete();
-    adoptionDocument.delete(adoption);
 
     Adoption savedAdoption = adoptionRepository.save(adoption);
     bookmarkRepository.deleteByAdoption(savedAdoption);
     eventPublisher.publishEvent(EntityEvent.of(adoption.getId(), ADOPTION_DELETED));
-
-    // TODO: consumer에서 처리
-    adoptionSearchRepository.save(adoptionDocument);
   }
 
   public Slice<AdoptionSearchResponse> getAdoptionList(AdoptionSearchRequest request,
@@ -286,9 +260,4 @@ public class AdoptionService {
         .status(AdoptionStatus.ADOPTING)
         .build());
   }
-
-  private void registerAdoptionToElasticSearch(Adoption adoption) {
-    adoptionSearchRepository.save(AdoptionDocument.fromEntity(adoption));
-  }
-
 }
