@@ -1,5 +1,11 @@
 package homes.banzzokee.global.config.rabbitmq;
 
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_MANAGE_FCM_TOKEN;
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_MANAGE_FCM_TOPIC;
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_NOTIFY_FCM_ADOPTION;
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_NOTIFY_FCM_REVIEW;
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_SYNC_ELASTICSEARCH_ADOPTION;
+import static homes.banzzokee.global.config.rabbitmq.Queue.DLQ_SYNC_ELASTICSEARCH_REVIEW;
 import static homes.banzzokee.global.config.rabbitmq.Queue.MANAGE_FCM_TOKEN;
 import static homes.banzzokee.global.config.rabbitmq.Queue.MANAGE_FCM_TOPIC;
 import static homes.banzzokee.global.config.rabbitmq.Queue.NOTIFY_FCM_ADOPTION;
@@ -11,6 +17,7 @@ import static homes.banzzokee.global.config.rabbitmq.Queue.SYNC_ELASTICSEARCH_RE
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,6 +30,13 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMqConfig {
 
   private static final String EXCHANGE_NAME = "amq.topic";
+  private static final String DLQ_EXCHANGE_NAME = "dlq.topic";
+
+  private Queue queueWithDlx(homes.banzzokee.global.config.rabbitmq.Queue queue) {
+    return QueueBuilder.durable(queue.getName())
+        .withArgument("x-dead-letter-exchange", DLQ_EXCHANGE_NAME)
+        .build();
+  }
 
   private Queue queue(homes.banzzokee.global.config.rabbitmq.Queue queue) {
     return new Queue(queue.getName(), true);
@@ -34,23 +48,28 @@ public class RabbitMqConfig {
   }
 
   @Bean
+  TopicExchange dlqExchange() {
+    return new TopicExchange(DLQ_EXCHANGE_NAME);
+  }
+
+  @Bean
   Queue syncEsAdoptionQueue() {
-    return queue(SYNC_ELASTICSEARCH_ADOPTION);
+    return queueWithDlx(SYNC_ELASTICSEARCH_ADOPTION);
   }
 
   @Bean
   Queue syncEsReviewQueue() {
-    return queue(SYNC_ELASTICSEARCH_REVIEW);
+    return queueWithDlx(SYNC_ELASTICSEARCH_REVIEW);
   }
 
   @Bean
   Queue notifyFcmAdoption() {
-    return queue(NOTIFY_FCM_ADOPTION);
+    return queueWithDlx(NOTIFY_FCM_ADOPTION);
   }
 
   @Bean
   Queue notifyFcmReview() {
-    return queue(NOTIFY_FCM_REVIEW);
+    return queueWithDlx(NOTIFY_FCM_REVIEW);
   }
 
   @Bean
@@ -60,12 +79,43 @@ public class RabbitMqConfig {
 
   @Bean
   Queue manageFcmToken() {
-    return queue(MANAGE_FCM_TOKEN);
+    return queueWithDlx(MANAGE_FCM_TOKEN);
   }
 
   @Bean
   Queue manageFcmTopic() {
-    return queue(MANAGE_FCM_TOPIC);
+    return queueWithDlx(MANAGE_FCM_TOPIC);
+  }
+
+
+  @Bean
+  Queue dlqSyncEsAdoptionQueue() {
+    return queue(DLQ_SYNC_ELASTICSEARCH_ADOPTION);
+  }
+
+  @Bean
+  Queue dlqSyncEsReviewQueue() {
+    return queue(DLQ_SYNC_ELASTICSEARCH_REVIEW);
+  }
+
+  @Bean
+  Queue dlqNotifyFcmAdoption() {
+    return queue(DLQ_NOTIFY_FCM_ADOPTION);
+  }
+
+  @Bean
+  Queue dlqNotifyFcmReview() {
+    return queue(DLQ_NOTIFY_FCM_REVIEW);
+  }
+
+  @Bean
+  Queue dlqManageFcmToken() {
+    return queue(DLQ_MANAGE_FCM_TOKEN);
+  }
+
+  @Bean
+  Queue dlqManageFcmTopic() {
+    return queue(DLQ_MANAGE_FCM_TOPIC);
   }
 
   @Bean
@@ -129,6 +179,62 @@ public class RabbitMqConfig {
     return BindingBuilder
         .bind(manageFcmTopic())
         .to(exchange())
+        .with("topic.#");
+  }
+
+  @Bean
+  Binding dlqSyncEsAdoptionBinding() {
+    return BindingBuilder
+        .bind(dlqSyncEsAdoptionQueue())
+        .to(dlqExchange())
+        .with("adoption.*");
+  }
+
+  @Bean
+  Binding dlqSyncEsReviewBinding() {
+    return BindingBuilder
+        .bind(dlqSyncEsReviewQueue())
+        .to(dlqExchange())
+        .with("review.#");
+  }
+
+  @Bean
+  Binding dlqNotifyFcmAdoptionBinding() {
+    return BindingBuilder
+        .bind(dlqNotifyFcmAdoption())
+        .to(dlqExchange())
+        .with("adoption.created");
+  }
+
+  @Bean
+  Binding dlqNotifyFcmAdoptionStatusBinding() {
+    return BindingBuilder
+        .bind(dlqNotifyFcmAdoption())
+        .to(dlqExchange())
+        .with("adoption.status.changed");
+  }
+
+  @Bean
+  Binding dlqNotifyFcmReviewBinding() {
+    return BindingBuilder
+        .bind(dlqNotifyFcmReview())
+        .to(dlqExchange())
+        .with("review.created");
+  }
+
+  @Bean
+  Binding dlqManageFcmTokenBinding() {
+    return BindingBuilder
+        .bind(dlqManageFcmToken())
+        .to(dlqExchange())
+        .with("token.registered");
+  }
+
+  @Bean
+  Binding dlqManageFcmTopicBinding() {
+    return BindingBuilder
+        .bind(dlqManageFcmTopic())
+        .to(dlqExchange())
         .with("topic.#");
   }
 
