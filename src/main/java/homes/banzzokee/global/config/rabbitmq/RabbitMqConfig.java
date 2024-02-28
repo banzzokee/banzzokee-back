@@ -123,7 +123,7 @@ public class RabbitMqConfig {
     return BindingBuilder
         .bind(syncEsAdoptionQueue())
         .to(exchange())
-        .with("adoption.*");
+        .with("adoption.#");
   }
 
   @Bean
@@ -187,7 +187,7 @@ public class RabbitMqConfig {
     return BindingBuilder
         .bind(dlqSyncEsAdoptionQueue())
         .to(dlqExchange())
-        .with("adoption.*");
+        .with("adoption.#");
   }
 
   @Bean
