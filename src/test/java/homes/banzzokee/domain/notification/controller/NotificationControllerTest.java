@@ -72,8 +72,6 @@ class NotificationControllerTest {
         .willReturn(new SliceImpl<>(List.of(
             NotificationDto.builder()
                 .id(1L)
-                .title("제목")
-                .body("내용")
                 .notifiedAt(LocalDateTime.now())
                 .build()
         ), PageRequest.of(0, 5), false));
@@ -85,8 +83,6 @@ class NotificationControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].id").value(1L))
-        .andExpect(jsonPath("$.content[0].title").value("제목"))
-        .andExpect(jsonPath("$.content[0].body").value("내용"))
         .andExpect(jsonPath("$.content[0].notifiedAt").exists());
 
     ArgumentCaptor<PageRequest> pageRequestCaptor = ArgumentCaptor.forClass(
