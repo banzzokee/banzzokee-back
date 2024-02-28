@@ -32,8 +32,7 @@ public class CustomNotificationRepositoryImpl implements
     List<NotificationDto> contents = queryFactory
         .select(Projections.constructor(NotificationDto.class,
             notificationReceiver.notification.id,
-            notificationReceiver.notification.title,
-            notificationReceiver.notification.body,
+            notificationReceiver.notification.message,
             notificationReceiver.notification.createdAt))
         .from(notificationReceiver)
         .join(notification)

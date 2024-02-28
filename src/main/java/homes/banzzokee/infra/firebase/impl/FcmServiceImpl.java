@@ -3,7 +3,6 @@ package homes.banzzokee.infra.firebase.impl;
 import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.TopicManagementResponse;
@@ -31,28 +30,14 @@ public class FcmServiceImpl implements FcmService {
   @Override
   public String sendTopicMessage(TopicMessage message)
       throws FirebaseMessagingException {
-    return FirebaseMessaging.getInstance().send(Message.builder()
-        .setNotification(Notification.builder()
-            .setTitle(message.getTitle())
-            .setBody(message.getBody())
-            .setImage(message.getImage())
-            .build())
-        .setTopic(message.getTopic())
-        .putAllData(message.getData())
-        .build());
+    return FirebaseMessaging.getInstance().send(message.toFcmMessage());
   }
 
   @Override
   public BatchResponse sendMultiMessage(MultiMessage message)
       throws FirebaseMessagingException {
-    return FirebaseMessaging.getInstance().sendEachForMulticast(MulticastMessage.builder()
-        .setNotification(Notification.builder()
-            .setTitle(message.getTitle())
-            .setBody(message.getBody())
-            .setImage(message.getImage())
-            .build())
-        .putAllData(message.getData())
-        .addAllTokens(message.getTokens())
-        .build());
+
+
+    return FirebaseMessaging.getInstance().sendEachForMulticast(message.toFcmMessage());
   }
 }

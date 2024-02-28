@@ -128,10 +128,7 @@ public class FcmNotificationConsumer {
     List<User> users = fcmSubscriptionRepository.findUsersByTopic(message.getTopic());
 
     return Notification.of(
-        message.getTopic(),
-        message.getTitle(),
-        message.getBody(),
-        message.getImage(),
+        message.toJson(),
         users);
   }
 }
