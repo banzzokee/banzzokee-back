@@ -127,10 +127,7 @@ class FcmNotificationConsumerTest {
         ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(notificationCaptor.capture());
     Notification notification = notificationCaptor.getValue();
-    assertEquals("topic.shelter.10", notification.getTopic());
-    assertEquals("새로운 반쪽이가 가족을 찾고있어요!", notification.getTitle());
-    assertEquals(adoption.getTitle(), notification.getBody());
-    assertEquals(IMAGE, notification.getImage());
+    assertEquals(message.toJson(), notification.getMessage());
     assertThat(notification.getReceivers()).hasSize(2);
   }
 
@@ -161,10 +158,7 @@ class FcmNotificationConsumerTest {
         ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(notificationCaptor.capture());
     Notification notification = notificationCaptor.getValue();
-    assertEquals("topic.adoption.1", notification.getTopic());
-    assertEquals("반쪽이가 가족을 만날 예정이에요!", notification.getTitle());
-    assertNull(notification.getBody());
-    assertNull(notification.getImage());
+    assertEquals(message.toJson(), notification.getMessage());
     assertThat(notification.getReceivers()).hasSize(2);
   }
 
@@ -195,10 +189,7 @@ class FcmNotificationConsumerTest {
         ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(notificationCaptor.capture());
     Notification notification = notificationCaptor.getValue();
-    assertEquals("topic.adoption.1", notification.getTopic());
-    assertEquals("반쪽이가 가족을 찾고있어요!", notification.getTitle());
-    assertNull(notification.getBody());
-    assertNull(notification.getImage());
+    assertEquals(message.toJson(), notification.getMessage());
     assertThat(notification.getReceivers()).hasSize(2);
   }
 
@@ -229,10 +220,7 @@ class FcmNotificationConsumerTest {
         ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(notificationCaptor.capture());
     Notification notification = notificationCaptor.getValue();
-    assertEquals("topic.adoption.1", notification.getTopic());
-    assertEquals("반쪽이가 가족을 만났어요!", notification.getTitle());
-    assertNull(notification.getBody());
-    assertNull(notification.getImage());
+    assertEquals(message.toJson(), notification.getMessage());
     assertThat(notification.getReceivers()).hasSize(2);
   }
 
@@ -286,10 +274,7 @@ class FcmNotificationConsumerTest {
         ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(notificationCaptor.capture());
     Notification notification = notificationCaptor.getValue();
-    assertEquals("topic.adoption.1", notification.getTopic());
-    assertEquals("가족을 만난 반쪽이의 소식이 도착했어요!", notification.getTitle());
-    assertNull(notification.getBody());
-    assertNull(notification.getImage());
+    assertEquals(message.toJson(), notification.getMessage());
     assertThat(notification.getReceivers()).hasSize(2);
   }
 

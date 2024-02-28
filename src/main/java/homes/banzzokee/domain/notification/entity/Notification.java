@@ -6,6 +6,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 import homes.banzzokee.domain.common.entity.BaseEntity;
 import homes.banzzokee.domain.user.entity.User;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -26,24 +27,15 @@ public class Notification extends BaseEntity {
   @GeneratedValue(strategy = IDENTITY)
   private Long id;
 
-  private final String topic;
-
-  private final String title;
-
-  private final String body;
-
-  private final String image;
+  @Column(columnDefinition = "json")
+  private final String message;
 
   @OneToMany(mappedBy = "notification", cascade = ALL)
   private final List<NotificationReceiver> receivers;
 
-  public static Notification of(String topic, String title,
-      String body, String image, List<User> users) {
+  public static Notification of(String message, List<User> users) {
     Notification notification = Notification.builder()
-        .topic(topic)
-        .title(title)
-        .body(body)
-        .image(image)
+        .message(message)
         .receivers(new ArrayList<>())
         .build();
 

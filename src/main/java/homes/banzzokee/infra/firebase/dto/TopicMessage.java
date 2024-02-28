@@ -6,7 +6,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class TopicMessage extends Message {
+public class TopicMessage extends Message<com.google.firebase.messaging.Message> {
 
   private final String topic;
 
@@ -20,5 +20,22 @@ public class TopicMessage extends Message {
         .image(image)
         .data(data)
         .build();
+  }
+
+  @Override
+  public com.google.firebase.messaging.Message toFcmMessage() {
+    if (fcmMessage == null) {
+      fcmMessage = com.google.firebase.messaging.Message.builder()
+          .setTopic(topic)
+          .putAllData(getData())
+          .setNotification(
+              com.google.firebase.messaging.Notification.builder()
+                  .setTitle(getTitle())
+                  .setBody(getBody())
+                  .setImage(getImage())
+                  .build())
+          .build();
+    }
+    return fcmMessage;
   }
 }
