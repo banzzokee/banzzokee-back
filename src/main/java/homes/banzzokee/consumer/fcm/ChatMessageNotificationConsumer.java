@@ -79,6 +79,7 @@ public class ChatMessageNotificationConsumer {
     Map<String, String> data = new HashMap<>();
     data.put("chatRoomId", chatMessage.getRoom().getId().toString());
     data.put("chatMessageId", chatMessage.getId().toString());
+    data.put("adoptionId", chatMessage.getRoom().getAdoption().getId().toString());
 
     List<String> tokens = fcmTokenRepository.findAllByUserId(
             chatMessage.getReceiver().getId())
